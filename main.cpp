@@ -8,8 +8,6 @@ using namespace sf;
 int main()
 {
     RenderWindow window(VideoMode(1600, 900), "Sonic");
-    CircleShape shape(100.f);
-    shape.setFillColor(Color::Green);
 
     while (window.isOpen())
     {
@@ -21,7 +19,6 @@ int main()
         }
 
         window.clear();
-        window.draw(shape);
         window.display();
     }
 
