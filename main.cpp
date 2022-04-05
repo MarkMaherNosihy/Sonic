@@ -20,7 +20,7 @@ int main()
     RenderWindow window(VideoMode(1600, 900), "Sonic");
     window.setFramerateLimit(60);
     Player sonic;
-    sonic.PlayerTex.loadFromFile("Sonic-Character.png");
+    sonic.PlayerTex.loadFromFile("Assets/Textures/Sonic-Character.png");
     sonic.PlayerSprite.setTexture(sonic.PlayerTex);
     sonic.PlayerSprite.setTextureRect(IntRect(sonic.Idle_adminator * 59.1578, 0 * 60, 59.1578, 60));
     sonic.PlayerSprite.setPosition(200, 700);
