@@ -40,33 +40,63 @@ int main()
         if (sonic.idle_delay <= 10) sonic.idle_delay++;
 
         if (!Keyboard::isKeyPressed(Keyboard::D) && !Keyboard::isKeyPressed(Keyboard::A) && !Keyboard::isKeyPressed(Keyboard::W) && !Keyboard::isKeyPressed(Keyboard::S)) {
+            sonic.Running = false;
             if (sonic.idle_delay >= 10) {
                 sonic.idle_delay = 0;
                 if (sonic.Idle_adminator == 7) sonic.idle1 = true;
                 else if(sonic.Idle_adminator == 0) sonic.idle1 = false;
                 if (sonic.idle1) sonic.Idle_adminator--;
                 else sonic.Idle_adminator++;
-                sonic.PlayerSprite.setTextureRect(IntRect(sonic.Idle_adminator * 48.75, 0 * 60, 48.75, 51));
+                if(!sonic.Running) sonic.PlayerSprite.setTextureRect(IntRect(sonic.Idle_adminator * 48.75, 0 * 60, 48.75, 51));
             }
         }
-        if (Keyboard::isKeyPressed(Keyboard::Key::A)) {
+        if (Keyboard::isKeyPressed(Keyboard::Key::A) && !Keyboard::isKeyPressed(Keyboard::LShift)) {
             sonic.PlayerSprite.move(-7, 0);
             if (sonic.delay >= 3) {
                 sonic.sonic_adminator++;
                 sonic.delay = 0;
-                sonic.sonic_adminator = sonic.sonic_adminator % 11;
+                sonic.sonic_adminator %= 11;
                 sonic.PlayerSprite.setTextureRect(IntRect(sonic.sonic_adminator * 48.86, 3 * 60, 48.86, 51));
             }
         }
-        if (Keyboard::isKeyPressed(Keyboard::Key::D)) {
+        if (Keyboard::isKeyPressed(Keyboard::Key::D) && !Keyboard::isKeyPressed(Keyboard::LShift)) {
             sonic.PlayerSprite.move(7, 0);
             if (sonic.delay >= 3) {
                 sonic.sonic_adminator++;
                 sonic.delay = 0;
-                sonic.sonic_adminator = sonic.sonic_adminator % 11;
+                sonic.sonic_adminator %= 11;
                 sonic.PlayerSprite.setTextureRect(IntRect(sonic.sonic_adminator * 48.86, 1 * 60, 48.86, 51));
             }
         }
+
+        if (Keyboard::isKeyPressed(Keyboard::Key::LShift) && Keyboard::isKeyPressed(Keyboard::Key::D)) {
+            sonic.PlayerSprite.move(10, 0);
+            if (sonic.delay >= 3) {
+                sonic.sonic_adminator++;
+                sonic.delay = 0;
+                if(sonic.Running) sonic.sonic_adminator = (sonic.sonic_adminator % 5) + 18;
+                else sonic.sonic_adminator = (sonic.sonic_adminator % 12) + 12;
+                if (sonic.sonic_adminator >= 15) {
+                    sonic.Running = true;
+                }
+                sonic.PlayerSprite.setTextureRect(IntRect(sonic.sonic_adminator * 48.86, 1 * 60, 48.86, 51));
+            }
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Key::LShift) && Keyboard::isKeyPressed(Keyboard::Key::A)) {
+            sonic.PlayerSprite.move(-10, 0);
+            if (sonic.delay >= 3) {
+                sonic.sonic_adminator++;
+                sonic.delay = 0;
+                if (sonic.Running) sonic.sonic_adminator = (sonic.sonic_adminator % 5) + 18;
+                else sonic.sonic_adminator = (sonic.sonic_adminator % 12) + 12;
+                if (sonic.sonic_adminator >= 15) {
+                    sonic.Running = true;
+                }
+                sonic.PlayerSprite.setTextureRect(IntRect(sonic.sonic_adminator * 48.86, 3 * 60, 48.86, 51));
+            }
+        }
+
         if (sonic.PlayerSprite.getGlobalBounds().intersects(ground.getGlobalBounds())) {
             sonic.on_ground = true;
             sonic.velocity_jump = 0;
@@ -78,7 +108,7 @@ int main()
         }
         if (!sonic.on_ground){
             sonic.sonic_adminator++;
-            sonic.sonic_adminator = sonic.sonic_adminator % 16;
+            sonic.sonic_adminator %= 16;
             sonic.PlayerSprite.setTextureRect(IntRect(sonic.sonic_adminator * 49, 2 * 60, 49, 51));
         }
         sonic.PlayerSprite.move(0, -sonic.velocity_jump);
