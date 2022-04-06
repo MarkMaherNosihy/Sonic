@@ -35,6 +35,11 @@ struct Wall {
 
 // main function
 
+void setWallPos(Wall& wall, int x, int y) {
+    wall.WallSprite.setPosition(x, y);
+    wall.WallColl.setPosition(x + 15, y);
+}
+
 int main()
 {
     // rendering window
@@ -65,17 +70,17 @@ int main()
         jumppad[i].JumppadSprite.setTexture(jumppad[i].JumppadTX);
         jumppad[i].JumppadSprite.setTextureRect(IntRect(jumppad[i].Texnumber * 80, 543, 80, 66));
     }
-    jumppad[0].JumppadSprite.setPosition(400, 590);
+    jumppad[0].JumppadSprite.setPosition(3000, 590);
 
     for (int i = 0; i < 30; i++) {
         walls[i].WallTx.loadFromFile("Assets/Textures/Wall2.png");
         walls[i].WallSprite.setTexture(walls[i].WallTx);
         walls[i].WallSprite.setScale(1.3, 1.3);
-        walls[i].WallColl.setSize(Vector2f(328.9f, 1.f));
+        walls[i].WallColl.setSize(Vector2f(298.9f, 1.f));
     }
 
-    walls[0].WallSprite.setPosition(600, 300);
-    walls[0].WallColl.setPosition(600, 300);
+    setWallPos(walls[0], 3400, 300);
+    setWallPos(walls[1], 4200, 200);
 
 
 
@@ -245,6 +250,7 @@ int main()
         window.draw(Map);
         window.draw(jumppad[0].JumppadSprite);
         window.draw(walls[0].WallSprite);
+        window.draw(walls[1].WallSprite);
         window.draw(sonic.PlayerSprite);
         window.display();
     }
