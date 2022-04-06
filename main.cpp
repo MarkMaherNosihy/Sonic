@@ -98,24 +98,24 @@ int main()
                 sonic.PlayerSprite.move(-10, 0);
                 camera.move(-10, 0);
                 if (sonic.delay >= 3) {
-                    sonic.sonic_adminator++;
+                    sonic.left_adminator--;
                     sonic.delay = 0;
-                    if (sonic.Running) if (sonic.sonic_adminator >= 22) sonic.sonic_adminator = 19;
-                    else sonic.sonic_adminator = (sonic.sonic_adminator % 12) + 12;
-                    if (sonic.sonic_adminator >= 17) sonic.Running = true;
-                    sonic.PlayerSprite.setTextureRect(IntRect(sonic.sonic_adminator * 48.86, 3 * 60, 48.86, 51));
+                    if (sonic.Running) if (sonic.left_adminator <= 0) sonic.left_adminator = 3;
+                    else if (sonic.left_adminator <= 0) sonic.left_adminator = 12;
+                    if (sonic.left_adminator <= 6) sonic.Running = true;
+                    sonic.PlayerSprite.setTextureRect(IntRect(sonic.left_adminator * 48.86, 3 * 60, 48.86, 51));
                 }
             }
             else {
                 sonic.PlayerSprite.move(-7, 0);
                 camera.move(-7, 0);
                 if (sonic.delay >= 3) {
-                    sonic.sonic_adminator++;
+                    sonic.left_adminator--;
                     sonic.delay = 0;
-                    if (sonic.txToggle) sonic.sonic_adminator = (sonic.sonic_adminator % 5) + 5;
-                    else sonic.sonic_adminator %= 11;
-                    if (sonic.sonic_adminator == 6) sonic.txToggle = true;
-                    sonic.PlayerSprite.setTextureRect(IntRect(sonic.sonic_adminator * 48.86, 3 * 60, 48.86, 51));
+                    if (sonic.txToggle) if (sonic.left_adminator <= 13) sonic.left_adminator = 17;
+                    else if (sonic.left_adminator <= 13) sonic.left_adminator = 22;
+                    if (sonic.left_adminator <= 17) sonic.txToggle = true;
+                    sonic.PlayerSprite.setTextureRect(IntRect(sonic.left_adminator * 48.86, 3 * 60, 48.86, 51));
                 }
             }
         }
@@ -140,7 +140,6 @@ int main()
 
         window.clear();
         window.draw(Map);
-        //window.draw(ground);
         window.draw(sonic.PlayerSprite);
         window.display();
     }
