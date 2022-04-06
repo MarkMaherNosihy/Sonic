@@ -17,6 +17,7 @@ struct Player {
     bool Running = false;
     bool idle1 = false;
     bool txToggle = false;
+    bool onWall = false;
 } sonic;
 
 struct Jumppad{
@@ -25,6 +26,12 @@ struct Jumppad{
     int Texnumber = 6, TexCnt = 0, delay = 0;
     bool TexLeft = false, jumped = false;
 } jumppad[5];
+
+struct Wall {
+    Texture WallTx;
+    Sprite WallSprite;
+    RectangleShape WallColl;
+} walls[30];
 
 // main function
 
@@ -43,7 +50,7 @@ int main()
     Map.setTexture(MapTx);
     //
 
-   //// sonic player
+    //// sonic player
        // sonic texture
     sonic.PlayerTex.loadFromFile("Assets/Textures/Sonic-Character.png");
     sonic.PlayerSprite.setTexture(sonic.PlayerTex);
@@ -57,11 +64,20 @@ int main()
         jumppad[i].JumppadTX.loadFromFile("Assets/Textures/Some Sprites.png");
         jumppad[i].JumppadSprite.setTexture(jumppad[i].JumppadTX);
         jumppad[i].JumppadSprite.setTextureRect(IntRect(jumppad[i].Texnumber * 80, 543, 80, 66));
-
     }
-   
+    jumppad[0].JumppadSprite.setPosition(400, 590);
 
-    jumppad[0].JumppadSprite.setPosition(4000, 590);
+    for (int i = 0; i < 30; i++) {
+        walls[i].WallTx.loadFromFile("Assets/Textures/Wall2.png");
+        walls[i].WallSprite.setTexture(walls[i].WallTx);
+        walls[i].WallSprite.setScale(1.3, 1.3);
+        walls[i].WallColl.setSize(Vector2f(328.9f, 1.f));
+    }
+
+    walls[0].WallSprite.setPosition(600, 300);
+    walls[0].WallColl.setPosition(600, 300);
+
+
 
     /// ground rectangle shape
     RectangleShape ground(Vector2f(17000, 70)); ground.setScale(1, 1); ground.setPosition(0, 660);
@@ -184,18 +200,40 @@ int main()
             }
         }
 
+
+
         if (sonic.PlayerSprite.getGlobalBounds().intersects(ground.getGlobalBounds())) {
             sonic.on_ground = true;
             sonic.Velocity.y = 0;
             if (Keyboard::isKeyPressed(Keyboard::Key::Space)) sonic.Velocity.y = 10;
         }
         else {
-            sonic.on_ground = false;
-            sonic.sonic_adminator++;
-            sonic.sonic_adminator %= 16;
-            sonic.PlayerSprite.setTextureRect(IntRect(sonic.sonic_adminator * 49, 2 * 60, 49, 46));
-            sonic.Velocity.y -= 0.3;
+            bool found = false;
+            for (int i = 0; i < 30; i++) {
+                if (sonic.PlayerSprite.getGlobalBounds().intersects(walls[i].WallColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < walls[i].WallSprite.getPosition().y) {
+                    std::cout << "Found!\n";
+                    found = true;
+                    sonic.onWall = true;
+                    sonic.Velocity.y = 0;
+                }
+            }
+            if (!found) {
+                sonic.on_ground = false;
+                sonic.onWall = false;
+            }
+            
+            if (!sonic.on_ground && !sonic.onWall) {
+                sonic.sonic_adminator++;
+                sonic.sonic_adminator %= 16;
+                sonic.PlayerSprite.setTextureRect(IntRect(sonic.sonic_adminator * 49, 2 * 60, 49, 46));
+                sonic.Velocity.y -= 0.3;
+            }
+            if (sonic.onWall) {
+                sonic.Velocity.y = 0;
+                if (Keyboard::isKeyPressed(Keyboard::Key::Space)) sonic.Velocity.y = 10;
+            }
         }
+
         sonic.PlayerSprite.move(0, -sonic.Velocity.y);
         window.setView(camera);
 
@@ -206,6 +244,7 @@ int main()
         //draw
         window.draw(Map);
         window.draw(jumppad[0].JumppadSprite);
+        window.draw(walls[0].WallSprite);
         window.draw(sonic.PlayerSprite);
         window.display();
     }
