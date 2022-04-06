@@ -5,7 +5,7 @@
 
 using namespace sf;
 
-/// plyer struct 
+/// plyer struct
 
 struct Player {
     Texture PlayerTex;
@@ -19,44 +19,61 @@ struct Player {
     bool txToggle = false;
 } sonic;
 
+struct Jumppad{
+    Texture JumppadTX;
+    Sprite JumppadSprite;
+    int Texnumber = 6, TexCnt = 0, delay = 0;
+    bool TexLeft = false, jumped = false;
+} jumppad[5];
+
 // main function
 
 int main()
 {
-    // rendering window 
+    // rendering window
     RenderWindow window(VideoMode(1200, 760), "Sonic!");
     window.setFramerateLimit(60);
-    
-    /// map 
-       // map texture 
+
+    /// map
+       // map texture
     Texture MapTx;
     MapTx.loadFromFile("Assets/Textures/Map.png");
-       // map player 
+    // map player
     Sprite Map;
     Map.setTexture(MapTx);
-     //
-    
-    //// sonic player
-        // sonic texture
+    //
+
+   //// sonic player
+       // sonic texture
     sonic.PlayerTex.loadFromFile("Assets/Textures/Sonic-Character.png");
     sonic.PlayerSprite.setTexture(sonic.PlayerTex);
-        // sonic sprite
+    // sonic sprite
     sonic.PlayerSprite.setTextureRect(IntRect(sonic.Idle_adminator * 59.1578, 0 * 60, 59.1578, 60));
     sonic.PlayerSprite.setPosition(200, 330);
     sonic.PlayerSprite.setScale(2.5, 2.5);
     //
-    
-    /// ground rectangle shape 
+
+    for (int i = 0; i < 5; i++) {
+        jumppad[i].JumppadTX.loadFromFile("Assets/Textures/Some Sprites.png");
+        jumppad[i].JumppadSprite.setTexture(jumppad[i].JumppadTX);
+        jumppad[i].JumppadSprite.setTextureRect(IntRect(jumppad[i].Texnumber * 80, 543, 80, 66));
+
+    }
+   
+
+    jumppad[0].JumppadSprite.setPosition(400, 600);
+
+    /// ground rectangle shape
     RectangleShape ground(Vector2f(17000, 70)); ground.setScale(1, 1); ground.setPosition(0, 660);
     //
-    
-    // view camera 
+
+    // view camera
     View camera(FloatRect(0, 0, 1200, 760));
     window.setView(camera);
     //
-    
-    /// game loop 
-    
+
+    /// game loop
+
     while (window.isOpen())
     {
         Event event;
@@ -65,14 +82,12 @@ int main()
             if (event.type == Event::Closed)
                 window.close();
         }
-         
-        
-        
-       /// UPDATE 
-        
-            //Sonic movement
-        
-        if (sonic.delay <= 3) sonic.delay++;  
+
+        /// UPDATE
+
+        //Sonic movement
+
+        if (sonic.delay <= 3) sonic.delay++;
         if (sonic.idle_delay <= 10) sonic.idle_delay++;
 
         if (!Keyboard::isKeyPressed(Keyboard::D) && !Keyboard::isKeyPressed(Keyboard::A) && !Keyboard::isKeyPressed(Keyboard::W) && !Keyboard::isKeyPressed(Keyboard::S)) {
@@ -94,8 +109,8 @@ int main()
 
         if (Keyboard::isKeyPressed(Keyboard::Key::D)) {
             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
-                sonic.PlayerSprite.move(10, 0);
-                camera.move(10, 0);
+                sonic.PlayerSprite.move(15, 0);
+                camera.move(15, 0);
                 if (sonic.delay >= 3) {
                     sonic.sonic_adminator++;
                     sonic.delay = 0;
@@ -106,8 +121,8 @@ int main()
                 }
             }
             else {
-                sonic.PlayerSprite.move(7, 0);
-                camera.move(7, 0);
+                sonic.PlayerSprite.move(12, 0);
+                camera.move(12, 0);
                 if (sonic.delay >= 3) {
                     sonic.sonic_adminator++;
                     sonic.delay = 0;
@@ -119,10 +134,10 @@ int main()
             }
         }
 
-        if (Keyboard::isKeyPressed(Keyboard::Key::A)) {
+        if (Keyboard::isKeyPressed(Keyboard::Key::A) ) {
             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
-                sonic.PlayerSprite.move(-10, 0);
-                camera.move(-10, 0);
+                sonic.PlayerSprite.move(-15, 0);
+                camera.move(-15, 0);
                 if (sonic.delay >= 3) {
                     sonic.left_adminator--;
                     sonic.delay = 0;
@@ -133,8 +148,8 @@ int main()
                 }
             }
             else {
-                sonic.PlayerSprite.move(-7, 0);
-                camera.move(-7, 0);
+                sonic.PlayerSprite.move(-12, 0);
+                camera.move(-12, 0);
                 if (sonic.delay >= 3) {
                     sonic.left_adminator--;
                     sonic.delay = 0;
@@ -146,6 +161,32 @@ int main()
             }
         }
 
+        for (int i = 0; i < 5; i++) {
+            if(jumppad[i].delay <= 2) jumppad[i].delay++;
+            if (sonic.PlayerSprite.getGlobalBounds().intersects(jumppad[i].JumppadSprite.getGlobalBounds()) && !sonic.on_ground) {
+                sonic.Velocity.y = 15;
+                jumppad[i].jumped = true;
+            }
+            if (jumppad[i].jumped) {
+                if (jumppad[i].delay >= 2) {
+                    jumppad[i].delay = 0;
+                    if (jumppad[i].TexLeft) jumppad[i].Texnumber++;
+                    else jumppad[i].Texnumber--;
+                    if (jumppad[i].Texnumber >= 6) jumppad[i].jumped = false;
+                    else if (jumppad[i].Texnumber <= 0) jumppad[i].TexLeft = true;
+                    jumppad[i].JumppadSprite.setTextureRect(IntRect(jumppad[i].Texnumber * 80, 543, 80, 66));
+                }
+            }
+            else {
+                jumppad[i].JumppadSprite.setTextureRect(IntRect(6 * 80, 543, 80, 66));
+                jumppad[i].Texnumber = 6;
+                jumppad[i].TexLeft = false;
+            }
+        }
+
+
+        
+
 
         if (sonic.PlayerSprite.getGlobalBounds().intersects(ground.getGlobalBounds())) {
             sonic.on_ground = true;
@@ -156,7 +197,7 @@ int main()
             sonic.on_ground = false;
             sonic.sonic_adminator++;
             sonic.sonic_adminator %= 16;
-            sonic.PlayerSprite.setTextureRect(IntRect(sonic.sonic_adminator * 49, 2 * 60, 49, 51));
+            sonic.PlayerSprite.setTextureRect(IntRect(sonic.sonic_adminator * 49, 2 * 60, 49, 46));
             sonic.Velocity.y -= 0.3;
         }
         sonic.PlayerSprite.move(0, -sonic.Velocity.y);
@@ -165,9 +206,10 @@ int main()
 
         // clear
         window.clear();
-        
+
         //draw
         window.draw(Map);
+        window.draw(jumppad[0].JumppadSprite);
         window.draw(sonic.PlayerSprite);
         window.display();
     }
@@ -175,3 +217,5 @@ int main()
 
     return 0;
 }
+
+
