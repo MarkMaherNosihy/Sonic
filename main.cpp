@@ -49,7 +49,7 @@ int main()
     sonic.PlayerSprite.setTexture(sonic.PlayerTex);
     // sonic sprite
     sonic.PlayerSprite.setTextureRect(IntRect(sonic.Idle_adminator * 59.1578, 0 * 60, 59.1578, 60));
-    sonic.PlayerSprite.setPosition(200, 330);
+    sonic.PlayerSprite.setPosition(200, 300);
     sonic.PlayerSprite.setScale(2.5, 2.5);
     //
 
@@ -61,7 +61,7 @@ int main()
     }
    
 
-    jumppad[0].JumppadSprite.setPosition(400, 600);
+    jumppad[0].JumppadSprite.setPosition(4000, 590);
 
     /// ground rectangle shape
     RectangleShape ground(Vector2f(17000, 70)); ground.setScale(1, 1); ground.setPosition(0, 660);
@@ -163,7 +163,7 @@ int main()
 
         for (int i = 0; i < 5; i++) {
             if(jumppad[i].delay <= 2) jumppad[i].delay++;
-            if (sonic.PlayerSprite.getGlobalBounds().intersects(jumppad[i].JumppadSprite.getGlobalBounds()) && !sonic.on_ground) {
+            if (sonic.PlayerSprite.getGlobalBounds().intersects(jumppad[i].JumppadSprite.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
                 sonic.Velocity.y = 15;
                 jumppad[i].jumped = true;
             }
@@ -183,10 +183,6 @@ int main()
                 jumppad[i].TexLeft = false;
             }
         }
-
-
-        
-
 
         if (sonic.PlayerSprite.getGlobalBounds().intersects(ground.getGlobalBounds())) {
             sonic.on_ground = true;
