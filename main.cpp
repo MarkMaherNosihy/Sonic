@@ -33,6 +33,12 @@ struct Wall {
     RectangleShape WallColl;
 } walls[30];
 
+struct Coin {
+    Texture CoinTx;
+    Sprite CoinSprite;
+    int TexNumber = 0, TexDelay = 0;
+} coins[100];
+
 // main function
 
 void setWallPos(Wall& wall, int x, int y) {
@@ -78,9 +84,16 @@ int main()
         walls[i].WallSprite.setScale(1.3, 1.3);
         walls[i].WallColl.setSize(Vector2f(298.9f, 1.f));
     }
-
     setWallPos(walls[0], 3400, 300);
     setWallPos(walls[1], 4200, 200);
+    setWallPos(walls[2], 5000, 250);
+
+    for (int i = 0; i < 100; i++) {
+        coins[i].CoinTx.loadFromFile("Assets/Textures/Some Sprites.png");
+        coins[i].CoinSprite.setTexture(coins[i].CoinTx);
+        coins[i].CoinSprite.setTextureRect(IntRect(0, 463, 40, 39));
+    }
+    coins[0].CoinSprite.setPosition(200, 200);
 
 
 
@@ -110,6 +123,15 @@ int main()
 
         if (sonic.delay <= 3) sonic.delay++;
         if (sonic.idle_delay <= 10) sonic.idle_delay++;
+        for (int i = 0; i < 100; i++) {
+            if (coins[i].TexDelay <= 3) coins[i].TexDelay++;
+            if (coins[i].TexDelay >= 3) {
+                coins[i].TexDelay = 0;
+                coins[i].TexNumber++;
+                coins[i].TexNumber %= 17;
+                coins[i].CoinSprite.setTextureRect(IntRect(coins[i].TexNumber * 41.11, 461, 41.11, 41));
+            }
+        }
 
         if (!Keyboard::isKeyPressed(Keyboard::D) && !Keyboard::isKeyPressed(Keyboard::A) && !Keyboard::isKeyPressed(Keyboard::W) && !Keyboard::isKeyPressed(Keyboard::S)) {
             sonic.Running = false;
@@ -216,7 +238,6 @@ int main()
             bool found = false;
             for (int i = 0; i < 30; i++) {
                 if (sonic.PlayerSprite.getGlobalBounds().intersects(walls[i].WallColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < walls[i].WallSprite.getPosition().y) {
-                    std::cout << "Found!\n";
                     found = true;
                     sonic.onWall = true;
                     sonic.Velocity.y = 0;
@@ -249,8 +270,10 @@ int main()
         //draw
         window.draw(Map);
         window.draw(jumppad[0].JumppadSprite);
-        window.draw(walls[0].WallSprite);
-        window.draw(walls[1].WallSprite);
+        for (int i = 0; i < 3; i++) {
+            window.draw(walls[i].WallSprite);
+        }
+        window.draw(coins[0].CoinSprite);
         window.draw(sonic.PlayerSprite);
         window.display();
     }
@@ -258,5 +281,3 @@ int main()
 
     return 0;
 }
-
-
