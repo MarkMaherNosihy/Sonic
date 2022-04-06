@@ -4,6 +4,9 @@
 #include <iostream>
 
 using namespace sf;
+
+/// plyer struct 
+
 struct Player {
     Texture PlayerTex;
     Sprite PlayerSprite;
@@ -16,27 +19,44 @@ struct Player {
     bool txToggle = false;
 } sonic;
 
+// main function
+
 int main()
 {
+    // rendering window 
     RenderWindow window(VideoMode(1200, 760), "Sonic!");
     window.setFramerateLimit(60);
-
+    
+    /// map 
+       // map texture 
     Texture MapTx;
     MapTx.loadFromFile("Assets/Textures/Map.png");
-
+       // map player 
     Sprite Map;
     Map.setTexture(MapTx);
-
+     //
+    
+    //// sonic player
+        // sonic texture
     sonic.PlayerTex.loadFromFile("Assets/Textures/Sonic-Character.png");
     sonic.PlayerSprite.setTexture(sonic.PlayerTex);
+        // sonic sprite
     sonic.PlayerSprite.setTextureRect(IntRect(sonic.Idle_adminator * 59.1578, 0 * 60, 59.1578, 60));
     sonic.PlayerSprite.setPosition(200, 330);
     sonic.PlayerSprite.setScale(2.5, 2.5);
+    //
+    
+    /// ground rectangle shape 
     RectangleShape ground(Vector2f(17000, 70)); ground.setScale(1, 1); ground.setPosition(0, 660);
-
+    //
+    
+    // view camera 
     View camera(FloatRect(0, 0, 1200, 760));
     window.setView(camera);
-
+    //
+    
+    /// game loop 
+    
     while (window.isOpen())
     {
         Event event;
@@ -45,8 +65,14 @@ int main()
             if (event.type == Event::Closed)
                 window.close();
         }
-
-        if (sonic.delay <= 3) sonic.delay++; //Sonic movement 
+         
+        
+        
+       /// UPDATE 
+        
+            //Sonic movement
+        
+        if (sonic.delay <= 3) sonic.delay++;  
         if (sonic.idle_delay <= 10) sonic.idle_delay++;
 
         if (!Keyboard::isKeyPressed(Keyboard::D) && !Keyboard::isKeyPressed(Keyboard::A) && !Keyboard::isKeyPressed(Keyboard::W) && !Keyboard::isKeyPressed(Keyboard::S)) {
@@ -137,8 +163,10 @@ int main()
         window.setView(camera);
 
 
-
+        // clear
         window.clear();
+        
+        //draw
         window.draw(Map);
         window.draw(sonic.PlayerSprite);
         window.display();
