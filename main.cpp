@@ -11,7 +11,7 @@ struct Player {
     Texture PlayerTex;
     Sprite PlayerSprite;
     Vector2f Velocity;
-    int sonic_adminator = 0, Idle_adminator = 0, delay = 0, idle_delay = 0, left_adminator = 22;
+    int sonic_adminator = 0, Idle_adminator = 0, delay = 0, idle_delay = 0, left_adminator = 22, lives = 3;
     bool on_ground = true;
     bool start = false;
     bool Running = false;
@@ -27,11 +27,11 @@ struct Jumppad{
     bool TexLeft = false, jumped = false;
 } jumppad[5];
 
-struct Wall {
-    Texture WallTx;
-    Sprite WallSprite;
-    RectangleShape WallColl;
-} walls[30];
+struct FloatingTiles {
+    Texture TileTx;
+    Sprite TileSprite;
+    RectangleShape TileColl;
+} tiles[30];
 
 struct Coin {
     Texture CoinTx;
@@ -39,11 +39,19 @@ struct Coin {
     int TexNumber = 0, TexDelay = 0;
 } coins[100];
 
+struct Enemies {
+    Texture EnemyTx;
+    Sprite EnenmySprite;
+    int TexNumber = 0, TexDelay = 0, xStart, xEnd, DamageDelay = 0;
+    bool MovingRight = true;
+    bool Hit = false;
+} enemies[10];
+
 // main function
 
-void setWallPos(Wall& wall, int x, int y) {
-    wall.WallSprite.setPosition(x, y);
-    wall.WallColl.setPosition(x + 15, y);
+void setTilePos(FloatingTiles& tile, int x, int y) {
+    tile.TileSprite.setPosition(x, y);
+    tile.TileColl.setPosition(x + 15, y);
 }
 
 int main()
@@ -61,6 +69,8 @@ int main()
     Map.setTexture(MapTx);
     //
 
+    
+
     //// sonic player
        // sonic texture
     sonic.PlayerTex.loadFromFile("Assets/Textures/Sonic-Character.png");
@@ -71,30 +81,48 @@ int main()
     sonic.PlayerSprite.setScale(2.5, 2.5);
     //
 
+    ///Jumppad Setting Texture
     for (int i = 0; i < 5; i++) {
         jumppad[i].JumppadTX.loadFromFile("Assets/Textures/Some Sprites.png");
         jumppad[i].JumppadSprite.setTexture(jumppad[i].JumppadTX);
         jumppad[i].JumppadSprite.setTextureRect(IntRect(jumppad[i].Texnumber * 80, 543, 80, 66));
     }
+    //Jumppad Position
     jumppad[0].JumppadSprite.setPosition(3000, 590);
+    //
 
+    ///Floating Tiles Setting Texture
     for (int i = 0; i < 30; i++) {
-        walls[i].WallTx.loadFromFile("Assets/Textures/Wall2.png");
-        walls[i].WallSprite.setTexture(walls[i].WallTx);
-        walls[i].WallSprite.setScale(1.3, 1.3);
-        walls[i].WallColl.setSize(Vector2f(298.9f, 1.f));
+        tiles[i].TileTx.loadFromFile("Assets/Textures/Wall2.png");
+        tiles[i].TileSprite.setTexture(tiles[i].TileTx);
+        tiles[i].TileSprite.setScale(1.3, 1.3);
+        tiles[i].TileColl.setSize(Vector2f(298.9f, 1.f));
     }
-    setWallPos(walls[0], 3400, 300);
-    setWallPos(walls[1], 4200, 200);
-    setWallPos(walls[2], 5000, 250);
+    setTilePos(tiles[0], 3400, 300);
+    setTilePos(tiles[1], 4200, 200);
+    setTilePos(tiles[2], 5000, 250);
+    //
 
+    /// Coins Setting Texture
     for (int i = 0; i < 100; i++) {
         coins[i].CoinTx.loadFromFile("Assets/Textures/Some Sprites.png");
         coins[i].CoinSprite.setTexture(coins[i].CoinTx);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 463, 40, 39));
     }
+    //Coins Position
     coins[0].CoinSprite.setPosition(200, 200);
+    //
 
+    ///Enemies Setting Texture
+    for (int i = 0; i < 10; i++) {
+        enemies[i].EnemyTx.loadFromFile("Assets/Textures/Enemies.png");
+        enemies[i].EnenmySprite.setTexture(enemies[i].EnemyTx);
+        enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 54, 345, 54, 29.2));
+        enemies[i].EnenmySprite.setScale(2.5f, 2.5f);
+    }
+    enemies[0].EnenmySprite.setPosition(500, 580);
+    enemies[0].xStart = 500;
+    enemies[0].xEnd = 1100;
 
 
     /// ground rectangle shape
@@ -106,8 +134,8 @@ int main()
     window.setView(camera);
     //
 
-    /// game loop
 
+    /// game loop
     while (window.isOpen())
     {
         Event event;
@@ -119,8 +147,7 @@ int main()
 
         /// UPDATE
 
-        //Sonic movement
-
+        //Delays and coins
         if (sonic.delay <= 3) sonic.delay++;
         if (sonic.idle_delay <= 10) sonic.idle_delay++;
         for (int i = 0; i < 100; i++) {
@@ -133,6 +160,7 @@ int main()
             }
         }
 
+        //Idle Animation
         if (!Keyboard::isKeyPressed(Keyboard::D) && !Keyboard::isKeyPressed(Keyboard::A) && !Keyboard::isKeyPressed(Keyboard::W) && !Keyboard::isKeyPressed(Keyboard::S)) {
             sonic.Running = false;
             sonic.txToggle = false;
@@ -150,8 +178,10 @@ int main()
             std::cout << Mouse::getPosition().x << ' ' << Mouse::getPosition().y << '\n';
         }
 
+        //Moving Right
         if (Keyboard::isKeyPressed(Keyboard::Key::D)) {
             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
+                // Running Sonic Left
                 sonic.PlayerSprite.move(15, 0);
                 camera.move(15, 0);
                 if (sonic.delay >= 3) {
@@ -164,6 +194,7 @@ int main()
                 }
             }
             else {
+                // Walking Sonic Left
                 sonic.PlayerSprite.move(12, 0);
                 camera.move(12, 0);
                 if (sonic.delay >= 3) {
@@ -177,8 +208,10 @@ int main()
             }
         }
 
+        //Moving Left
         if (Keyboard::isKeyPressed(Keyboard::Key::A) ) {
             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
+                // Running Sonic Right
                 sonic.PlayerSprite.move(-15, 0);
                 camera.move(-15, 0);
                 if (sonic.delay >= 3) {
@@ -191,6 +224,7 @@ int main()
                 }
             }
             else {
+                // Moving Sonic Right
                 sonic.PlayerSprite.move(-12, 0);
                 camera.move(-12, 0);
                 if (sonic.delay >= 3) {
@@ -204,12 +238,55 @@ int main()
             }
         }
 
+        //Enemy System
+        for (int i = 0; i < 10; i++) {
+            if (enemies[i].TexDelay <= 8) enemies[i].TexDelay++;
+            if (enemies[i].MovingRight) {
+                enemies[i].EnenmySprite.move(4, 0);
+                if (enemies[i].TexDelay >= 8) {
+                    enemies[i].TexDelay = 0;
+                    enemies[i].TexNumber++;
+                    enemies[i].TexNumber %= 11;
+                    enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 58, 345, 58, 29.2));
+                }
+                if (enemies[i].EnenmySprite.getPosition().x >= enemies[i].xEnd) enemies[i].MovingRight = false;
+            }
+            else {
+                enemies[i].EnenmySprite.move(-4, 0);
+                if (enemies[i].TexDelay >= 8) {
+                    enemies[i].TexDelay = 0;
+                    enemies[i].TexNumber--;
+                    if (enemies[i].TexNumber <= 0) enemies[i].TexNumber = 10;
+                    enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 58, 313, 58, 29.2));
+                }
+                if (enemies[i].EnenmySprite.getPosition().x <= enemies[i].xStart) enemies[i].MovingRight = true;
+            }
+
+            if (enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+                if (!enemies[i].Hit) enemies[i].Hit = true;
+                else enemies[i].EnenmySprite.setScale(0, 0);
+                sonic.Velocity.y = 10;
+            }
+            else if ((enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) sonic.lives--;
+            if (enemies[i].Hit && enemies[i].DamageDelay <= 30 && enemies[i].DamageDelay >= 0) {
+                enemies[i].DamageDelay++;
+                enemies[i].EnenmySprite.setColor(Color(255, 0, 0, 120));
+            }
+            else if (enemies[i].Hit && enemies[i].DamageDelay >= 30) {
+                enemies[i].EnenmySprite.setColor(Color::White);
+                enemies[i].DamageDelay = -1;
+            }
+        }
+
+
+        // Jumpingpad System
         for (int i = 0; i < 5; i++) {
             if(jumppad[i].delay <= 2) jumppad[i].delay++;
             if (sonic.PlayerSprite.getGlobalBounds().intersects(jumppad[i].JumppadSprite.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
                 sonic.Velocity.y = 15;
                 jumppad[i].jumped = true;
             }
+            // Jumppad Animation
             if (jumppad[i].jumped) {
                 if (jumppad[i].delay >= 2) {
                     jumppad[i].delay = 0;
@@ -225,10 +302,11 @@ int main()
                 jumppad[i].Texnumber = 6;
                 jumppad[i].TexLeft = false;
             }
+            //
         }
 
 
-
+        ///Jumping Stystem
         if (sonic.PlayerSprite.getGlobalBounds().intersects(ground.getGlobalBounds())) {
             sonic.on_ground = true;
             sonic.Velocity.y = 0;
@@ -237,7 +315,7 @@ int main()
         else {
             bool found = false;
             for (int i = 0; i < 30; i++) {
-                if (sonic.PlayerSprite.getGlobalBounds().intersects(walls[i].WallColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < walls[i].WallSprite.getPosition().y) {
+                if (sonic.PlayerSprite.getGlobalBounds().intersects(tiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < tiles[i].TileSprite.getPosition().y) {
                     found = true;
                     sonic.onWall = true;
                     sonic.Velocity.y = 0;
@@ -251,7 +329,7 @@ int main()
             if (!sonic.on_ground && !sonic.onWall) {
                 sonic.sonic_adminator++;
                 sonic.sonic_adminator %= 16;
-                sonic.PlayerSprite.setTextureRect(IntRect(sonic.sonic_adminator * 49, 2 * 60, 49, 46));
+                sonic.PlayerSprite.setTextureRect(IntRect(sonic.sonic_adminator * 49, 2 * 60, 49, 48));
                 sonic.Velocity.y -= 0.3;
             }
             if (sonic.onWall) {
@@ -271,9 +349,10 @@ int main()
         window.draw(Map);
         window.draw(jumppad[0].JumppadSprite);
         for (int i = 0; i < 3; i++) {
-            window.draw(walls[i].WallSprite);
+            window.draw(tiles[i].TileSprite);
         }
         window.draw(coins[0].CoinSprite);
+        window.draw(enemies[0].EnenmySprite);
         window.draw(sonic.PlayerSprite);
         window.display();
     }
