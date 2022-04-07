@@ -22,33 +22,43 @@ struct Player {
     bool hitRight = false;
     bool hitLeft = false;
 } sonic;
-
-struct Jumppad{
+//Jumpad struct
+struct Jumppad {
     Texture JumppadTX;
     Sprite JumppadSprite;
     int Texnumber = 6, TexCnt = 0, delay = 0;
     bool TexLeft = false, jumped = false;
 } jumppad[5];
 
+//Tiles
 struct FloatingTiles {
     Texture TileTx;
     Sprite TileSprite;
     RectangleShape TileColl;
 } tiles[30];
 
+
+//Coins
 struct Coin {
-    Texture CoinTx;
     Sprite CoinSprite;
     int TexNumber = 0, TexDelay = 0;
 } coins[100];
 
 struct Enemies {
-    Texture EnemyTx;
+
     Sprite EnenmySprite;
     int TexNumber = 0, TexDelay = 0, xStart, xEnd, DamageDelay = 0;
     bool MovingRight = true;
     bool Hit = false;
 } enemies[10];
+
+
+struct Spikes {
+    Texture SpikeTex;
+    Sprite SpikeSprite;
+    int TexNum = 0, TexDelay = 0;
+}spikes[10];
+
 
 // main function
 
@@ -72,7 +82,16 @@ int main()
     Map.setTexture(MapTx);
     //
 
-    
+    //Coin texture
+    Texture CoinTex;
+    CoinTex.loadFromFile("Assets/Textures/Some Sprites.png");
+    //Enemy texture
+    Texture EnemyTx;
+    EnemyTx.loadFromFile("Assets/Textures/Enemies.png");
+    //Spike texture
+    Texture SpikeTex;
+    SpikeTex.loadFromFile("Assets/Textures/Spike.png");
+
 
     //// sonic player
        // sonic texture
@@ -105,11 +124,18 @@ int main()
     setTilePos(tiles[1], 4200, 200);
     setTilePos(tiles[2], 5000, 250);
     //
+    //Spikes system
+    for (int i = 0; i < 10; i++){
+        spikes[i].SpikeSprite.setTexture(SpikeTex);
+        spikes[i].SpikeSprite.setTextureRect(IntRect(0, 0,142, 163));
+        spikes[i].SpikeSprite.setScale(0.5f, 0.5f);
+    }
+    //Spikes
+    spikes[0].SpikeSprite.setPosition(400, 580);
 
     /// Coins Setting Texture
     for (int i = 0; i < 100; i++) {
-        coins[i].CoinTx.loadFromFile("Assets/Textures/Some Sprites.png");
-        coins[i].CoinSprite.setTexture(coins[i].CoinTx);
+        coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 463, 40, 39));
     }
     //Coins Position
@@ -118,8 +144,7 @@ int main()
 
     ///Enemies Setting Texture
     for (int i = 0; i < 10; i++) {
-        enemies[i].EnemyTx.loadFromFile("Assets/Textures/Enemies.png");
-        enemies[i].EnenmySprite.setTexture(enemies[i].EnemyTx);
+        enemies[i].EnenmySprite.setTexture(EnemyTx);
         enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 54, 345, 54, 29.2));
         enemies[i].EnenmySprite.setScale(2.5f, 2.5f);
     }
@@ -138,7 +163,7 @@ int main()
     //
 
 
-    /// game loop
+    /// game loop`
     while (window.isOpen())
     {
         Event event;
@@ -150,6 +175,7 @@ int main()
 
         /// UPDATE
 
+     
         //Delays and coins
         if (sonic.hitCounter > 0) sonic.hitCounter--;
         if (sonic.delay <= 3) sonic.delay++;
@@ -183,7 +209,7 @@ int main()
         }
 
         //Moving Right
-        if (Keyboard::isKeyPressed(Keyboard::Key::D) && !sonic.hitLeft && !sonic.hitRight){
+        if (Keyboard::isKeyPressed(Keyboard::Key::D) && !sonic.hitLeft && !sonic.hitRight) {
             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
                 // Running Sonic Left
                 sonic.PlayerSprite.move(15, 0);
@@ -230,7 +256,7 @@ int main()
             else {
                 // Moving Sonic Right
                 sonic.PlayerSprite.move(-12, 0);
-                if(sonic.PlayerSprite.getPosition().x >= 200) camera.move(-12, 0);
+                if (sonic.PlayerSprite.getPosition().x >= 200) camera.move(-12, 0);
                 if (sonic.delay >= 3) {
                     sonic.left_adminator--;
                     sonic.delay = 0;
@@ -265,7 +291,8 @@ int main()
                     enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 58, 345, 58, 29.2));
                 }
                 if (enemies[i].EnenmySprite.getPosition().x >= enemies[i].xEnd) enemies[i].MovingRight = false;
-            } else {
+            }
+            else {
                 enemies[i].EnenmySprite.move(-4, 0);
                 if (enemies[i].TexDelay >= 8) {
                     enemies[i].TexDelay = 0;
@@ -282,7 +309,7 @@ int main()
                 sonic.Velocity.y = 10;
             }
             else if ((enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) {
-                if(!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == 0) sonic.lives--;
+                if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == 0) sonic.lives--;
                 cout << sonic.lives << '\n';
                 if (sonic.PlayerSprite.getPosition().x > enemies[i].EnenmySprite.getPosition().x) sonic.hitRight = true;
                 else sonic.hitLeft = true;
@@ -299,11 +326,13 @@ int main()
                 enemies[i].DamageDelay = -1;
             }
         }
+        //spike collision
+       
 
 
         // Jumpingpad System
         for (int i = 0; i < 5; i++) {
-            if(jumppad[i].delay <= 2) jumppad[i].delay++;
+            if (jumppad[i].delay <= 2) jumppad[i].delay++;
             if (sonic.PlayerSprite.getGlobalBounds().intersects(jumppad[i].JumppadSprite.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
                 sonic.Velocity.y = 15;
                 jumppad[i].jumped = true;
@@ -347,7 +376,7 @@ int main()
                 sonic.on_ground = false;
                 sonic.onTile = false;
             }
-            
+
             if (!sonic.on_ground && !sonic.onTile) {
                 sonic.sonic_adminator++;
                 sonic.sonic_adminator %= 16;
@@ -375,7 +404,9 @@ int main()
         }
         window.draw(coins[0].CoinSprite);
         window.draw(enemies[0].EnenmySprite);
+        window.draw(spikes[0].SpikeSprite);
         window.draw(sonic.PlayerSprite);
+        
         window.display();
     }
 
