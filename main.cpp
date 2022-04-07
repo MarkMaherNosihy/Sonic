@@ -308,7 +308,7 @@ int main()
                 else enemies[i].EnenmySprite.setScale(0, 0);
                 sonic.Velocity.y = 10;
             }
-            else if ((enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) {
+            else if ((enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) || spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) {
                 if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == 0) sonic.lives--;
                 cout << sonic.lives << '\n';
                 if (sonic.PlayerSprite.getPosition().x > enemies[i].EnenmySprite.getPosition().x) sonic.hitRight = true;
