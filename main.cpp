@@ -49,8 +49,6 @@ struct Red_Coin {
     Sprite CoinSprite;
     int TexNumber = 0, TexDelay = 0;
 } Red_coins[100];
-Texture CoinTex;
-Texture RedCoinTx;
 
 struct Enemies {
 
@@ -75,7 +73,12 @@ void Moving_in_Y_Axis(int, int, int, int, int);
 void Moving_in_X_Axis(int, int, int, int);
 void singleRedCoinPs(int, int, int);
 void coinPos();
+void PosRowSpikes(int First_index, int Last_index, int X_position, int Y_Position);
 // main function
+
+Texture CoinTex;
+Texture RedCoinTx;
+Texture SpikeTex;
 
 int main()
 {
@@ -103,7 +106,6 @@ int main()
     Texture EnemyTx;
     EnemyTx.loadFromFile("Assets/Textures/Enemies.png");
     //Spike texture
-    Texture SpikeTex;
     SpikeTex.loadFromFile("Assets/Textures/Spike.png");
 
 
@@ -139,14 +141,6 @@ int main()
     setTilePos(tiles[1], 4200, 200);
     setTilePos(tiles[2], 5000, 250);
     //
-    //Spikes system
-    for (int i = 0; i < 50; i++) {
-        spikes[i].SpikeSprite.setTexture(SpikeTex);
-        spikes[i].SpikeSprite.setTextureRect(IntRect(4 * 28, 32, 28, 32));
-        spikes[i].SpikeSprite.setScale(2.f, 2.f);
-    }
-    //Spikes
-    spikes[0].SpikeSprite.setPosition(400, 550);
 
 
     ///Enemies Setting Texture
@@ -166,7 +160,7 @@ int main()
         spikes[i].SpikeSprite.setScale(0.5f, 0.5f);
     }
     //Spikes
-    spikes[0].SpikeSprite.setPosition(700, 580);
+    PosRowSpikes(0, 30, 3400, 580);
 
     //score
     Font font;
@@ -258,7 +252,7 @@ int main()
     //
 
 
-    /// game loop`
+    /// game loop
     while (window.isOpen())
     {
         Event event;
@@ -306,9 +300,8 @@ int main()
 
         for (int i = 0; i < 50; i++) {
             if (spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
-                if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == 0) sonic.lives--;
+                sonic.lives--;
                 sonic.Velocity.y = 10;
-                sonic.hitCounter = 50;
                 SpikeDeathAudio.play();
             }
             else if (spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0)) {
@@ -584,8 +577,10 @@ int main()
         for (int i = 0; i < 100; i++) {
             window.draw(coins[i].CoinSprite);
         }
+        for (int i = 0; i < 50; i++) {
+            window.draw(spikes[i].SpikeSprite);
+        }
         window.draw(enemies[0].EnenmySprite);
-        window.draw(spikes[0].SpikeSprite);
         window.draw(sonic.PlayerSprite);
         window.draw(SonicFace);
         window.draw(text);
@@ -699,6 +694,13 @@ void coinPos() {
     Red_coins[2].CoinSprite.setTextureRect(IntRect(0, 0, 1588, 112));
     Red_coins[2].CoinSprite.setScale(1.5, 1.5);
     Red_coins[2].CoinSprite.setPosition(1440, 430);
+}
 
-    // end coins.................................
+void PosRowSpikes(int First_index, int Last_index, int X_position, int Y_Position) {
+    for (int i = First_index; i < Last_index; i++) {
+        spikes[i].SpikeSprite.setTexture(SpikeTex);
+        spikes[i].SpikeSprite.setTextureRect(IntRect(0, 0, 142, 163));
+        spikes[i].SpikeSprite.setScale(0.5f, 0.5f);
+        spikes[i].SpikeSprite.setPosition(X_position + (i * 71), Y_Position);
+    }
 }
