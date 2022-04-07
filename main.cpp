@@ -4,6 +4,7 @@
 #include <iostream>
 
 using namespace sf;
+using std::cout;
 
 /// plyer struct
 
@@ -11,13 +12,15 @@ struct Player {
     Texture PlayerTex;
     Sprite PlayerSprite;
     Vector2f Velocity;
-    int sonic_adminator = 0, Idle_adminator = 0, delay = 0, idle_delay = 0, left_adminator = 22, lives = 3;
+    int sonic_adminator = 0, Idle_adminator = 0, delay = 0, idle_delay = 0, left_adminator = 22, lives = 3, hitCounter = 0;
     bool on_ground = true;
     bool start = false;
     bool Running = false;
     bool idle1 = false;
     bool txToggle = false;
-    bool onWall = false;
+    bool onTile = false;
+    bool hitRight = false;
+    bool hitLeft = false;
 } sonic;
 
 struct Jumppad{
@@ -148,6 +151,7 @@ int main()
         /// UPDATE
 
         //Delays and coins
+        if (sonic.hitCounter > 0) sonic.hitCounter--;
         if (sonic.delay <= 3) sonic.delay++;
         if (sonic.idle_delay <= 10) sonic.idle_delay++;
         for (int i = 0; i < 100; i++) {
@@ -179,11 +183,11 @@ int main()
         }
 
         //Moving Right
-        if (Keyboard::isKeyPressed(Keyboard::Key::D)) {
+        if (Keyboard::isKeyPressed(Keyboard::Key::D) && !sonic.hitLeft && !sonic.hitRight){
             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
                 // Running Sonic Left
                 sonic.PlayerSprite.move(15, 0);
-                camera.move(15, 0);
+                if (sonic.PlayerSprite.getPosition().x >= 200) camera.move(15, 0);
                 if (sonic.delay >= 3) {
                     sonic.sonic_adminator++;
                     sonic.delay = 0;
@@ -196,7 +200,7 @@ int main()
             else {
                 // Walking Sonic Left
                 sonic.PlayerSprite.move(12, 0);
-                camera.move(12, 0);
+                if (sonic.PlayerSprite.getPosition().x >= 200) camera.move(12, 0);
                 if (sonic.delay >= 3) {
                     sonic.sonic_adminator++;
                     sonic.delay = 0;
@@ -209,11 +213,11 @@ int main()
         }
 
         //Moving Left
-        if (Keyboard::isKeyPressed(Keyboard::Key::A) ) {
+        if (Keyboard::isKeyPressed(Keyboard::Key::A) && !sonic.hitLeft && !sonic.hitRight && sonic.PlayerSprite.getPosition().x > 0) {
             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
                 // Running Sonic Right
                 sonic.PlayerSprite.move(-15, 0);
-                camera.move(-15, 0);
+                if (sonic.PlayerSprite.getPosition().x >= 200) camera.move(-15, 0);
                 if (sonic.delay >= 3) {
                     sonic.left_adminator--;
                     sonic.delay = 0;
@@ -226,7 +230,7 @@ int main()
             else {
                 // Moving Sonic Right
                 sonic.PlayerSprite.move(-12, 0);
-                camera.move(-12, 0);
+                if(sonic.PlayerSprite.getPosition().x >= 200) camera.move(-12, 0);
                 if (sonic.delay >= 3) {
                     sonic.left_adminator--;
                     sonic.delay = 0;
@@ -236,6 +240,17 @@ int main()
                     sonic.PlayerSprite.setTextureRect(IntRect(sonic.left_adminator * 48.86, 3 * 60, 48.86, 51));
                 }
             }
+        }
+
+        if (sonic.hitRight) {
+            sonic.PlayerSprite.move(5, 0);
+            if (sonic.PlayerSprite.getPosition().x >= 200)camera.move(5, 0);
+            if (sonic.on_ground) sonic.hitRight = false;
+        }
+        else if (sonic.hitLeft) {
+            sonic.PlayerSprite.move(-5, 0);
+            if (sonic.PlayerSprite.getPosition().x >= 200)camera.move(-5, 0);
+            if (sonic.on_ground) sonic.hitLeft = false;
         }
 
         //Enemy System
@@ -250,8 +265,7 @@ int main()
                     enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 58, 345, 58, 29.2));
                 }
                 if (enemies[i].EnenmySprite.getPosition().x >= enemies[i].xEnd) enemies[i].MovingRight = false;
-            }
-            else {
+            } else {
                 enemies[i].EnenmySprite.move(-4, 0);
                 if (enemies[i].TexDelay >= 8) {
                     enemies[i].TexDelay = 0;
@@ -267,7 +281,15 @@ int main()
                 else enemies[i].EnenmySprite.setScale(0, 0);
                 sonic.Velocity.y = 10;
             }
-            else if ((enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) sonic.lives--;
+            else if ((enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) {
+                if(!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == 0) sonic.lives--;
+                cout << sonic.lives << '\n';
+                if (sonic.PlayerSprite.getPosition().x > enemies[i].EnenmySprite.getPosition().x) sonic.hitRight = true;
+                else sonic.hitLeft = true;
+                sonic.hitCounter = 50;
+                sonic.Velocity.y = 10;
+                sonic.PlayerSprite.move(0, -10);
+            }
             if (enemies[i].Hit && enemies[i].DamageDelay <= 30 && enemies[i].DamageDelay >= 0) {
                 enemies[i].DamageDelay++;
                 enemies[i].EnenmySprite.setColor(Color(255, 0, 0, 120));
@@ -294,7 +316,7 @@ int main()
                     else jumppad[i].Texnumber--;
                     if (jumppad[i].Texnumber >= 6) jumppad[i].jumped = false;
                     else if (jumppad[i].Texnumber <= 0) jumppad[i].TexLeft = true;
-                    jumppad[i].JumppadSprite.setTextureRect(IntRect(jumppad[i].Texnumber * 80, 543, 80, 66));
+                    jumppad[i].JumppadSprite.setTextureRect(IntRect(jumppad[i].Texnumber * 80, 543, 79.7, 66));
                 }
             }
             else {
@@ -317,22 +339,22 @@ int main()
             for (int i = 0; i < 30; i++) {
                 if (sonic.PlayerSprite.getGlobalBounds().intersects(tiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < tiles[i].TileSprite.getPosition().y) {
                     found = true;
-                    sonic.onWall = true;
+                    sonic.onTile = true;
                     sonic.Velocity.y = 0;
                 }
             }
             if (!found) {
                 sonic.on_ground = false;
-                sonic.onWall = false;
+                sonic.onTile = false;
             }
             
-            if (!sonic.on_ground && !sonic.onWall) {
+            if (!sonic.on_ground && !sonic.onTile) {
                 sonic.sonic_adminator++;
                 sonic.sonic_adminator %= 16;
                 sonic.PlayerSprite.setTextureRect(IntRect(sonic.sonic_adminator * 49, 2 * 60, 49, 48));
                 sonic.Velocity.y -= 0.3;
             }
-            if (sonic.onWall) {
+            if (sonic.onTile) {
                 sonic.Velocity.y = 0;
                 if (Keyboard::isKeyPressed(Keyboard::Key::Space)) sonic.Velocity.y = 10;
             }
