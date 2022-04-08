@@ -636,7 +636,6 @@ int main()
         window.draw(enemies[0].EnenmySprite);
         window.draw(enemies2[0].EnemySprite);
         window.draw(sonic.PlayerSprite);
-        window.draw(sonic.PlayerColl);
         window.draw(SonicFace);
         window.draw(text);
         window.draw(lives);
