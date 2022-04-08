@@ -10,18 +10,12 @@ using std::cout;
 struct Player {
     Texture PlayerTex;
     Sprite PlayerSprite;
+    RectangleShape PlayerColl;
     Vector2f Velocity;
-    int sonic_adminator = 0, Idle_adminator = 0, delay = 0, idle_delay = 0, left_adminator = 22, lives = 3, hitCounter = 0;
-    int scoreValue = 0;
-    bool on_ground = true;
-    bool start = false;
-    bool Running = false;
-    bool idle1 = false;
-    bool txToggle = false;
-    bool onTile = false;
-    bool hitRight = false;
-    bool hitLeft = false;
-    bool RunningSound = false;
+    int sonic_adminator = 0, Idle_adminator = 0, delay = 0, idle_delay = 0, left_adminator = 22;
+    int scoreValue = 0, lives = 3, hitCounter = 0;
+    bool start = false, Running = false, idle1 = false, txToggle = false, onTile = false;
+    bool on_ground = true, hitRight = false, hitLeft = false, RunningSound = false;
 } sonic;
 //Jumpad struct
 struct Jumppad {
@@ -121,7 +115,9 @@ int main()
     sonic.PlayerTex.loadFromFile("Assets/Textures/Sonic-Character.png");
     sonic.PlayerSprite.setTexture(sonic.PlayerTex);
     // sonic sprite
-    sonic.PlayerSprite.setTextureRect(IntRect(sonic.Idle_adminator * 59.1578, 0 * 60, 59.1578, 60));
+    sonic.PlayerSprite.setTextureRect(IntRect(sonic.Idle_adminator * 59.1578, 0, 59.1578, 60));
+    sonic.PlayerColl.setSize(Vector2f(55.f, 80.f));
+    sonic.PlayerColl.setPosition(205, 300);
     sonic.PlayerSprite.setPosition(200, 300);
     sonic.PlayerSprite.setScale(2.5, 2.5);
     //
@@ -256,7 +252,7 @@ int main()
 
 
     /// ground rectangle shape
-    RectangleShape ground(Vector2f(17000, 70)); ground.setScale(1, 1); ground.setPosition(0, 660);
+    RectangleShape ground(Vector2f(17000, 70)); ground.setScale(1, 1); ground.setPosition(0, 640);
     //
 
     // view camera
@@ -289,7 +285,7 @@ int main()
                 coins[i].TexNumber %= 17;
                 coins[i].CoinSprite.setTextureRect(IntRect(coins[i].TexNumber * 41.11, 461, 41.11, 41));
             }
-            if (sonic.PlayerSprite.getGlobalBounds().intersects(coins[i].CoinSprite.getGlobalBounds())) {
+            if (sonic.PlayerColl.getGlobalBounds().intersects(coins[i].CoinSprite.getGlobalBounds())) {
                 coins[i].CoinSprite.setScale(0, 0);
                 sonic.scoreValue += 10;
                 CoinAudio.play();
@@ -303,7 +299,7 @@ int main()
                 Red_coins[i].TexNumber %= 14;
                 Red_coins[i].CoinSprite.setTextureRect(IntRect(Red_coins[i].TexNumber * 113.0, 0, 113.0, 112));
             }
-            if (sonic.PlayerSprite.getGlobalBounds().intersects(Red_coins[i].CoinSprite.getGlobalBounds())) {
+            if (sonic.PlayerColl.getGlobalBounds().intersects(Red_coins[i].CoinSprite.getGlobalBounds())) {
                 Red_coins[i].CoinSprite.setScale(0, 0);
                 sonic.scoreValue += 20;
                 sonic.lives++;
@@ -312,14 +308,14 @@ int main()
         }
 
         for (int i = 0; i < 50; i++) {
-            if (spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+            if (spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
                 sonic.lives--;
                 sonic.Velocity.y = 10;
                 SpikeDeathAudio.play();
             }
-            else if (spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0)) {
+            else if (spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0)) {
                 if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == 0) sonic.lives--;
-                if (sonic.PlayerSprite.getPosition().x > spikes[i].SpikeSprite.getPosition().x) sonic.hitRight = true;
+                if (sonic.PlayerColl.getPosition().x > spikes[i].SpikeSprite.getPosition().x) sonic.hitRight = true;
                 else sonic.hitLeft = true;
                 sonic.hitCounter = 50;
                 sonic.Velocity.y = 7;
@@ -480,13 +476,13 @@ int main()
                 if (enemies[i].EnenmySprite.getPosition().x <= enemies[i].xStart) enemies[i].MovingRight = true;
             }
 
-            if (enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+            if (enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
                 if (!enemies[i].Hit) enemies[i].Hit = true;
                 else enemies[i].EnenmySprite.setScale(0, 0);
                 sonic.Velocity.y = 10;
                 EnemyDamageSound.play();
             }
-            else if ((enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) || spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) {
+            else if (enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0)) {
                 if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == 0) sonic.lives--;
                 if (sonic.PlayerSprite.getPosition().x > enemies[i].EnenmySprite.getPosition().x) sonic.hitRight = true;
                 else sonic.hitLeft = true;
@@ -527,13 +523,13 @@ int main()
                 if (enemies2[i].EnemySprite.getPosition().x <= enemies2[i].xStart) enemies2[i].MovingRight = true;
             }
 
-            if (enemies2[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+            if (enemies2[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
                 if (!enemies2[i].Hit) enemies2[i].Hit = true;
                 else enemies2[i].EnemySprite.setScale(0, 0);
                 sonic.Velocity.y = 10;
                 EnemyDamageSound.play();
             }
-            else if ((enemies2[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) || spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) {
+            else if ((enemies2[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) {
                 if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == 0) sonic.lives--;
                 if (sonic.PlayerSprite.getPosition().x > enemies2[i].EnemySprite.getPosition().x) sonic.hitRight = true;
                 else sonic.hitLeft = true;
@@ -556,7 +552,7 @@ int main()
         // Jumpingpad System
         for (int i = 0; i < 5; i++) {
             if (jumppad[i].delay <= 2) jumppad[i].delay++;
-            if (sonic.PlayerSprite.getGlobalBounds().intersects(jumppad[i].JumppadSprite.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+            if (sonic.PlayerColl.getGlobalBounds().intersects(jumppad[i].JumppadSprite.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
                 sonic.Velocity.y = 15;
                 jumppad[i].jumped = true;
                 JumppadAudio.play();
@@ -582,7 +578,7 @@ int main()
 
 
         ///Jumping Stystem
-        if (sonic.PlayerSprite.getGlobalBounds().intersects(ground.getGlobalBounds())) {
+        if (sonic.PlayerColl.getGlobalBounds().intersects(ground.getGlobalBounds())) {
             sonic.on_ground = true;
             sonic.Velocity.y = 0;
             if (Keyboard::isKeyPressed(Keyboard::Key::Space)) {
@@ -617,6 +613,7 @@ int main()
         }
 
         sonic.PlayerSprite.move(0, -sonic.Velocity.y);
+        sonic.PlayerColl.setPosition(sonic.PlayerSprite.getPosition().x + 28, sonic.PlayerSprite.getPosition().y + 30);
         window.setView(camera);
 
 
@@ -639,6 +636,7 @@ int main()
         window.draw(enemies[0].EnenmySprite);
         window.draw(enemies2[0].EnemySprite);
         window.draw(sonic.PlayerSprite);
+        window.draw(sonic.PlayerColl);
         window.draw(SonicFace);
         window.draw(text);
         window.draw(lives);
