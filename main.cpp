@@ -76,7 +76,309 @@ Texture SpikeTex;
 
 int main()
 {
+    RenderWindow Menu(VideoMode(1200, 760), "Sonic");
+    
+
+    //Settings choice
+    Texture correctTex;
+    correctTex.loadFromFile("Assets/Textures/correct-logo.png");
+    Sprite correctSprite[2];
+    correctSprite[0].setTexture(correctTex);
+    correctSprite[0].setPosition(620, 240);
+    correctSprite[0].setScale(0.032, 0.032);
+    correctSprite[1].setTexture(correctTex);
+
+    //Leaderboard
+    Texture LeaderBackgroundTex;
+    LeaderBackgroundTex.loadFromFile("Assets/Textures/leaderboard.png");
+    Sprite leaderSprite;
+    leaderSprite.setTexture(LeaderBackgroundTex);
+    bool LeaderClosed = true;
+    //Font
+    Font EvilEmpire;
+    EvilEmpire.loadFromFile("Assets/EvilEmpire-4BBVK.ttf");
+    
+    //Menu Background
+    Texture MenuBackgroundTex;
+    MenuBackgroundTex.loadFromFile("Assets/Textures/MenuBackground.png");
+    Sprite MenuBackgroundSprite;
+    MenuBackgroundSprite.setTexture(MenuBackgroundTex);
+    //Settings Background
+    Texture SettingsBackgroundTex;
+    SettingsBackgroundTex.loadFromFile("Assets/Textures/setting-menu.png");
+    Sprite SettingsBackgroundSprite;
+    SettingsBackgroundSprite.setTexture(SettingsBackgroundTex);
+    //Mouse
+    RectangleShape Sensor;
+    Sensor.setSize(Vector2f(1, 1));
+    //Start Button
+    Texture BarTex;
+    Sprite startBarSprite;
+    BarTex.loadFromFile("Assets/Textures/Bar.png");
+    startBarSprite.setTexture(BarTex);
+    startBarSprite.setScale(0.12f, 0.12f);
+    startBarSprite.setPosition(160, 300);
+    bool startIsPlayed = false;
+    Text StartText;
+    StartText.setFont(EvilEmpire);
+    StartText.setString("Start");
+    StartText.setFillColor(Color(14, 24, 95));
+    StartText.setCharacterSize(50);
+    StartText.setPosition(230, 292);
+    
+    //Settings Button
+    bool SettingsClosed = true;
+    Sprite settingsBarSprite;
+    settingsBarSprite.setTexture(BarTex);
+    settingsBarSprite.setScale(0.12f, 0.12f);
+    settingsBarSprite.setPosition(160, 400);
+    bool settingsIsPlayed = false;
+    Text SettingsText;
+    SettingsText.setFont(EvilEmpire);
+    SettingsText.setString("Settings");
+    SettingsText.setFillColor(Color(14, 24, 95));
+    SettingsText.setCharacterSize(50);
+    SettingsText.setPosition(200, 393);
+
+    //Settings back button
+    Texture backButtonTex;
+    backButtonTex.loadFromFile("Assets/Textures/back-setting-menu.png");
+    Sprite backSprite;
+    backSprite.setPosition(43, 716);
+    backSprite.setScale(0.7, 0.7);
+    backSprite.setTexture(backButtonTex);
+    RectangleShape backButton;
+    backButton.setSize(Vector2f(150, 50));
+    backButton.setPosition(50, 700);
+    bool backIsVisible = false;
+
+    //Settings Music button
+    CircleShape MusicCircle;
+    MusicCircle.setFillColor(Color::White);
+    MusicCircle.setRadius(29.f);
+    MusicCircle.setPosition(620, 240);
+    bool MusicOn = true;
+    int ButtonDelay = 0;
+    
+    //Leaderboard Button
+    Sprite leaderBarSprite;
+    leaderBarSprite.setTexture(BarTex);
+    leaderBarSprite.setScale(0.12f, 0.12f);
+    leaderBarSprite.setPosition(160, 500);
+    bool leaderIsPlayed = false;
+    Text LeaderText;
+    LeaderText.setFont(EvilEmpire);
+    LeaderText.setString("Leaderboard");
+    LeaderText.setFillColor(Color(14, 24, 95));
+    LeaderText.setCharacterSize(50);
+    LeaderText.setPosition(172, 493);
+    //Leader back button
+    Sprite leaderbackSprite;
+    leaderbackSprite.setPosition(43, 716);
+    leaderbackSprite.setScale(0.7, 0.7);
+    leaderbackSprite.setTexture(backButtonTex);
+    RectangleShape leaderbackButton;
+    leaderbackButton.setSize(Vector2f(150, 50));
+    leaderbackButton.setPosition(50, 700);
+    bool leaderbackIsVisible = false;
+
+    
+    BarTex.setSmooth(true);
+    //Button selection sound
+    SoundBuffer ButtonClickBuffer;
+    ButtonClickBuffer.loadFromFile("Assets/Sounds/Picksound.ogg");
+    Sound ButtonClickSound;
+    ButtonClickSound.setBuffer(ButtonClickBuffer);
+    ButtonClickSound.setVolume(30);
+    
+    //Menu music
+    Music MenuMusic;
+    MenuMusic.openFromFile("Assets/Sounds/awesomeness.ogg");
+    MenuMusic.setVolume(50);
+    MenuMusic.setLoop(true);
+    MenuMusic.play();
+
+    
+        bool start = false;
+        while (Menu.isOpen())
+        {
+            Event menuEvent;
+            while (Menu.pollEvent(menuEvent))
+            {
+                if (menuEvent.type == Event::Closed)
+                { 
+                    Menu.close();
+                    MenuMusic.stop();
+                }
+            }
+            //Press on leaderboard
+            if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed)
+            {
+                LeaderClosed = false;
+            }
+
+            //Starting game
+            if (Sensor.getGlobalBounds().intersects(startBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed )
+            {
+                Menu.close();
+                start = true;
+                MenuMusic.stop();
+            }
+            //Press on settings
+            if (Sensor.getGlobalBounds().intersects(settingsBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed)
+            {
+                SettingsClosed = false;
+            }
+            //Settings Back button
+            if (Sensor.getGlobalBounds().intersects(backButton.getGlobalBounds()) && !SettingsClosed)
+            {
+                backIsVisible = true;
+                if (Mouse::isButtonPressed(Mouse::Left))
+                {
+                    SettingsClosed = true;
+                }
+            }
+            else
+            {
+                backIsVisible = false;
+            }
+            //Leader back button
+            if (Sensor.getGlobalBounds().intersects(leaderbackButton.getGlobalBounds()) && !LeaderClosed)
+            {
+                leaderbackIsVisible = true;
+                if (Mouse::isButtonPressed(Mouse::Left))
+                {
+                    LeaderClosed = true;
+                }
+            }
+            else
+            {
+                leaderbackIsVisible = false;
+            }
+
+            //touch music circle
+            if (Sensor.getGlobalBounds().intersects(MusicCircle.getGlobalBounds()) && !SettingsClosed && Mouse::isButtonPressed(Mouse::Left) && ButtonDelay >= 60)
+            {
+
+                if (MusicOn)
+                { 
+                    MusicOn = false;
+                    MenuMusic.stop();
+                }
+                else
+                {
+                    MusicOn = true;
+                    MenuMusic.play();
+                }
+                ButtonDelay = 0;
+            }
+            if (ButtonDelay <= 60)
+                ButtonDelay++;
+            
+            //Sensor pos
+            Sensor.setPosition(Mouse::getPosition(Menu).x, Mouse::getPosition(Menu).y);
+            //Start
+            if (Sensor.getGlobalBounds().intersects(startBarSprite.getGlobalBounds()))
+            {
+                startBarSprite.setColor(Color(45, 49, 250));
+                StartText.setFillColor(Color(255,255,255));
+                startBarSprite.setScale(0.17f, 0.135f);
+                startBarSprite.setPosition(145, 295);
+                if(!startIsPlayed && SettingsClosed && LeaderClosed)
+                { 
+                ButtonClickSound.play();
+                startIsPlayed = true;
+                }
+            }
+            else
+            {
+                StartText.setFillColor(Color(14, 24, 95));
+                startBarSprite.setColor(Color(255, 255, 255));
+                startBarSprite.setScale(0.16f, 0.12f);
+                startBarSprite.setPosition(160, 300);
+                startIsPlayed = false;
+            }
+            //Settings
+            if (Sensor.getGlobalBounds().intersects(settingsBarSprite.getGlobalBounds()))
+            {
+                SettingsText.setFillColor(Color::White);
+                settingsBarSprite.setScale(0.17f, 0.135f);
+                settingsBarSprite.setColor(Color(45, 49, 250));
+                settingsBarSprite.setPosition(145, 395);
+                if (!settingsIsPlayed && SettingsClosed && LeaderClosed)
+                {
+                    ButtonClickSound.play();
+                    settingsIsPlayed = true;
+                }
+
+            }
+            else
+            {
+                SettingsText.setFillColor(Color(14, 24, 95));
+                settingsBarSprite.setScale(0.16f, 0.12f);
+                settingsBarSprite.setColor(Color(255, 255, 255));
+                settingsBarSprite.setPosition(160, 400);
+                settingsIsPlayed = false;
+            }
+            //Leaderboard
+            if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()))
+            {
+                LeaderText.setFillColor(Color::White);
+                leaderBarSprite.setScale(0.25f, 0.135f);
+                leaderBarSprite.setColor(Color(45, 49, 250));
+                leaderBarSprite.setPosition(120, 495);
+                if (!leaderIsPlayed && SettingsClosed && LeaderClosed)
+                {
+                    ButtonClickSound.play();
+                    leaderIsPlayed = true;
+                }
+
+            }
+            else
+            {
+                LeaderText.setFillColor(Color(14, 24, 95));
+                leaderBarSprite.setScale(0.22f, 0.12f);
+                leaderBarSprite.setColor(Color(255, 255, 255));
+                leaderBarSprite.setPosition(125, 500);
+                leaderIsPlayed = false;
+            }
+
+           
+
+            Menu.clear();
+           
+            Menu.draw(MenuBackgroundSprite);
+            Menu.draw(startBarSprite);
+            Menu.draw(settingsBarSprite);
+            Menu.draw(StartText);
+            Menu.draw(SettingsText);
+            Menu.draw(leaderBarSprite);
+            Menu.draw(LeaderText);
+            if (!LeaderClosed)
+            {
+                Menu.draw(leaderSprite);
+
+                if (leaderbackIsVisible)
+                    Menu.draw(leaderbackSprite);
+
+            }
+
+
+            if (!SettingsClosed)
+            { 
+                
+                Menu.draw(SettingsBackgroundSprite);
+               
+                if (backIsVisible)
+                    Menu.draw(backSprite);
+                if (MusicOn)
+                    Menu.draw(correctSprite[0]);
+            }
+            Menu.display();
+        }
+
     // rendering window
+    if(start){
     RenderWindow window(VideoMode(1200, 760), "Sonic!");
     window.setFramerateLimit(60);
 
@@ -642,7 +944,7 @@ int main()
         window.display();
     }
 
-
+    }
     return 0;
 }
 
