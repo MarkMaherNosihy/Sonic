@@ -433,7 +433,7 @@ int main()
         coinPos();
         //// sonic player
            // sonic texture
-        sonic.PlayerTex.loadFromFile("Assets/Textures/Sonic-Character22.png");
+        sonic.PlayerTex.loadFromFile("Assets/Textures/Sonic-Character.png");
         sonic.PlayerSprite.setTexture(sonic.PlayerTex);
         // sonic sprite
         sonic.PlayerSprite.setTextureRect(IntRect(sonic.IdleTexNumber * 59.1578, 0, 59.1578, 60));
@@ -510,7 +510,7 @@ int main()
 
         //health_bar
         Texture SonicFaceTx;
-        SonicFaceTx.loadFromFile("Assets/Textures/super-sonic-logo.png");
+        SonicFaceTx.loadFromFile("Assets/Textures/sonic-blue-logo.png");
         Sprite SonicFace;
         SonicFace.setTexture(SonicFaceTx);
         SonicFace.setScale(0.12, 0.12);
