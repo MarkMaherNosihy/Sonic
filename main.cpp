@@ -333,7 +333,7 @@ int main()
         }
         if (!pressable) {
             if (ExitDelay <= 0) pressable = true;
-            else ExitDelay--;     
+            else ExitDelay--;
         }
 
         //credit animation
@@ -403,7 +403,8 @@ int main()
             if (MusicOn) {
                 MusicOn = false;
                 MenuMusic.stop();
-            } else {
+            }
+            else {
                 MusicOn = true;
                 MenuMusic.play();
             }
@@ -422,7 +423,8 @@ int main()
                 ButtonClickSound.play();
                 startIsPlayed = true;
             }
-        } else {
+        }
+        else {
             StartText.setFillColor(Color(14, 24, 95));
             startBarSprite.setColor(Color(255, 255, 255));
             startBarSprite.setScale(0.16f, 0.12f);
@@ -440,7 +442,8 @@ int main()
                 settingsIsPlayed = true;
             }
 
-        } else {
+        }
+        else {
             SettingsText.setFillColor(Color(14, 24, 95));
             settingsBarSprite.setScale(0.16f, 0.12f);
             settingsBarSprite.setColor(Color(255, 255, 255));
@@ -453,12 +456,13 @@ int main()
             leaderBarSprite.setScale(0.25f, 0.135f);
             leaderBarSprite.setColor(Color(45, 49, 250));
             leaderBarSprite.setPosition(120, 495);
-            if (!leaderIsPlayed && SettingsClosed && LeaderClosed && CreditClosed){
+            if (!leaderIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
                 ButtonClickSound.play();
                 leaderIsPlayed = true;
             }
 
-        } else {
+        }
+        else {
             LeaderText.setFillColor(Color(14, 24, 95));
             leaderBarSprite.setScale(0.22f, 0.12f);
             leaderBarSprite.setColor(Color(255, 255, 255));
@@ -477,7 +481,8 @@ int main()
                 creditIsPlayed = true;
             }
 
-        } else {
+        }
+        else {
             CreditText.setFillColor(Color(14, 24, 95));
             creditBarSprite.setScale(0.16f, 0.12f);
             creditBarSprite.setColor(Color(255, 255, 255));
@@ -495,7 +500,8 @@ int main()
                 exitIsPlayed = true;
             }
 
-        } else {
+        }
+        else {
             ExitText.setFillColor(Color(14, 24, 95));
             ExitBarSprite.setScale(0.16f, 0.12f);
             ExitBarSprite.setColor(Color(255, 255, 255));
@@ -521,7 +527,7 @@ int main()
             Menu.draw(leaderSprite);
             if (leaderbackIsVisible) Menu.draw(leaderbackSprite);
         }
-        if (!CreditClosed){
+        if (!CreditClosed) {
             Menu.draw(creditSprite);
             if (creditbackIsVisible) Menu.draw(creditbackSprite);
         }
@@ -529,10 +535,10 @@ int main()
         if (LBackAnim) Menu.draw(leaderSprite);
         if (CBackAnim)Menu.draw(creditSprite);
 
-        if (!SettingsClosed){
+        if (!SettingsClosed) {
             Menu.draw(SettingsBackgroundSprite);
             if (backIsVisible) Menu.draw(backSprite);
-            if (MusicOn && correctIsVisible) Menu.draw(correctSprite[0]);                
+            if (MusicOn && correctIsVisible) Menu.draw(correctSprite[0]);
         }
         Menu.display();
     }
@@ -602,7 +608,7 @@ int main()
         sonic.PlayerSprite.setPosition(200, 300);
         sonic.PlayerSprite.setScale(2.5, 2.5);
         sonic.lives = 3;
-        sonic.scoreValue = 0; sonic.hitCounter = -1; 
+        sonic.scoreValue = 0; sonic.hitCounter = -1;
         sonic.hitRight = false; sonic.hitLeft = false;
         //
 
@@ -758,8 +764,8 @@ int main()
         while (window.isOpen())
         {
             Event event;
-            while (window.pollEvent(event)){
-                if (event.type == Event::Closed) window.close();        
+            while (window.pollEvent(event)) {
+                if (event.type == Event::Closed) window.close();
             }
             if (Keyboard::isKeyPressed(Keyboard::Escape)) {
                 if (pauseDelay == 0) {
@@ -1128,12 +1134,12 @@ int main()
                     }
                     for (int i = 0; i < 10; i++)
                     {
-                        if (sonic.PlayerSprite.getGlobalBounds().intersects(Vertical_tiles_left[i].tilecole.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < Vertical_tiles_left[i].tilecole.getPosition().y) {
+                        if (sonic.PlayerColl.getGlobalBounds().intersects(Vertical_tiles_left[i].tilecole.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < Vertical_tiles_left[i].tilecole.getPosition().y) {
                             found = true;
                             sonic.onTile = true;
                             sonic.Velocity.y = 0;
                         }
-                        if (sonic.PlayerSprite.getGlobalBounds().intersects(Vertical_tiles_right[i].tilecole.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < Vertical_tiles_right[i].tilecole.getPosition().y) {
+                        if (sonic.PlayerColl.getGlobalBounds().intersects(Vertical_tiles_right[i].tilecole.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < Vertical_tiles_right[i].tilecole.getPosition().y) {
                             found = true;
                             sonic.onTile = true;
                             sonic.Velocity.y = 0;
@@ -1220,9 +1226,10 @@ int main()
                         main();
                     }
                 }
-            } else {
+            }
+            else {
                 sonic.deathDealy--;
-                if(sonic.deathDealy >= 0) {
+                if (sonic.deathDealy >= 0) {
                     sonic.PlayerSprite.move(0, -1);
                 }
                 else {
@@ -1419,6 +1426,15 @@ void coinPos() {
     Moving_in_X_Y(134, 140, 7670, 330, 30, -45);
     //
     Moving_in_X_Axis(248, 291, 6080, 200);
+    //
+    Moving_in_X_Y(260, 265, 12220, 20, 30, -45);
+    Moving_in_X_Y(265, 270, 12030, 220, 30, 45);
+    //
+    Moving_in_X_Y(270, 275, 12505, 40, 30, -45);
+    Moving_in_X_Y(275, 280, 12355, 220, 30, 45);
+    //
+    //Moving_in_X_Y(280, 285, 12805 + 100, 20, 30, -45);
+  //  Moving_in_X_Y(280, 290, 12625 + 100, 220, 30, 45);
 }
 
 void PosRowSpikes(int First_index, int Last_index, int X_position, int Y_Position) {
@@ -1485,21 +1501,19 @@ void draw_spikes() {
 void drawVerticalTile(int i, int x, int y) {
     Vertical_tiles_left[i].Vertical_Tiles_sprite.setPosition(x, y);
     Vertical_tiles_right[i].Vertical_Tiles_sprite.setPosition(x + 30, y);
-    Vertical_tiles_left[i].tilecole.setPosition(x + 2, y);
+    Vertical_tiles_left[i].tilecole.setPosition(x + 2, y-5);
     Vertical_tiles_left[i].tilecole.setSize(Vector2f(70.f, 20.f));
 }
 
 void draw_vertical_tiles() {
     drawVerticalTile(0, 8750, 400);
     drawVerticalTile(1, 8750, 280);
-    drawVerticalTile(7, 12030, 280);
-    drawVerticalTile(6, 12030, 400);
+    drawVerticalTile(2, 12030, 280);
+    drawVerticalTile(3, 12030, 400);
     drawVerticalTile(4, 12325, 400);
     drawVerticalTile(5, 12325, 280);
-    drawVerticalTile(2, 12625, 400);
-    drawVerticalTile(3, 12625, 280);
-    Vertical_tiles_right[1].upper_tilecole.setSize(Vector2f(61.f, 5.f));
-    Vertical_tiles_right[1].upper_tilecole.setPosition(8758, 290);
+    drawVerticalTile(6, 12625, 400);
+    drawVerticalTile(7, 12625, 280);
 }
 
 void enemy1_coordinate(int index, int X_pos, int Y_pos, int start, int end) {
