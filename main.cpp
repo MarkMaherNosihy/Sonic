@@ -22,13 +22,18 @@ struct Jumppad {
     Sprite JumppadSprite;
     int Texnumber = 6, TexCnt = 0, delay = 0;
     bool TexLeft = false, jumped = false;
-} jumppad[10];
+} jumppad[30];
 //Tiles
 struct FloatingTiles {
     Sprite TileSprite;
     RectangleShape TileColl;
     RectangleShape LowerTileColl;
 } tiles[200];
+struct FloatingTiles2 {
+    Texture TileTx2;
+    Sprite TileSprite2;
+    RectangleShape TileColl2;
+} tiles2[30];
 //Coins
 struct Coin {
     Sprite CoinSprite;
@@ -45,14 +50,14 @@ struct Enemies {
     int TexNumber = 0, TexDelay = 0, xStart = 0, xEnd = 0, DamageDelay = 0;
     bool MovingRight = true;
     bool Hit = false;
-} enemies[10];
+} enemies[20];
 
 struct Enemies2 {
     Sprite EnemySprite;
     int TexNumber = 0, TexDelay = 0, xStart = 0, xEnd = 0, DamageDelay = 0;
     bool MovingRight = true;
     bool Hit = false;
-} enemies2[10];
+} enemies2[20];
 
 struct Spikes {
     Texture SpikeTex;
@@ -60,11 +65,16 @@ struct Spikes {
     int TexNum = 0, TexDelay = 0;
 }spikes[200];
 
+struct Spikes2 {
+    Texture SpikeTex2;
+    Sprite SpikeSprite2;
+}spikes2[100];
+
 struct Vertical_Tiles {
     Sprite Vertical_Tiles_sprite;
     RectangleShape tilecole;
     RectangleShape upper_tilecole;
-}Vertical_tiles_right[100], Vertical_tiles_left[100];
+}Vertical_tiles_right[10], Vertical_tiles_left[10];
 
 // function
 void setTilePos(FloatingTiles& tile, int x, int y, int x1 = 0, int x2 = 0);
@@ -83,6 +93,7 @@ void draw_vertical_tiles();
 void enemy1_coordinate(int index, int X_pos, int Y_pos, int start, int end);
 void enemy2_coordinate(int index, int X_pos, int Y_pos, int start, int end);
 void draw_enemies();
+void area2();
 //Textures and Variables
 int enemy_cnt = 0; bool enemy_check = false;
 Texture CoinTex;
@@ -90,13 +101,14 @@ Texture RedCoinTx;
 Texture SpikeTex;
 Texture vertical_tile_R;
 Texture vertical_tile_L;
+Texture TilesTx;
+Texture TileTx2;
+Texture SpikeTex2;
 
 // main function
 int main()
 {
     RenderWindow Menu(VideoMode(1200, 760), "Sonic");
-
-
     //Settings choice
     Texture correctTex;
     correctTex.loadFromFile("Assets/Textures/correct-logo.png");
@@ -553,9 +565,10 @@ int main()
         EnemyTx2.loadFromFile("Assets/Textures/Enemies.png");
         //Spike texture
         SpikeTex.loadFromFile("Assets/Textures/Spike.png");
-        //Tiles texture
-        Texture TilesTx;
+        //Tiles texture      
         TilesTx.loadFromFile("Assets/Textures/Wall2.png");
+        TileTx2.loadFromFile("Assets/Textures/UpsideDownWall.png");
+        SpikeTex2.loadFromFile("Assets/Textures/UpsidedownSpike.png");
         vertical_tile_R.loadFromFile("Assets/Textures/Vertical_tile_R.png");
         vertical_tile_L.loadFromFile("Assets/Textures/Vertical_tile_L.png");
         //Pause Menu
@@ -594,7 +607,7 @@ int main()
         //
 
         ///Jumppad Setting Texture
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 30; i++) {
             jumppad[i].JumppadSprite.setTexture(JumppadTx);
             jumppad[i].JumppadSprite.setTextureRect(IntRect(jumppad[i].Texnumber * 80, 543, 80, 66));
         }
@@ -614,7 +627,7 @@ int main()
         // vertical Walls setting 
 
         // for left;
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 10; i++) {
             Vertical_tiles_left[i].Vertical_Tiles_sprite.setTexture(vertical_tile_L);
             Vertical_tiles_left[i].Vertical_Tiles_sprite.setTextureRect(IntRect(0, 0, 46, 253));
             Vertical_tiles_left[i].tilecole.setSize(Vector2f(1.f, 298.9f));
@@ -626,12 +639,12 @@ int main()
 
 
         ///Enemies Setting Texture
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 20; i++) {
             enemies[i].EnenmySprite.setTexture(EnemyTx);
             enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 54, 345, 54, 29.2));
             enemies[i].EnenmySprite.setScale(2.5f, 2.5f);
         }
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 20; i++) {
             enemies2[i].EnemySprite.setTexture(EnemyTx2);
             enemies2[i].EnemySprite.setTextureRect(IntRect(enemies2[i].TexNumber * 47, 411, 47, 30));
             enemies2[i].EnemySprite.setScale(2.5f, 2.5f);
@@ -639,7 +652,7 @@ int main()
         draw_enemies();
         //
         //Spikes system
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 200; i++) {
             spikes[i].SpikeSprite.setTexture(SpikeTex);
             spikes[i].SpikeSprite.setTextureRect(IntRect(0, 0, 142, 163));
             spikes[i].SpikeSprite.setScale(0.5f, 0.5f);
@@ -730,6 +743,8 @@ int main()
         Sound GameoverAudio;
         GameoverAudio.setBuffer(GameoverBuffer);
 
+        area2();
+
         /// ground rectangle shape
         RectangleShape ground(Vector2f(17000, 70)); ground.setScale(1, 1); ground.setPosition(0, 640);
         //
@@ -793,7 +808,7 @@ int main()
                 }
 
                 //Spikes System
-                for (int i = 0; i < 100; i++) {
+                for (int i = 0; i < 200; i++) {
                     if (spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
                         sonic.lives--;
                         sonic.Velocity.y = 10;
@@ -807,6 +822,17 @@ int main()
                         sonic.Velocity.y = 7;
                         sonic.PlayerSprite.move(0, -10);
                         SpikeDeathAudio.play();
+                    }
+                    if (i < 50) {
+                        if (spikes2[i].SpikeSprite2.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
+                            if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
+                            if (sonic.PlayerSprite.getPosition().x > spikes2[i].SpikeSprite2.getPosition().x) sonic.hitRight = true;
+                            else sonic.hitLeft = true;
+                            sonic.hitCounter = 50;
+                            sonic.Velocity.y = -7;
+                            sonic.PlayerSprite.move(0, 10);
+                            SpikeDeathAudio.play();
+                        }
                     }
                 }
 
@@ -954,7 +980,7 @@ int main()
                 }
 
                 //Enemy System
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < 20; i++) {
                     if (enemies[i].TexDelay <= 8) enemies[i].TexDelay++;
                     if (enemies[i].MovingRight) {
                         enemies[i].EnenmySprite.move(4, 0);
@@ -1051,10 +1077,11 @@ int main()
 
 
                 // Jumppad System
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < 30; i++) {
                     if (jumppad[i].delay <= 2) jumppad[i].delay++;
-                    if (sonic.PlayerColl.getGlobalBounds().intersects(jumppad[i].JumppadSprite.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+                    if (sonic.PlayerColl.getGlobalBounds().intersects(jumppad[i].JumppadSprite.getGlobalBounds())) {
                         sonic.Velocity.y = 15;
+                        sonic.PlayerSprite.move(0, -5);
                         jumppad[i].jumped = true;
                         sonic.hitRight = false;
                         sonic.hitLeft = false;
@@ -1099,6 +1126,19 @@ int main()
                         }
                         if (sonic.PlayerColl.getGlobalBounds().intersects(tiles[i].LowerTileColl.getGlobalBounds()) && !sonic.on_ground) sonic.Velocity.y = -2;
                     }
+                    for (int i = 0; i < 10; i++)
+                    {
+                        if (sonic.PlayerSprite.getGlobalBounds().intersects(Vertical_tiles_left[i].tilecole.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < Vertical_tiles_left[i].tilecole.getPosition().y) {
+                            found = true;
+                            sonic.onTile = true;
+                            sonic.Velocity.y = 0;
+                        }
+                        if (sonic.PlayerSprite.getGlobalBounds().intersects(Vertical_tiles_right[i].tilecole.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < Vertical_tiles_right[i].tilecole.getPosition().y) {
+                            found = true;
+                            sonic.onTile = true;
+                            sonic.Velocity.y = 0;
+                        }
+                    }
                     if (!found) {
                         sonic.on_ground = false;
                         sonic.onTile = false;
@@ -1115,7 +1155,7 @@ int main()
                     }
                 }
 
-                for (int i = 0; i < 2; i++) {
+                for (int i = 0; i < 10; i++) {
                     if (Vertical_tiles_left[i].Vertical_Tiles_sprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
                         if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
                             sonic.PlayerSprite.move(-15, 0);
@@ -1212,20 +1252,18 @@ int main()
             //draw
             window.draw(Map);
             for (int i = 0; i < 20; i++) window.draw(tiles[i].TileSprite);
-            for (int i = 0; i < 7; i++) window.draw(jumppad[i].JumppadSprite);
-            for (int i = 0; i < 150; i++) {
-                window.draw(Red_coins[i].CoinSprite);
-                window.draw(spikes[i].SpikeSprite);
-            }
+            for (int i = 0; i < 20; i++) window.draw(jumppad[i].JumppadSprite);
+            for (int i = 0; i < 150; i++) window.draw(Red_coins[i].CoinSprite);
+            for (int i = 0; i < 200; i++) window.draw(spikes[i].SpikeSprite);
+            for (int i = 0; i < 6; i++) window.draw(tiles2[i].TileSprite2);
+            for (int i = 0; i < 24; i++) window.draw(spikes2[i].SpikeSprite2);
             for (int i = 0; i < 400; i++) window.draw(coins[i].CoinSprite);
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 10; i++) {
                 window.draw(Vertical_tiles_right[i].Vertical_Tiles_sprite);
-                window.draw(Vertical_tiles_right[i].tilecole);
                 window.draw(Vertical_tiles_left[i].Vertical_Tiles_sprite);
-                window.draw(Vertical_tiles_left[i].tilecole);
             }
             for (int i = 0; i < 5; i++) window.draw(enemies[i].EnenmySprite);
-            for (int i = 0; i < 5; i++) window.draw(enemies2[i].EnemySprite);
+            for (int i = 0; i < 20; i++) window.draw(enemies2[i].EnemySprite);
             window.draw(sonic.PlayerSprite);
             window.draw(SonicFace);
             window.draw(text);
@@ -1400,6 +1438,12 @@ void Draw_jumppad() {
     jumppad[4].JumppadSprite.setPosition(7220, 590);
     jumppad[5].JumppadSprite.setPosition(8600, 590);
     jumppad[6].JumppadSprite.setPosition(7800, 590);
+    jumppad[14].JumppadSprite.setPosition(11700, 590);
+    jumppad[19].JumppadSprite.setPosition(10000, 590);
+    jumppad[18].JumppadSprite.setPosition(10250, 590);
+    jumppad[17].JumppadSprite.setPosition(10500, 590);
+    jumppad[16].JumppadSprite.setPosition(10750, 590);
+    jumppad[15].JumppadSprite.setPosition(11000, 590);
 }
 
 void draw_tiles() {
@@ -1420,15 +1464,42 @@ void draw_spikes() {
     PosRowSpikes(32, 38, 4470, 580);
     PosRowSpikes(39, 45, 4580, 580);
     PosRowSpikes(45, 53, 5700, 580);
+    spikes[199].SpikeSprite.setPosition(11800, 575);
+    spikes[198].SpikeSprite.setPosition(11850, 575);
+    spikes[197].SpikeSprite.setPosition(11900, 575);
+    spikes[196].SpikeSprite.setPosition(11950, 575);
+    spikes[195].SpikeSprite.setPosition(12100, 575);
+    spikes[194].SpikeSprite.setPosition(12150, 575);
+    spikes[193].SpikeSprite.setPosition(12200, 575);
+    spikes[192].SpikeSprite.setPosition(12250, 575);
+    spikes[191].SpikeSprite.setPosition(12400, 575);
+    spikes[190].SpikeSprite.setPosition(12450, 575);
+    spikes[189].SpikeSprite.setPosition(12500, 575);
+    spikes[188].SpikeSprite.setPosition(12550, 575);
+    spikes[187].SpikeSprite.setPosition(12700, 575);
+    spikes[186].SpikeSprite.setPosition(12750, 575);
+    spikes[185].SpikeSprite.setPosition(12800, 575);
+    spikes[184].SpikeSprite.setPosition(12850, 575);
 }
+
+void drawVerticalTile(int i, int x, int y) {
+    Vertical_tiles_left[i].Vertical_Tiles_sprite.setPosition(x, y);
+    Vertical_tiles_right[i].Vertical_Tiles_sprite.setPosition(x + 30, y);
+    Vertical_tiles_left[i].tilecole.setPosition(x + 2, y);
+    Vertical_tiles_left[i].tilecole.setSize(Vector2f(70.f, 20.f));
+}
+
 void draw_vertical_tiles() {
-    Vertical_tiles_left[0].Vertical_Tiles_sprite.setPosition(8750, 400);
-    Vertical_tiles_left[1].Vertical_Tiles_sprite.setPosition(8750, 280);
-    Vertical_tiles_right[0].Vertical_Tiles_sprite.setPosition(8780, 400);
-    Vertical_tiles_right[1].Vertical_Tiles_sprite.setPosition(8780, 280);
+    drawVerticalTile(0, 8750, 400);
+    drawVerticalTile(1, 8750, 280);
+    drawVerticalTile(7, 12030, 280);
+    drawVerticalTile(6, 12030, 400);
+    drawVerticalTile(4, 12325, 400);
+    drawVerticalTile(5, 12325, 280);
+    drawVerticalTile(2, 12625, 400);
+    drawVerticalTile(3, 12625, 280);
     Vertical_tiles_right[1].upper_tilecole.setSize(Vector2f(61.f, 5.f));
     Vertical_tiles_right[1].upper_tilecole.setPosition(8758, 290);
-
 }
 
 void enemy1_coordinate(int index, int X_pos, int Y_pos, int start, int end) {
@@ -1447,4 +1518,22 @@ void draw_enemies() {
     enemy1_coordinate(0, 1500, 580, 500, 1100);
     enemy2_coordinate(0, 1500, 585, 1500, 2500);
     enemy2_coordinate(1, 8300, 585, 8100, 8500);
+    enemy2_coordinate(19, 10000, 585, 10000, 10500);
+    enemy2_coordinate(18, 10550, 585, 10550, 11000);
+}
+
+void area2() {
+    for (int i = 0; i < 30; i++) {
+        tiles2[i].TileSprite2.setTexture(TileTx2);
+        tiles2[i].TileSprite2.setScale(1.3, 1.3);
+        tiles2[i].TileColl2.setSize(Vector2f(298.9f, 1.f));
+    }
+    for (int i = 0; i < 30; i++) tiles2[i].TileSprite2.setPosition(10000 + (i * 180), 60);
+
+    for (int i = 0; i < 50; i++) {
+        spikes2[i].SpikeSprite2.setTexture(SpikeTex2);
+        spikes2[i].SpikeSprite2.setTextureRect(IntRect(0, 0, 142, 163));
+        spikes2[i].SpikeSprite2.setScale(0.5f, 0.5f);
+    }
+    for (int i = 0; i < 30; i++) spikes2[i].SpikeSprite2.setPosition(10000 + (i * 50), 100);
 }
