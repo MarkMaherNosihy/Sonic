@@ -13,7 +13,7 @@ struct Player {
     RectangleShape PlayerColl;
     Vector2f Velocity;
     int RightTexNumber = 0, IdleTexNumber = 0, TexDelay = 0, IdleDelay = 0, LeftTexNumber = 22;
-    int scoreValue = 0, lives = 3, hitCounter = -1;
+    int scoreValue = 0, lives = 3, hitCounter = -1, deathDealy = 0;
     bool start = false, Running = false, idle1 = false, txToggle = false, onTile = false;
     bool on_ground = true, hitRight = false, hitLeft = false, RunningSound = false;
 } sonic;
@@ -42,14 +42,14 @@ struct Red_Coin {
 
 struct Enemies {
     Sprite EnenmySprite;
-    int TexNumber = 0, TexDelay = 0, xStart, xEnd, DamageDelay = 0;
+    int TexNumber = 0, TexDelay = 0, xStart = 0, xEnd = 0, DamageDelay = 0;
     bool MovingRight = true;
     bool Hit = false;
 } enemies[10];
 
 struct Enemies2 {
     Sprite EnemySprite;
-    int TexNumber = 0, TexDelay = 0, xStart, xEnd, DamageDelay = 0;
+    int TexNumber = 0, TexDelay = 0, xStart = 0, xEnd = 0, DamageDelay = 0;
     bool MovingRight = true;
     bool Hit = false;
 } enemies2[10];
@@ -60,9 +60,10 @@ struct Spikes {
     int TexNum = 0, TexDelay = 0;
 }spikes[200];
 
-struct Vertiacl_Tiles {
-    Sprite Vertiacl_Tiles_sprite;
+struct Vertical_Tiles {
+    Sprite Vertical_Tiles_sprite;
     RectangleShape tilecole;
+    RectangleShape upper_tilecole;
 }Vertical_tiles_right[100], Vertical_tiles_left[100];
 
 // function
@@ -104,13 +105,24 @@ int main()
     correctSprite[0].setPosition(620, 240);
     correctSprite[0].setScale(0.032, 0.032);
     correctSprite[1].setTexture(correctTex);
+    bool correctIsVisible = false;
 
     //Leaderboard
     Texture LeaderBackgroundTex;
     LeaderBackgroundTex.loadFromFile("Assets/Textures/leaderboard.png");
     Sprite leaderSprite;
     leaderSprite.setTexture(LeaderBackgroundTex);
+    leaderSprite.setOrigin(0, 0);
+    leaderSprite.setPosition(-1200, 0);
     bool LeaderClosed = true;
+    //Credits
+    Texture CreditBackgroundTex;
+    CreditBackgroundTex.loadFromFile("Assets/Textures/credits.png");
+    Sprite creditSprite;
+    creditSprite.setTexture(CreditBackgroundTex);
+    creditSprite.setOrigin(0, 0);
+    creditSprite.setPosition(-1200, 0);
+
     //Font
     Font EvilEmpire;
     EvilEmpire.loadFromFile("Assets/EvilEmpire-4BBVK.ttf");
@@ -125,6 +137,8 @@ int main()
     SettingsBackgroundTex.loadFromFile("Assets/Textures/setting-menu.png");
     Sprite SettingsBackgroundSprite;
     SettingsBackgroundSprite.setTexture(SettingsBackgroundTex);
+    SettingsBackgroundSprite.setOrigin(0, 0);
+    SettingsBackgroundSprite.setPosition(Vector2f(-1200, 0));
     //Mouse
     RectangleShape Sensor;
     Sensor.setSize(Vector2f(1, 1));
@@ -168,6 +182,8 @@ int main()
     backButton.setSize(Vector2f(150, 50));
     backButton.setPosition(50, 700);
     bool backIsVisible = false;
+    bool SBackAnim = true;
+
 
     //Settings Music button
     CircleShape MusicCircle;
@@ -176,12 +192,14 @@ int main()
     MusicCircle.setPosition(620, 240);
     bool MusicOn = true;
     int ButtonDelay = 0;
+    bool SettingStopAnim = false;
 
     //Leaderboard Button
     Sprite leaderBarSprite;
     leaderBarSprite.setTexture(BarTex);
     leaderBarSprite.setScale(0.12f, 0.12f);
     leaderBarSprite.setPosition(160, 500);
+
     bool leaderIsPlayed = false;
     Text LeaderText;
     LeaderText.setFont(EvilEmpire);
@@ -198,7 +216,47 @@ int main()
     leaderbackButton.setSize(Vector2f(150, 50));
     leaderbackButton.setPosition(50, 700);
     bool leaderbackIsVisible = false;
-
+    bool LeaderStopAnim = false;
+    bool LBackAnim = true;
+    //Credit button
+    Sprite creditBarSprite;
+    creditBarSprite.setTexture(BarTex);
+    creditBarSprite.setScale(0.12f, 0.12f);
+    creditBarSprite.setPosition(160, 500);
+    bool CreditClosed = true;
+    bool creditIsPlayed = false;
+    Text CreditText;
+    CreditText.setFont(EvilEmpire);
+    CreditText.setString("Credits");
+    CreditText.setFillColor(Color(14, 24, 95));
+    CreditText.setCharacterSize(50);
+    CreditText.setPosition(210, 593);
+    //Credit back button
+    Sprite creditbackSprite;
+    creditbackSprite.setPosition(43, 716);
+    creditbackSprite.setScale(0.7, 0.7);
+    creditbackSprite.setTexture(backButtonTex);
+    RectangleShape creditbackButton;
+    creditbackButton.setSize(Vector2f(150, 50));
+    creditbackButton.setPosition(50, 700);
+    bool creditbackIsVisible = false;
+    bool CreditStopAnim = false;
+    bool CBackAnim = true;
+    //Exit button
+    Sprite ExitBarSprite;
+    ExitBarSprite.setTexture(BarTex);
+    ExitBarSprite.setScale(0.12f, 0.12f);
+    ExitBarSprite.setPosition(160, 500);
+    bool exitIsPlayed = false;
+    bool Exit = false;
+    int ExitDelay = 300;
+    bool pressable = false;
+    Text ExitText;
+    ExitText.setFont(EvilEmpire);
+    ExitText.setString("Exit");
+    ExitText.setFillColor(Color(14, 24, 95));
+    ExitText.setCharacterSize(50);
+    ExitText.setPosition(240, 693);
 
     BarTex.setSmooth(true);
     //Button selection sound
@@ -229,86 +287,130 @@ int main()
             }
         }
         //Press on leaderboard
-        if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed)
-        {
+        if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && CreditClosed) {
             LeaderClosed = false;
+            LeaderStopAnim = false;
+            leaderSprite.setPosition(-1200, 0);
         }
 
         //Starting game
-        if (Sensor.getGlobalBounds().intersects(startBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed)
-        {
+        if (Sensor.getGlobalBounds().intersects(startBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed) {
             Menu.close();
             start = true;
             MenuMusic.stop();
         }
         //Press on settings
-        if (Sensor.getGlobalBounds().intersects(settingsBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed)
-        {
+
+        if (Sensor.getGlobalBounds().intersects(settingsBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed) {
             SettingsClosed = false;
+            SettingStopAnim = false;
+            SettingsBackgroundSprite.setPosition(-1200, 0);
         }
+        //Press on credits
+        if (Sensor.getGlobalBounds().intersects(creditBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed)
+        {
+            CreditClosed = false;
+            CreditStopAnim = false;
+            creditSprite.setPosition(-1200, 0);
+        }
+        //Press on Exit
+        if ((Sensor.getGlobalBounds().intersects(ExitBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed) && pressable) {
+            MenuMusic.stop();
+            Menu.close();
+            Exit = true;
+        }
+        if (!pressable) {
+            if (ExitDelay <= 0) pressable = true;
+            else ExitDelay--;     
+        }
+
+        //credit animation
+        if (creditSprite.getPosition().x >= 0) CreditStopAnim = true;
+        if (!CreditStopAnim && !CreditClosed) creditSprite.move(7, 0);
+        if (creditSprite.getPosition().x <= -1200) CBackAnim = false;
+
+        if (CBackAnim && CreditClosed) creditSprite.move(-7, 0);
+
+
+        // setting animation 
+        if (SettingsBackgroundSprite.getPosition().x >= 0)
+        {
+            SettingStopAnim = true;
+            correctIsVisible = true;
+        }
+        else correctIsVisible = false;
+
+        if (!SettingStopAnim && !SettingsClosed) SettingsBackgroundSprite.move(7, 0);
+
+        if (SettingsBackgroundSprite.getPosition().x <= -1200) SBackAnim = false;
+
+        if (SBackAnim && SettingsClosed) SettingsBackgroundSprite.move(-7, 0);
+        //leaderboard animation
+        if (leaderSprite.getPosition().x >= 0) LeaderStopAnim = true;
+        if (!LeaderStopAnim && !LeaderClosed) leaderSprite.move(7, 0);
+        if (leaderSprite.getPosition().x <= -1200) LBackAnim = false;
+        if (LBackAnim && LeaderClosed) leaderSprite.move(-7, 0);
+
         //Settings Back button
-        if (Sensor.getGlobalBounds().intersects(backButton.getGlobalBounds()) && !SettingsClosed)
-        {
+        if (Sensor.getGlobalBounds().intersects(backButton.getGlobalBounds()) && !SettingsClosed) {
             backIsVisible = true;
-            if (Mouse::isButtonPressed(Mouse::Left))
-            {
+            if (Mouse::isButtonPressed(Mouse::Left)) {
                 SettingsClosed = true;
+                pressable = false;
+                ExitDelay = 300;
+                SBackAnim = true;
+
             }
         }
-        else
-        {
-            backIsVisible = false;
-        }
+        else backIsVisible = false;
         //Leader back button
-        if (Sensor.getGlobalBounds().intersects(leaderbackButton.getGlobalBounds()) && !LeaderClosed)
-        {
+        if (Sensor.getGlobalBounds().intersects(leaderbackButton.getGlobalBounds()) && !LeaderClosed) {
             leaderbackIsVisible = true;
-            if (Mouse::isButtonPressed(Mouse::Left))
-            {
+            if (Mouse::isButtonPressed(Mouse::Left)) {
                 LeaderClosed = true;
+                pressable = false;
+                ExitDelay = 300;
+                LBackAnim = true;
             }
         }
-        else
-        {
-            leaderbackIsVisible = false;
+        else leaderbackIsVisible = false;
+        //Credit back button
+        if (Sensor.getGlobalBounds().intersects(creditbackButton.getGlobalBounds()) && !CreditClosed) {
+            creditbackIsVisible = true;
+            if (Mouse::isButtonPressed(Mouse::Left)) {
+                CreditClosed = true;
+                pressable = false;
+                ExitDelay = 300;
+                CBackAnim = true;
+
+            }
         }
-
+        else creditbackIsVisible = false;
         //touch music circle
-        if (Sensor.getGlobalBounds().intersects(MusicCircle.getGlobalBounds()) && !SettingsClosed && Mouse::isButtonPressed(Mouse::Left) && ButtonDelay >= 60)
-        {
-
-            if (MusicOn)
-            {
+        if (Sensor.getGlobalBounds().intersects(MusicCircle.getGlobalBounds()) && !SettingsClosed && Mouse::isButtonPressed(Mouse::Left) && ButtonDelay >= 60) {
+            if (MusicOn) {
                 MusicOn = false;
                 MenuMusic.stop();
-            }
-            else
-            {
+            } else {
                 MusicOn = true;
                 MenuMusic.play();
             }
             ButtonDelay = 0;
         }
-        if (ButtonDelay <= 60)
-            ButtonDelay++;
-
+        if (ButtonDelay <= 60) ButtonDelay++;
         //Sensor pos
         Sensor.setPosition(Mouse::getPosition(Menu).x, Mouse::getPosition(Menu).y);
         //Start
-        if (Sensor.getGlobalBounds().intersects(startBarSprite.getGlobalBounds()))
-        {
+        if (Sensor.getGlobalBounds().intersects(startBarSprite.getGlobalBounds())) {
             startBarSprite.setColor(Color(45, 49, 250));
             StartText.setFillColor(Color(255, 255, 255));
             startBarSprite.setScale(0.17f, 0.135f);
             startBarSprite.setPosition(145, 295);
-            if (!startIsPlayed && SettingsClosed && LeaderClosed)
-            {
+            if (!startIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
                 ButtonClickSound.play();
                 startIsPlayed = true;
             }
-        }
-        else
-        {
+        } else {
             StartText.setFillColor(Color(14, 24, 95));
             startBarSprite.setColor(Color(255, 255, 255));
             startBarSprite.setScale(0.16f, 0.12f);
@@ -316,21 +418,17 @@ int main()
             startIsPlayed = false;
         }
         //Settings
-        if (Sensor.getGlobalBounds().intersects(settingsBarSprite.getGlobalBounds()))
-        {
+        if (Sensor.getGlobalBounds().intersects(settingsBarSprite.getGlobalBounds())) {
             SettingsText.setFillColor(Color::White);
             settingsBarSprite.setScale(0.17f, 0.135f);
             settingsBarSprite.setColor(Color(45, 49, 250));
             settingsBarSprite.setPosition(145, 395);
-            if (!settingsIsPlayed && SettingsClosed && LeaderClosed)
-            {
+            if (!settingsIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
                 ButtonClickSound.play();
                 settingsIsPlayed = true;
             }
 
-        }
-        else
-        {
+        } else {
             SettingsText.setFillColor(Color(14, 24, 95));
             settingsBarSprite.setScale(0.16f, 0.12f);
             settingsBarSprite.setColor(Color(255, 255, 255));
@@ -338,28 +436,60 @@ int main()
             settingsIsPlayed = false;
         }
         //Leaderboard
-        if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()))
-        {
+        if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds())) {
             LeaderText.setFillColor(Color::White);
             leaderBarSprite.setScale(0.25f, 0.135f);
             leaderBarSprite.setColor(Color(45, 49, 250));
             leaderBarSprite.setPosition(120, 495);
-            if (!leaderIsPlayed && SettingsClosed && LeaderClosed)
-            {
+            if (!leaderIsPlayed && SettingsClosed && LeaderClosed && CreditClosed){
                 ButtonClickSound.play();
                 leaderIsPlayed = true;
             }
 
-        }
-        else
-        {
+        } else {
             LeaderText.setFillColor(Color(14, 24, 95));
             leaderBarSprite.setScale(0.22f, 0.12f);
             leaderBarSprite.setColor(Color(255, 255, 255));
             leaderBarSprite.setPosition(125, 500);
             leaderIsPlayed = false;
         }
+        //Credits
 
+        if (Sensor.getGlobalBounds().intersects(creditBarSprite.getGlobalBounds())) {
+            CreditText.setFillColor(Color::White);
+            creditBarSprite.setScale(0.17f, 0.135f);
+            creditBarSprite.setColor(Color(45, 49, 250));
+            creditBarSprite.setPosition(145, 595);
+            if (!creditIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
+                ButtonClickSound.play();
+                creditIsPlayed = true;
+            }
+
+        } else {
+            CreditText.setFillColor(Color(14, 24, 95));
+            creditBarSprite.setScale(0.16f, 0.12f);
+            creditBarSprite.setColor(Color(255, 255, 255));
+            creditBarSprite.setPosition(160, 600);
+            creditIsPlayed = false;
+        }
+        //Exit
+        if (Sensor.getGlobalBounds().intersects(ExitBarSprite.getGlobalBounds())) {
+            ExitText.setFillColor(Color::White);
+            ExitBarSprite.setScale(0.17f, 0.135f);
+            ExitBarSprite.setColor(Color(45, 49, 250));
+            ExitBarSprite.setPosition(145, 695);
+            if (!exitIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
+                ButtonClickSound.play();
+                exitIsPlayed = true;
+            }
+
+        } else {
+            ExitText.setFillColor(Color(14, 24, 95));
+            ExitBarSprite.setScale(0.16f, 0.12f);
+            ExitBarSprite.setColor(Color(255, 255, 255));
+            ExitBarSprite.setPosition(160, 700);
+            exitIsPlayed = false;
+        }
 
 
         Menu.clear();
@@ -371,31 +501,31 @@ int main()
         Menu.draw(SettingsText);
         Menu.draw(leaderBarSprite);
         Menu.draw(LeaderText);
-        if (!LeaderClosed)
-        {
+        Menu.draw(creditBarSprite);
+        Menu.draw(CreditText);
+        Menu.draw(ExitBarSprite);
+        Menu.draw(ExitText);
+        if (!LeaderClosed) {
             Menu.draw(leaderSprite);
-
-            if (leaderbackIsVisible)
-                Menu.draw(leaderbackSprite);
-
+            if (leaderbackIsVisible) Menu.draw(leaderbackSprite);
         }
+        if (!CreditClosed){
+            Menu.draw(creditSprite);
+            if (creditbackIsVisible) Menu.draw(creditbackSprite);
+        }
+        if (SBackAnim) Menu.draw(SettingsBackgroundSprite);
+        if (LBackAnim) Menu.draw(leaderSprite);
+        if (CBackAnim)Menu.draw(creditSprite);
 
-
-        if (!SettingsClosed)
-        {
-
+        if (!SettingsClosed){
             Menu.draw(SettingsBackgroundSprite);
-
-            if (backIsVisible)
-                Menu.draw(backSprite);
-            if (MusicOn)
-                Menu.draw(correctSprite[0]);
+            if (backIsVisible) Menu.draw(backSprite);
+            if (MusicOn && correctIsVisible) Menu.draw(correctSprite[0]);                
         }
         Menu.display();
     }
-
     // rendering window
-    if (start) {
+    if (start && !Exit) {
         // rendering window
         RenderWindow window(VideoMode(1200, 760), "Sonic!");
         window.setFramerateLimit(60);
@@ -428,7 +558,24 @@ int main()
         TilesTx.loadFromFile("Assets/Textures/Wall2.png");
         vertical_tile_R.loadFromFile("Assets/Textures/Vertical_tile_R.png");
         vertical_tile_L.loadFromFile("Assets/Textures/Vertical_tile_L.png");
+        //Pause Menu
+        Texture PauseMenuTx;
+        PauseMenuTx.loadFromFile("Assets/Textures/pause-menu.png");
+        Sprite pauseMenu;
+        pauseMenu.setTexture(PauseMenuTx);
+        pauseMenu.setScale(0, 0);
+        //
+        //Gameover
+        Texture GameoverTx;
+        GameoverTx.loadFromFile("Assets/Textures/game-over.png");
+        Sprite Gameover;
+        Gameover.setTexture(GameoverTx);
+        Gameover.setScale(0, 0);
+        View GameoverCamera(FloatRect(0, 0, 1200, 720));
+        //
 
+        bool paused = false;
+        int pauseDelay = 0;
 
         coinPos();
         //// sonic player
@@ -441,10 +588,13 @@ int main()
         sonic.PlayerColl.setPosition(205, 300);
         sonic.PlayerSprite.setPosition(200, 300);
         sonic.PlayerSprite.setScale(2.5, 2.5);
+        sonic.lives = 3;
+        sonic.scoreValue = 0; sonic.hitCounter = -1; 
+        sonic.hitRight = false; sonic.hitLeft = false;
         //
 
         ///Jumppad Setting Texture
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 10; i++) {
             jumppad[i].JumppadSprite.setTexture(JumppadTx);
             jumppad[i].JumppadSprite.setTextureRect(IntRect(jumppad[i].Texnumber * 80, 543, 80, 66));
         }
@@ -465,13 +615,11 @@ int main()
 
         // for left;
         for (int i = 0; i < 2; i++) {
-            Vertical_tiles_left[i].Vertiacl_Tiles_sprite.setTexture(vertical_tile_L);
-            Vertical_tiles_left[i].Vertiacl_Tiles_sprite.setTextureRect(IntRect(0, 0, 46, 253));
+            Vertical_tiles_left[i].Vertical_Tiles_sprite.setTexture(vertical_tile_L);
+            Vertical_tiles_left[i].Vertical_Tiles_sprite.setTextureRect(IntRect(0, 0, 46, 253));
             Vertical_tiles_left[i].tilecole.setSize(Vector2f(1.f, 298.9f));
-        }
-        for (int i = 0; i < 2; i++) {
-            Vertical_tiles_right[i].Vertiacl_Tiles_sprite.setTexture(vertical_tile_R);
-            Vertical_tiles_right[i].Vertiacl_Tiles_sprite.setTextureRect(IntRect(0, 0, 46, 253));
+            Vertical_tiles_right[i].Vertical_Tiles_sprite.setTexture(vertical_tile_R);
+            Vertical_tiles_right[i].Vertical_Tiles_sprite.setTextureRect(IntRect(0, 0, 46, 253));
             Vertical_tiles_right[i].tilecole.setSize(Vector2f(1.f, 298.9f));
         }
         draw_vertical_tiles();
@@ -501,6 +649,11 @@ int main()
         //score
         Font font;
         font.loadFromFile("Assets/EvilEmpire-4BBVK.ttf");
+        Text FinalScore;
+        FinalScore.setFont(font);
+        FinalScore.setFillColor(Color::White);
+        FinalScore.setCharacterSize(0);
+        FinalScore.setPosition(800, 545);
         Text text;
         text.setFont(font);
         text.setString("Score: " + std::to_string(sonic.scoreValue));
@@ -577,7 +730,6 @@ int main()
         Sound GameoverAudio;
         GameoverAudio.setBuffer(GameoverBuffer);
 
-
         /// ground rectangle shape
         RectangleShape ground(Vector2f(17000, 70)); ground.setScale(1, 1); ground.setPosition(0, 640);
         //
@@ -587,426 +739,490 @@ int main()
         window.setView(camera);
         //
 
-
         /// game loop
         while (window.isOpen())
         {
             Event event;
-            while (window.pollEvent(event))
-            {
-                if (event.type == Event::Closed)
-                    window.close();
+            while (window.pollEvent(event)){
+                if (event.type == Event::Closed) window.close();        
+            }
+            if (Keyboard::isKeyPressed(Keyboard::Escape)) {
+                if (pauseDelay == 0) {
+                    if (!paused) paused = true;
+                    else paused = false;
+                    pauseDelay = 50;
+                }
             }
 
             /// UPDATE
-
+            if (pauseDelay > 0) pauseDelay--;
+            if (!paused) pauseMenu.setScale(0, 0);
             //Delays and coins
-            if (sonic.TexDelay <= 3) sonic.TexDelay++;
-            if (sonic.IdleDelay <= 10) sonic.IdleDelay++;
-            for (int i = 0; i < 400; i++) {
-                if (coins[i].TexDelay <= 3) coins[i].TexDelay++;
-                if (coins[i].TexDelay >= 3) {
-                    coins[i].TexDelay = 0;
-                    coins[i].TexNumber++;
-                    coins[i].TexNumber %= 17;
-                    coins[i].CoinSprite.setTextureRect(IntRect(coins[i].TexNumber * 41.11, 461, 41.11, 41));
-                }
-                if (sonic.PlayerColl.getGlobalBounds().intersects(coins[i].CoinSprite.getGlobalBounds())) {
-                    coins[i].CoinSprite.setScale(0, 0);
-                    sonic.scoreValue += 10;
-                    CoinAudio.play();
-                }
-            }
-            for (int i = 0; i < 100; i++) {
-                if (Red_coins[i].TexDelay <= 3)Red_coins[i].TexDelay++;
-                if (Red_coins[i].TexDelay >= 3) {
-                    Red_coins[i].TexDelay = 0;
-                    Red_coins[i].TexNumber++;
-                    Red_coins[i].TexNumber %= 14;
-                    Red_coins[i].CoinSprite.setTextureRect(IntRect(Red_coins[i].TexNumber * 113.0, 0, 113.0, 112));
-                }
-                if (sonic.PlayerColl.getGlobalBounds().intersects(Red_coins[i].CoinSprite.getGlobalBounds())) {
-                    Red_coins[i].CoinSprite.setScale(0, 0);
-                    sonic.scoreValue += 20;
-                    sonic.lives++;
-                    CoinAudio.play();
-                }
-            }
-
-            for (int i = 0; i < 100; i++) {
-                if (spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
-                    sonic.lives--;
-                    sonic.Velocity.y = 10;
-                    SpikeDeathAudio.play();
-                }
-                else if (spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0)) {
-                    if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
-                    if (sonic.PlayerColl.getPosition().x > spikes[i].SpikeSprite.getPosition().x) sonic.hitRight = true;
-                    else sonic.hitLeft = true;
-                    sonic.hitCounter = 50;
-                    sonic.Velocity.y = 7;
-                    sonic.PlayerSprite.move(0, -10);
-                    SpikeDeathAudio.play();
-                }
-            }
-            if (sonic.hitCounter <= 50 && sonic.hitCounter > -1) {
-                sonic.hitCounter--;
-                sonic.PlayerSprite.setColor(Color(255, 0, 0, 220));
-            }
-            else if (sonic.hitCounter == -1) {
-                sonic.PlayerSprite.setColor(Color::White);
-            }
-
-            //Idle Animation
-            if (!Keyboard::isKeyPressed(Keyboard::D) && !Keyboard::isKeyPressed(Keyboard::A) && !Keyboard::isKeyPressed(Keyboard::W) && !Keyboard::isKeyPressed(Keyboard::S)) {
-                sonic.Running = false;
-                sonic.txToggle = false;
-                sonic.RunningSound = false;
-                if (sonic.IdleDelay >= 10) {
-                    sonic.IdleDelay = 0;
-                    if (sonic.IdleTexNumber == 7) sonic.idle1 = true;
-                    else if (sonic.IdleTexNumber == 0) sonic.idle1 = false;
-                    if (sonic.idle1) sonic.IdleTexNumber--;
-                    else sonic.IdleTexNumber++;
-                    if (!sonic.Running) sonic.PlayerSprite.setTextureRect(IntRect(sonic.IdleTexNumber * 48.75, 0 * 60, 48.75, 51));
-                }
-            }
-
-            if (Mouse::isButtonPressed(Mouse::Left)) {
-                std::cout << Mouse::getPosition().x << ' ' << Mouse::getPosition().y << '\n';
-            }
-
-            //Moving Right
-            if (Keyboard::isKeyPressed(Keyboard::Key::D) && !sonic.hitLeft && !sonic.hitRight) {
-                if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
-                    // Running Sonic Right
-                    sonic.PlayerSprite.move(15, 0);
-                    if (!sonic.RunningSound) {
-                        RunningSound.play();
-                        sonic.RunningSound = true;
+            if (sonic.lives > 0 && !paused) {
+                if (sonic.TexDelay <= 3) sonic.TexDelay++;
+                if (sonic.IdleDelay <= 10) sonic.IdleDelay++;
+                for (int i = 0; i < 400; i++) {
+                    if (coins[i].TexDelay <= 3) coins[i].TexDelay++;
+                    if (coins[i].TexDelay >= 3) {
+                        coins[i].TexDelay = 0;
+                        coins[i].TexNumber++;
+                        coins[i].TexNumber %= 17;
+                        coins[i].CoinSprite.setTextureRect(IntRect(coins[i].TexNumber * 41.11, 461, 41.11, 41));
                     }
-                    if (sonic.PlayerSprite.getPosition().x >= 200) {
-                        camera.move(15, 0);
-                        text.move(15, 0);
-                        lives.move(15, 0);
-                        SonicFace.move(15, 0);
-                    }
-                    if (sonic.TexDelay >= 3) {
-                        sonic.RightTexNumber++;
-                        sonic.TexDelay = 0;
-                        if (sonic.Running) if (sonic.RightTexNumber >= 22) sonic.RightTexNumber = 19;
-                        else sonic.RightTexNumber = (sonic.RightTexNumber % 12) + 12;
-                        if (sonic.RightTexNumber >= 17) sonic.Running = true;
-                        sonic.PlayerSprite.setTextureRect(IntRect(sonic.RightTexNumber * 48.86, 1 * 60, 48.86, 51));
+                    if (sonic.PlayerColl.getGlobalBounds().intersects(coins[i].CoinSprite.getGlobalBounds())) {
+                        coins[i].CoinSprite.setScale(0, 0);
+                        sonic.scoreValue += 10;
+                        CoinAudio.play();
                     }
                 }
-                else {
-                    // Walking Sonic Right
-                    sonic.PlayerSprite.move(12, 0);
-                    if (sonic.PlayerSprite.getPosition().x >= 200) {
-                        camera.move(12, 0);
-                        text.move(12, 0);
-                        lives.move(12, 0);
-                        SonicFace.move(12, 0);
+                //Red Coins
+                for (int i = 0; i < 100; i++) {
+                    if (Red_coins[i].TexDelay <= 3)Red_coins[i].TexDelay++;
+                    if (Red_coins[i].TexDelay >= 3) {
+                        Red_coins[i].TexDelay = 0;
+                        Red_coins[i].TexNumber++;
+                        Red_coins[i].TexNumber %= 14;
+                        Red_coins[i].CoinSprite.setTextureRect(IntRect(Red_coins[i].TexNumber * 113.0, 0, 113.0, 112));
                     }
-                    if (sonic.TexDelay >= 3) {
-                        sonic.RightTexNumber++;
-                        sonic.TexDelay = 0;
-                        /*if (sonic.txToggle) sonic.RightTexNumber = (sonic.RightTexNumber % 5) + 5;
-                        else */
-                        sonic.RightTexNumber %= 11;
-                        //if (sonic.RightTexNumber == 6) sonic.txToggle = true;
-                        sonic.PlayerSprite.setTextureRect(IntRect(sonic.RightTexNumber * 48.86, 1 * 60, 48.86, 51));
+                    if (sonic.PlayerColl.getGlobalBounds().intersects(Red_coins[i].CoinSprite.getGlobalBounds())) {
+                        Red_coins[i].CoinSprite.setScale(0, 0);
+                        sonic.scoreValue += 20;
+                        sonic.lives++;
+                        CoinAudio.play();
                     }
-                }
-            }
-
-            //Moving Left
-            if (Keyboard::isKeyPressed(Keyboard::Key::A) && !sonic.hitLeft && !sonic.hitRight && sonic.PlayerSprite.getPosition().x > 0) {
-                if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
-                    // Running Sonic Left                
-                    sonic.PlayerSprite.move(-15, 0);
-                    if (!sonic.RunningSound) {
-                        RunningSound.play();
-                        sonic.RunningSound = true;
-                    }
-                    if (sonic.PlayerSprite.getPosition().x >= 200) {
-                        camera.move(-15, 0);
-                        text.move(-15, 0);
-                        lives.move(-15, 0);
-                        SonicFace.move(-15, 0);
-                    }
-                    if (sonic.TexDelay >= 3) {
-                        sonic.LeftTexNumber--;
-                        sonic.TexDelay = 0;
-                        if (sonic.Running) if (sonic.LeftTexNumber <= 0) sonic.LeftTexNumber = 3;
-                        else if (sonic.LeftTexNumber <= 0) sonic.LeftTexNumber = 12;
-                        if (sonic.LeftTexNumber <= 6) sonic.Running = true;
-                        sonic.PlayerSprite.setTextureRect(IntRect(sonic.LeftTexNumber * 48.86, 3 * 60, 48.86, 51));
-                    }
-                }
-                else {
-                    // Moving Sonic Left
-                    sonic.PlayerSprite.move(-12, 0);
-                    if (sonic.PlayerSprite.getPosition().x >= 200) {
-                        camera.move(-12, 0);
-                        text.move(-12, 0);
-                        lives.move(-12, 0);
-                        SonicFace.move(-12, 0);
-                    }
-                    if (sonic.TexDelay >= 3) {
-                        sonic.LeftTexNumber--;
-                        sonic.TexDelay = 0;
-                        if (sonic.txToggle) if (sonic.LeftTexNumber <= 12) sonic.LeftTexNumber = 22;
-                        else if (sonic.LeftTexNumber <= 12) sonic.LeftTexNumber = 22;
-                        if (sonic.LeftTexNumber <= 17) sonic.txToggle = true;
-                        sonic.PlayerSprite.setTextureRect(IntRect(sonic.LeftTexNumber * 48.86, 3 * 60, 48.86, 51));
-                    }
-                }
-            }
-
-            if (sonic.hitRight) {
-                sonic.PlayerSprite.move(5, 0);
-                if (sonic.PlayerSprite.getPosition().x >= 200) {
-                    camera.move(5, 0);
-                    text.move(5, 0);
-                    lives.move(5, 0);
-                    SonicFace.move(5, 0);
-                }
-                if (sonic.on_ground) sonic.hitRight = false;
-            }
-            else if (sonic.hitLeft) {
-                sonic.PlayerSprite.move(-5, 0);
-                if (sonic.PlayerSprite.getPosition().x >= 200) {
-                    camera.move(-5, 0);
-                    text.move(-5, 0);
-                    lives.move(-5, 0);
-                    SonicFace.move(-5, 0);
-                }
-                if (sonic.on_ground) sonic.hitLeft = false;
-            }
-
-            //Enemy System
-            for (int i = 0; i < 10; i++) {
-                if (enemies[i].TexDelay <= 8) enemies[i].TexDelay++;
-                if (enemies[i].MovingRight) {
-                    enemies[i].EnenmySprite.move(4, 0);
-                    if (enemies[i].TexDelay >= 8) {
-                        enemies[i].TexDelay = 0;
-                        enemies[i].TexNumber++;
-                        enemies[i].TexNumber %= 11;
-                        enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 58, 345, 58, 29.2));
-                    }
-                    if (enemies[i].EnenmySprite.getPosition().x >= enemies[i].xEnd) enemies[i].MovingRight = false;
-                }
-                else {
-                    enemies[i].EnenmySprite.move(-4, 0);
-                    if (enemies[i].TexDelay >= 8) {
-                        enemies[i].TexDelay = 0;
-                        enemies[i].TexNumber--;
-                        if (enemies[i].TexNumber <= 0) enemies[i].TexNumber = 10;
-                        enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 58, 313, 58, 29.2));
-                    }
-                    if (enemies[i].EnenmySprite.getPosition().x <= enemies[i].xStart) enemies[i].MovingRight = true;
                 }
 
-                if (enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
-                    if (!enemies[i].Hit) enemies[i].Hit = true;
-                    else enemies[i].EnenmySprite.setScale(0, 0);
-                    sonic.Velocity.y = 10;
-                    EnemyDamageSound.play();
-                }
-                else if (enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0)) {
-                    if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
-                    if (sonic.PlayerSprite.getPosition().x > enemies[i].EnenmySprite.getPosition().x) sonic.hitRight = true;
-                    else sonic.hitLeft = true;
-                    sonic.hitCounter = 50;
-                    sonic.Velocity.y = 8;
-                    sonic.PlayerSprite.move(0, -10);
-                    SpikeDeathAudio.play();
-                }
-                if (enemies[i].Hit && enemies[i].DamageDelay <= 30 && enemies[i].DamageDelay >= 0) {
-                    enemies[i].DamageDelay++;
-                    enemies[i].EnenmySprite.setColor(Color(255, 0, 0, 200));
-                }
-                else if (enemies[i].Hit && enemies[i].DamageDelay >= 30) {
-                    enemies[i].EnenmySprite.setColor(Color::White);
-                    enemies[i].DamageDelay = -1;
-                }
-                if (enemies2[i].TexDelay <= 8) enemies2[i].TexDelay++;
-                if (enemies2[i].MovingRight) {
-                    enemies2[i].EnemySprite.move(4, 0);
-                    if (enemies2[i].TexDelay >= 8) {
-                        enemies2[i].TexDelay = 0;
-                        enemies2[i].TexNumber++;
-                        enemies2[i].TexNumber %= 4;
-                        enemies2[i].EnemySprite.setTextureRect(IntRect(enemies2[i].TexNumber * 47, 411, 48, 30));
+                //Spikes System
+                for (int i = 0; i < 100; i++) {
+                    if (spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+                        sonic.lives--;
+                        sonic.Velocity.y = 10;
+                        SpikeDeathAudio.play();
                     }
-                    if (enemies2[i].EnemySprite.getPosition().x >= enemies2[i].xEnd) {
-                        enemies2[i].MovingRight = false;
+                    else if (spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0)) {
+                        if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
+                        if (sonic.PlayerColl.getPosition().x >= spikes[i].SpikeSprite.getPosition().x) sonic.hitRight = true;
+                        else sonic.hitLeft = true;
+                        sonic.hitCounter = 50;
+                        sonic.Velocity.y = 7;
+                        sonic.PlayerSprite.move(0, -10);
+                        SpikeDeathAudio.play();
                     }
                 }
-                else {
-                    enemies2[i].EnemySprite.move(-4, 0);
-                    if (enemies2[i].TexDelay >= 8) {
-                        enemies2[i].TexDelay = 0;
-                        enemies2[i].TexNumber--;
-                        if (enemies2[i].TexNumber <= 0) enemies2[i].TexNumber = 3;
-                        enemies2[i].EnemySprite.setTextureRect(IntRect(enemies2[i].TexNumber * 47, 411, 48, 30));
-                    }
-                    if (enemies2[i].EnemySprite.getPosition().x <= enemies2[i].xStart) enemies2[i].MovingRight = true;
-                }
 
-                if (enemies2[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
-                    if (!enemies2[i].Hit) enemies2[i].Hit = true;
-                    else enemies2[i].EnemySprite.setScale(0, 0);
-                    sonic.Velocity.y = 10;
-                    EnemyDamageSound.play();
+                //Hit Counter
+                if (sonic.hitCounter <= 50 && sonic.hitCounter > -1) {
+                    sonic.hitCounter--;
+                    sonic.PlayerSprite.setColor(Color(255, 0, 0, 220));
                 }
-                else if ((enemies2[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) {
-                    if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
-                    if (sonic.PlayerSprite.getPosition().x > enemies2[i].EnemySprite.getPosition().x) sonic.hitRight = true;
-                    else sonic.hitLeft = true;
-                    sonic.hitCounter = 50;
-                    sonic.Velocity.y = 8;
-                    sonic.PlayerSprite.move(0, -10);
-                    SpikeDeathAudio.play();
-                }
-                if (enemies2[i].Hit && enemies2[i].DamageDelay <= 30 && enemies2[i].DamageDelay >= 0) {
-                    enemies2[i].DamageDelay++;
-                    enemies2[i].EnemySprite.setColor(Color(255, 0, 0, 200));
-                }
-                else if (enemies2[i].Hit && enemies2[i].DamageDelay >= 30) {
-                    enemies2[i].EnemySprite.setColor(Color::White);
-                    enemies2[i].DamageDelay = -1;
-                }
-            }
+                else if (sonic.hitCounter == -1) sonic.PlayerSprite.setColor(Color::White);
 
-
-            // Jumpingpad System
-            for (int i = 0; i < 10; i++) {
-                if (jumppad[i].delay <= 2) jumppad[i].delay++;
-                if (sonic.PlayerColl.getGlobalBounds().intersects(jumppad[i].JumppadSprite.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
-                    sonic.Velocity.y = 15;
-                    jumppad[i].jumped = true;
-                    JumppadAudio.play();
-                }
-                // Jumppad Animation
-                if (jumppad[i].jumped) {
-                    if (jumppad[i].delay >= 2) {
-                        jumppad[i].delay = 0;
-                        if (jumppad[i].TexLeft) jumppad[i].Texnumber++;
-                        else jumppad[i].Texnumber--;
-                        if (jumppad[i].Texnumber >= 6) jumppad[i].jumped = false;
-                        else if (jumppad[i].Texnumber <= 0) jumppad[i].TexLeft = true;
-                        jumppad[i].JumppadSprite.setTextureRect(IntRect(jumppad[i].Texnumber * 80, 543, 79.7, 66));
+                //Idle Animation
+                if (!Keyboard::isKeyPressed(Keyboard::D) && !Keyboard::isKeyPressed(Keyboard::A) && !Keyboard::isKeyPressed(Keyboard::W) && !Keyboard::isKeyPressed(Keyboard::S)) {
+                    sonic.Running = false;
+                    sonic.txToggle = false;
+                    sonic.RunningSound = false;
+                    if (sonic.IdleDelay >= 10) {
+                        sonic.IdleDelay = 0;
+                        if (sonic.IdleTexNumber == 7) sonic.idle1 = true;
+                        else if (sonic.IdleTexNumber == 0) sonic.idle1 = false;
+                        if (sonic.idle1) sonic.IdleTexNumber--;
+                        else sonic.IdleTexNumber++;
+                        if (!sonic.Running) sonic.PlayerSprite.setTextureRect(IntRect(sonic.IdleTexNumber * 48.75, 0 * 60, 48.75, 51));
                     }
                 }
-                else {
-                    jumppad[i].JumppadSprite.setTextureRect(IntRect(6 * 80, 543, 80, 66));
-                    jumppad[i].Texnumber = 6;
-                    jumppad[i].TexLeft = false;
-                }
-                //
-            }
 
-
-            ///Jumping Stystem
-            if (sonic.PlayerColl.getGlobalBounds().intersects(ground.getGlobalBounds())) {
-                sonic.on_ground = true;
-                sonic.Velocity.y = 0;
-                if (Keyboard::isKeyPressed(Keyboard::Key::Space)) {
-                    sonic.Velocity.y = 10;
-                    JumpSound.play();
-                }
-            }
-            else {
-                bool found = false;
-                for (int i = 0; i < 30; i++) {
-                    if (sonic.PlayerSprite.getGlobalBounds().intersects(tiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < tiles[i].TileSprite.getPosition().y) {
-                        found = true;
-                        sonic.onTile = true;
-                        sonic.Velocity.y = 0;
-                    }
-                    if (sonic.PlayerColl.getGlobalBounds().intersects(tiles[i].LowerTileColl.getGlobalBounds()) && !sonic.on_ground) sonic.Velocity.y = -2;
-                }
-                if (!found) {
-                    sonic.on_ground = false;
-                    sonic.onTile = false;
+                if (Mouse::isButtonPressed(Mouse::Left)) {
+                    std::cout << Mouse::getPosition(window).x << ' ' << Mouse::getPosition(window).y << '\n';
                 }
 
-                if (!sonic.on_ground && !sonic.onTile) {
-                    sonic.RightTexNumber++;
-                    sonic.RightTexNumber %= 16;
-                    sonic.PlayerSprite.setTextureRect(IntRect(sonic.RightTexNumber * 49, 2 * 60, 49, 48));
-                    sonic.Velocity.y -= 0.3;
-                }
-                if (sonic.onTile) {
-                    sonic.Velocity.y = 0;
-                    if (Keyboard::isKeyPressed(Keyboard::Key::Space)) sonic.Velocity.y = 10;
-                }
-            }
-
-            for (int i = 0; i < 2; i++) {
-                if (Vertical_tiles_left[i].Vertiacl_Tiles_sprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds())) {
+                //Moving Right
+                if (Keyboard::isKeyPressed(Keyboard::Key::D) && !sonic.hitLeft && !sonic.hitRight) {
                     if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
-                        sonic.PlayerSprite.move(-15, 0);
-                        camera.move(-15, 0);
-                        text.move(-15, 0);
-                        lives.move(-15, 0);
-                        SonicFace.move(-15, 0);
-
-                    }
-                    else {
-                        sonic.PlayerSprite.move(-12, 0);
-                        camera.move(-12, 0);
-                        text.move(-12, 0);
-                        lives.move(-12, 0);
-                        SonicFace.move(-12, 0);
-                    }
-                }
-                if (Vertical_tiles_right[i].Vertiacl_Tiles_sprite.getGlobalBounds().intersects(sonic.PlayerSprite.getGlobalBounds())) {
-                    if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
+                        // Running Sonic Right
                         sonic.PlayerSprite.move(15, 0);
-                        camera.move(15, 0);
-                        text.move(15, 0);
-                        lives.move(15, 0);
-                        SonicFace.move(15, 0);
-
+                        if (!sonic.RunningSound) {
+                            RunningSound.play();
+                            sonic.RunningSound = true;
+                        }
+                        if (sonic.PlayerSprite.getPosition().x >= 200) {
+                            camera.move(15, 0);
+                            text.move(15, 0);
+                            lives.move(15, 0);
+                            SonicFace.move(15, 0);
+                            pauseMenu.move(15, 0);
+                        }
+                        if (sonic.TexDelay >= 3) {
+                            sonic.RightTexNumber++;
+                            sonic.TexDelay = 0;
+                            if (sonic.Running) if (sonic.RightTexNumber >= 22) sonic.RightTexNumber = 19;
+                            else sonic.RightTexNumber = (sonic.RightTexNumber % 12) + 12;
+                            if (sonic.RightTexNumber >= 17) sonic.Running = true;
+                            sonic.PlayerSprite.setTextureRect(IntRect(sonic.RightTexNumber * 48.86, 1 * 60, 48.86, 51));
+                        }
                     }
                     else {
+                        // Walking Sonic Right
                         sonic.PlayerSprite.move(12, 0);
-                        camera.move(12, 0);
-                        text.move(12, 0);
-                        lives.move(12, 0);
-                        SonicFace.move(12, 0);
+                        if (sonic.PlayerSprite.getPosition().x >= 200) {
+                            camera.move(12, 0);
+                            text.move(12, 0);
+                            lives.move(12, 0);
+                            SonicFace.move(12, 0);
+                            pauseMenu.move(12, 0);
+                        }
+                        if (sonic.TexDelay >= 3) {
+                            sonic.RightTexNumber++;
+                            sonic.TexDelay = 0;
+                            /*if (sonic.txToggle) sonic.RightTexNumber = (sonic.RightTexNumber % 5) + 5;
+                            else */
+                            sonic.RightTexNumber %= 11;
+                            //if (sonic.RightTexNumber == 6) sonic.txToggle = true;
+                            sonic.PlayerSprite.setTextureRect(IntRect(sonic.RightTexNumber * 48.86, 1 * 60, 48.86, 51));
+                        }
+                    }
+                }
+
+                //Moving Left
+                if (Keyboard::isKeyPressed(Keyboard::Key::A) && !sonic.hitLeft && !sonic.hitRight && sonic.PlayerSprite.getPosition().x > 0) {
+                    if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
+                        // Running Sonic Left                
+                        sonic.PlayerSprite.move(-15, 0);
+                        if (!sonic.RunningSound) {
+                            RunningSound.play();
+                            sonic.RunningSound = true;
+                        }
+                        if (sonic.PlayerSprite.getPosition().x >= 200) {
+                            camera.move(-15, 0);
+                            text.move(-15, 0);
+                            lives.move(-15, 0);
+                            SonicFace.move(-15, 0);
+                            pauseMenu.move(-15, 0);
+                        }
+                        if (sonic.TexDelay >= 3) {
+                            sonic.LeftTexNumber--;
+                            sonic.TexDelay = 0;
+                            if (sonic.Running) if (sonic.LeftTexNumber <= 0) sonic.LeftTexNumber = 3;
+                            else if (sonic.LeftTexNumber <= 0) sonic.LeftTexNumber = 12;
+                            if (sonic.LeftTexNumber <= 6) sonic.Running = true;
+                            sonic.PlayerSprite.setTextureRect(IntRect(sonic.LeftTexNumber * 48.86, 3 * 60, 48.86, 51));
+                        }
+                    }
+                    else {
+                        // Moving Sonic Left
+                        sonic.PlayerSprite.move(-12, 0);
+                        if (sonic.PlayerSprite.getPosition().x >= 200) {
+                            camera.move(-12, 0);
+                            text.move(-12, 0);
+                            lives.move(-12, 0);
+                            SonicFace.move(-12, 0);
+                            pauseMenu.move(-12, 0);
+                        }
+                        if (sonic.TexDelay >= 3) {
+                            sonic.LeftTexNumber--;
+                            sonic.TexDelay = 0;
+                            if (sonic.txToggle) if (sonic.LeftTexNumber <= 12) sonic.LeftTexNumber = 22;
+                            else if (sonic.LeftTexNumber <= 12) sonic.LeftTexNumber = 22;
+                            if (sonic.LeftTexNumber <= 17) sonic.txToggle = true;
+                            sonic.PlayerSprite.setTextureRect(IntRect(sonic.LeftTexNumber * 48.86, 3 * 60, 48.86, 51));
+                        }
+                    }
+                }
+
+                //Hit Right and Left
+                if (sonic.hitRight) {
+                    sonic.PlayerSprite.move(5, 0);
+                    if (sonic.PlayerSprite.getPosition().x >= 200) {
+                        camera.move(5, 0);
+                        text.move(5, 0);
+                        lives.move(5, 0);
+                        SonicFace.move(5, 0);
+                        pauseMenu.move(5, 0);
+                    }
+                    if (sonic.on_ground) sonic.hitRight = false;
+                }
+                else if (sonic.hitLeft) {
+                    sonic.PlayerSprite.move(-5, 0);
+                    if (sonic.PlayerSprite.getPosition().x >= 200) {
+                        camera.move(-5, 0);
+                        text.move(-5, 0);
+                        lives.move(-5, 0);
+                        SonicFace.move(-5, 0);
+                        pauseMenu.move(-5, 0);
+                    }
+                    if (sonic.on_ground) sonic.hitLeft = false;
+                }
+
+                //Enemy System
+                for (int i = 0; i < 10; i++) {
+                    if (enemies[i].TexDelay <= 8) enemies[i].TexDelay++;
+                    if (enemies[i].MovingRight) {
+                        enemies[i].EnenmySprite.move(4, 0);
+                        if (enemies[i].TexDelay >= 8) {
+                            enemies[i].TexDelay = 0;
+                            enemies[i].TexNumber++;
+                            enemies[i].TexNumber %= 11;
+                            enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 58, 345, 58, 29.2));
+                        }
+                        if (enemies[i].EnenmySprite.getPosition().x >= enemies[i].xEnd) enemies[i].MovingRight = false;
+                    }
+                    else {
+                        enemies[i].EnenmySprite.move(-4, 0);
+                        if (enemies[i].TexDelay >= 8) {
+                            enemies[i].TexDelay = 0;
+                            enemies[i].TexNumber--;
+                            if (enemies[i].TexNumber <= 0) enemies[i].TexNumber = 10;
+                            enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 58, 313, 58, 29.2));
+                        }
+                        if (enemies[i].EnenmySprite.getPosition().x <= enemies[i].xStart) enemies[i].MovingRight = true;
+                    }
+
+                    if (enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+                        if (!enemies[i].Hit) enemies[i].Hit = true;
+                        else enemies[i].EnenmySprite.setScale(0, 0);
+                        sonic.Velocity.y = 10;
+                        EnemyDamageSound.play();
+                    }
+                    else if (enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0)) {
+                        if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
+                        if (sonic.PlayerSprite.getPosition().x > enemies[i].EnenmySprite.getPosition().x) sonic.hitRight = true;
+                        else sonic.hitLeft = true;
+                        sonic.hitCounter = 50;
+                        sonic.Velocity.y = 8;
+                        sonic.PlayerSprite.move(0, -10);
+                        SpikeDeathAudio.play();
+                    }
+                    if (enemies[i].Hit && enemies[i].DamageDelay <= 30 && enemies[i].DamageDelay >= 0) {
+                        enemies[i].DamageDelay++;
+                        enemies[i].EnenmySprite.setColor(Color(255, 0, 0, 200));
+                    }
+                    else if (enemies[i].Hit && enemies[i].DamageDelay >= 30) {
+                        enemies[i].EnenmySprite.setColor(Color::White);
+                        enemies[i].DamageDelay = -1;
+                    }
+                    if (enemies2[i].TexDelay <= 8) enemies2[i].TexDelay++;
+                    if (enemies2[i].MovingRight) {
+                        enemies2[i].EnemySprite.move(4, 0);
+                        if (enemies2[i].TexDelay >= 8) {
+                            enemies2[i].TexDelay = 0;
+                            enemies2[i].TexNumber++;
+                            enemies2[i].TexNumber %= 4;
+                            enemies2[i].EnemySprite.setTextureRect(IntRect(enemies2[i].TexNumber * 47, 411, 48, 30));
+                        }
+                        if (enemies2[i].EnemySprite.getPosition().x >= enemies2[i].xEnd) {
+                            enemies2[i].MovingRight = false;
+                        }
+                    }
+                    else {
+                        enemies2[i].EnemySprite.move(-4, 0);
+                        if (enemies2[i].TexDelay >= 8) {
+                            enemies2[i].TexDelay = 0;
+                            enemies2[i].TexNumber--;
+                            if (enemies2[i].TexNumber <= 0) enemies2[i].TexNumber = 3;
+                            enemies2[i].EnemySprite.setTextureRect(IntRect(enemies2[i].TexNumber * 47, 411, 48, 30));
+                        }
+                        if (enemies2[i].EnemySprite.getPosition().x <= enemies2[i].xStart) enemies2[i].MovingRight = true;
+                    }
+
+                    if (enemies2[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+                        if (!enemies2[i].Hit) enemies2[i].Hit = true;
+                        else enemies2[i].EnemySprite.setScale(0, 0);
+                        sonic.Velocity.y = 10;
+                        EnemyDamageSound.play();
+                    }
+                    else if ((enemies2[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) {
+                        if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
+                        if (sonic.PlayerSprite.getPosition().x > enemies2[i].EnemySprite.getPosition().x) sonic.hitRight = true;
+                        else sonic.hitLeft = true;
+                        sonic.hitCounter = 50;
+                        sonic.Velocity.y = 8;
+                        sonic.PlayerSprite.move(0, -10);
+                        SpikeDeathAudio.play();
+                    }
+                    if (enemies2[i].Hit && enemies2[i].DamageDelay <= 30 && enemies2[i].DamageDelay >= 0) {
+                        enemies2[i].DamageDelay++;
+                        enemies2[i].EnemySprite.setColor(Color(255, 0, 0, 200));
+                    }
+                    else if (enemies2[i].Hit && enemies2[i].DamageDelay >= 30) {
+                        enemies2[i].EnemySprite.setColor(Color::White);
+                        enemies2[i].DamageDelay = -1;
+                    }
+                }
+
+
+                // Jumppad System
+                for (int i = 0; i < 10; i++) {
+                    if (jumppad[i].delay <= 2) jumppad[i].delay++;
+                    if (sonic.PlayerColl.getGlobalBounds().intersects(jumppad[i].JumppadSprite.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+                        sonic.Velocity.y = 15;
+                        jumppad[i].jumped = true;
+                        sonic.hitRight = false;
+                        sonic.hitLeft = false;
+                        JumppadAudio.play();
+                    }
+                    // Jumppad Animation
+                    if (jumppad[i].jumped) {
+                        if (jumppad[i].delay >= 2) {
+                            jumppad[i].delay = 0;
+                            if (jumppad[i].TexLeft) jumppad[i].Texnumber++;
+                            else jumppad[i].Texnumber--;
+                            if (jumppad[i].Texnumber >= 6) jumppad[i].jumped = false;
+                            else if (jumppad[i].Texnumber <= 0) jumppad[i].TexLeft = true;
+                            jumppad[i].JumppadSprite.setTextureRect(IntRect(jumppad[i].Texnumber * 80, 543, 79.7, 66));
+                        }
+                    }
+                    else {
+                        jumppad[i].JumppadSprite.setTextureRect(IntRect(6 * 80, 543, 80, 66));
+                        jumppad[i].Texnumber = 6;
+                        jumppad[i].TexLeft = false;
+                    }
+                    //
+                }
+
+
+                ///Jumping Stystem
+                if (sonic.PlayerColl.getGlobalBounds().intersects(ground.getGlobalBounds())) {
+                    sonic.on_ground = true;
+                    sonic.Velocity.y = 0;
+                    if (Keyboard::isKeyPressed(Keyboard::Key::Space)) {
+                        sonic.Velocity.y = 10;
+                        JumpSound.play();
+                    }
+                }
+                else {
+                    bool found = false;
+                    for (int i = 0; i < 30; i++) {
+                        if (sonic.PlayerSprite.getGlobalBounds().intersects(tiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < tiles[i].TileSprite.getPosition().y) {
+                            found = true;
+                            sonic.onTile = true;
+                            sonic.Velocity.y = 0;
+                        }
+                        if (sonic.PlayerColl.getGlobalBounds().intersects(tiles[i].LowerTileColl.getGlobalBounds()) && !sonic.on_ground) sonic.Velocity.y = -2;
+                    }
+                    if (!found) {
+                        sonic.on_ground = false;
+                        sonic.onTile = false;
+                    }
+                    if (!sonic.on_ground && !sonic.onTile) {
+                        sonic.RightTexNumber++;
+                        sonic.RightTexNumber %= 16;
+                        sonic.PlayerSprite.setTextureRect(IntRect(sonic.RightTexNumber * 49, 2 * 60, 49, 48));
+                        sonic.Velocity.y -= 0.3;
+                    }
+                    if (sonic.onTile) {
+                        sonic.Velocity.y = 0;
+                        if (Keyboard::isKeyPressed(Keyboard::Key::Space)) sonic.Velocity.y = 10;
+                    }
+                }
+
+                for (int i = 0; i < 2; i++) {
+                    if (Vertical_tiles_left[i].Vertical_Tiles_sprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
+                        if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
+                            sonic.PlayerSprite.move(-15, 0);
+                            camera.move(-15, 0);
+                            text.move(-15, 0);
+                            lives.move(-15, 0);
+                            SonicFace.move(-15, 0);
+                            pauseMenu.move(-15, 0);
+                        }
+                        else {
+                            sonic.PlayerSprite.move(-12, 0);
+                            camera.move(-12, 0);
+                            text.move(-12, 0);
+                            lives.move(-12, 0);
+                            SonicFace.move(-12, 0);
+                            pauseMenu.move(-12, 0);
+                        }
+                    }
+                    if (Vertical_tiles_right[i].Vertical_Tiles_sprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
+                        if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
+                            sonic.PlayerSprite.move(15, 0);
+                            camera.move(15, 0);
+                            text.move(15, 0);
+                            lives.move(15, 0);
+                            SonicFace.move(15, 0);
+                            pauseMenu.move(15, 0);
+                        }
+                        else {
+                            sonic.PlayerSprite.move(12, 0);
+                            camera.move(12, 0);
+                            text.move(12, 0);
+                            lives.move(12, 0);
+                            SonicFace.move(12, 0);
+                            pauseMenu.move(12, 0);
+                        }
+                    }
+                }
+
+                sonic.PlayerSprite.move(0, -sonic.Velocity.y);
+                sonic.PlayerColl.setPosition(sonic.PlayerSprite.getPosition().x + 28, sonic.PlayerSprite.getPosition().y + 30);
+                window.setView(camera);
+
+                if (sonic.lives <= 0) {
+                    sonic.PlayerSprite.setTextureRect(IntRect(278, 240, 48.86, 51));
+                    sonic.deathDealy = 10;
+                }
+            }
+            else if (paused) {
+                pauseMenu.setScale(1.05, 1);
+                if (Mouse::isButtonPressed(Mouse::Left)) {
+                    std::cout << Mouse::getPosition(window).x << ' ' << Mouse::getPosition(window).y << '\n';
+                }
+                if (Mouse::getPosition(window).x >= 530 && Mouse::getPosition(window).x <= 730 && Mouse::getPosition(window).y >= 302 && Mouse::getPosition(window).y <= 345) {
+                    if (Mouse::isButtonPressed(Mouse::Left)) {
+                        paused = false;
+                    }
+                }
+                if (Mouse::getPosition(window).x >= 428 && Mouse::getPosition(window).x <= 810 && Mouse::getPosition(window).y >= 360 && Mouse::getPosition(window).y <= 420) {
+                    if (Mouse::isButtonPressed(Mouse::Left)) {
+                        window.close();
+                        BackgroundMusic.stop();
+                        main();
+                    }
+                }
+            } else {
+                sonic.deathDealy--;
+                if(sonic.deathDealy >= 0) {
+                    sonic.PlayerSprite.move(0, -1);
+                }
+                else {
+                    sonic.PlayerSprite.setTextureRect(IntRect(333, 240, 48.86, 51));
+                    sonic.PlayerSprite.move(0, 7);
+                    if (sonic.PlayerSprite.getPosition().y > 800) {
+                        window.setView(GameoverCamera);
+                        FinalScore.setCharacterSize(45);
+                        Gameover.setScale(1, 0.94);
+                        if (Mouse::getPosition(window).x >= 684 && Mouse::getPosition(window).x <= 935 && Mouse::getPosition(window).y >= 724 && Mouse::getPosition(window).y <= 751) {
+                            if (Mouse::isButtonPressed(Mouse::Left)) {
+                                window.close();
+                                BackgroundMusic.stop();
+                                main();
+                            }
+                        }
                     }
                 }
             }
-
-            sonic.PlayerSprite.move(0, -sonic.Velocity.y);
-            sonic.PlayerColl.setPosition(sonic.PlayerSprite.getPosition().x + 28, sonic.PlayerSprite.getPosition().y + 30);
-            window.setView(camera);
 
 
             // clear
             window.clear();
             lives.setString("x" + std::to_string(sonic.lives));
             text.setString("Score: " + std::to_string(sonic.scoreValue));
-
+            FinalScore.setString(std::to_string(sonic.scoreValue));
             //draw
             window.draw(Map);
             for (int i = 0; i < 20; i++) window.draw(tiles[i].TileSprite);
             for (int i = 0; i < 7; i++) window.draw(jumppad[i].JumppadSprite);
-
             for (int i = 0; i < 150; i++) {
                 window.draw(Red_coins[i].CoinSprite);
                 window.draw(spikes[i].SpikeSprite);
             }
             for (int i = 0; i < 400; i++) window.draw(coins[i].CoinSprite);
             for (int i = 0; i < 2; i++) {
-                window.draw(Vertical_tiles_right[i].Vertiacl_Tiles_sprite);
-                window.draw(Vertical_tiles_left[i].Vertiacl_Tiles_sprite);
+                window.draw(Vertical_tiles_right[i].Vertical_Tiles_sprite);
+                window.draw(Vertical_tiles_right[i].tilecole);
+                window.draw(Vertical_tiles_left[i].Vertical_Tiles_sprite);
+                window.draw(Vertical_tiles_left[i].tilecole);
             }
             for (int i = 0; i < 5; i++) window.draw(enemies[i].EnenmySprite);
             for (int i = 0; i < 5; i++) window.draw(enemies2[i].EnemySprite);
@@ -1014,6 +1230,9 @@ int main()
             window.draw(SonicFace);
             window.draw(text);
             window.draw(lives);
+            window.draw(pauseMenu);
+            window.draw(Gameover);
+            window.draw(FinalScore);
             window.display();
         }
     }
@@ -1037,14 +1256,15 @@ void Moving_in_X_Axis(int First_index, int Last_index, int X_position, int Y_Pos
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(X_position + ((i - First_index) * 45), Y_Position);
+        coins[i].CoinSprite.setScale(1, 1);
     }
 }
 void Moving_in_X_Y(int First_index, int Last_index, int X_position, int Y_Position, int X_increament, int Y_increament) {
-    for (int i = First_index; i < Last_index; i++)
-    {
+    for (int i = First_index; i < Last_index; i++) {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition((X_position + ((i - First_index) * X_increament)), (Y_Position - ((i - First_index) * Y_increament)));
+        coins[i].CoinSprite.setScale(1, 1);
     }
 }
 void Moving_in_Y_Axis(int First_index, int Last_index, int X_position, int Y_Position, int increase = 45) {
@@ -1052,18 +1272,21 @@ void Moving_in_Y_Axis(int First_index, int Last_index, int X_position, int Y_Pos
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(X_position, Y_Position - ((i - First_index) * increase));
+        coins[i].CoinSprite.setScale(1, 1);
     }
 }
 void SingleCoinPos(int num, int X_Position, int Y_position) {
     coins[num].CoinSprite.setTexture(CoinTex);
     coins[num].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
     coins[num].CoinSprite.setPosition(X_Position, Y_position);
+    coins[num].CoinSprite.setScale(1, 1);
 }
 void PosRowCoins(int First_index, int Last_index, int X_position, int Y_Position) {
     for (int i = First_index; i < Last_index; i++) {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(X_position + (i * 40), Y_Position);
+        coins[i].CoinSprite.setScale(1, 1);
     }
 }
 void coinPos() {
@@ -1088,26 +1311,31 @@ void coinPos() {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(1465, 375);
+        coins[i].CoinSprite.setScale(1, 1);
     }
     for (int i = 39; i < 41; i++) {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(1370 + ((i - 38) * 35), 510 - ((i - 37) * 35));
+        coins[i].CoinSprite.setScale(1, 1);
     }
     for (int i = 42; i < 45; i++) {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(1520 + ((i - 41) * 35), 335 + ((i - 41) * 35));
+        coins[i].CoinSprite.setScale(1, 1);
     }
     for (int i = 47; i < 50; i++) {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(1400 + ((i - 47) * 35), 540 + ((i - 47) * 25));
+        coins[i].CoinSprite.setScale(1, 1);
     }
     for (int i = 51; i < 54; i++) {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(1410 + ((i - 47) * 35), 680 - ((i - 47) * 25));
+        coins[i].CoinSprite.setScale(1, 1);
     }
     // letter n...........
     Moving_in_Y_Axis(54, 59, 1720, 605);
@@ -1138,23 +1366,21 @@ void coinPos() {
     Moving_in_X_Axis(150, 157, 6180, 470);
     Moving_in_X_Y(95, 101, 6420, 330, 30, -45);
     //
-    Moving_in_X_Y(101, 107, 6660, 550, 30);
-    Moving_in_X_Axis(107, 115, 6860, 315);
-    Moving_in_X_Axis(165, 173, 6250 + 600, 370);
-    Moving_in_X_Axis(173, 183, 6820, 420);
-    Moving_in_X_Axis(183, 195, 6780, 470);
-    Moving_in_X_Y(115, 121, 7210, 330, 30, -45);
+    Moving_in_X_Y(101, 107, 6630, 550, 30);
+    Moving_in_X_Axis(107, 112, 6840, 315);
+    Moving_in_X_Axis(165, 171, 6810, 370);
+    Moving_in_X_Axis(173, 180, 6780, 420);
+    Moving_in_X_Axis(183, 192, 6740, 470);
+    Moving_in_X_Y(115, 121, 7070, 330, 30, -45);
     //
-    Moving_in_X_Y(121, 127, 7350, 550, 30);
-    Moving_in_X_Axis(127, 134, 7540, 315);
-    Moving_in_X_Axis(208, 216, 6250 + 1270, 370);
-    Moving_in_X_Axis(216, 225, 6220 + 1270, 420);
-    Moving_in_X_Axis(225, 236, 6180 + 1270, 470);
-    Moving_in_X_Y(134, 141, 7850, 330, 30, -45);
+    Moving_in_X_Y(121, 127, 7250, 555, 30);
+    Moving_in_X_Axis(127, 132, 7440, 315);
+    Moving_in_X_Axis(208, 214, 7420, 370);
+    Moving_in_X_Axis(214, 221, 7395, 420);
+    Moving_in_X_Axis(221, 230, 7360, 470);
+    Moving_in_X_Y(134, 140, 7670, 330, 30, -45);
     //
     Moving_in_X_Axis(248, 291, 6080, 200);
-
-
 }
 
 void PosRowSpikes(int First_index, int Last_index, int X_position, int Y_Position) {
@@ -1168,11 +1394,12 @@ void PosRowSpikes(int First_index, int Last_index, int X_position, int Y_Positio
 
 void Draw_jumppad() {
     jumppad[0].JumppadSprite.setPosition(2750, 590);
-    jumppad[1].JumppadSprite.setPosition(5720, 600);
-    jumppad[2].JumppadSprite.setPosition(6050, 600);
-    jumppad[3].JumppadSprite.setPosition(6610, 600);
-    jumppad[4].JumppadSprite.setPosition(7340, 600);
-    jumppad[5].JumppadSprite.setPosition(8600, 600);
+    jumppad[1].JumppadSprite.setPosition(5720, 590);
+    jumppad[2].JumppadSprite.setPosition(6050, 590);
+    jumppad[3].JumppadSprite.setPosition(6590, 590);
+    jumppad[4].JumppadSprite.setPosition(7220, 590);
+    jumppad[5].JumppadSprite.setPosition(8600, 590);
+    jumppad[6].JumppadSprite.setPosition(7800, 590);
 }
 
 void draw_tiles() {
@@ -1190,30 +1417,34 @@ void draw_tiles() {
 void draw_spikes() {
     PosRowSpikes(0, 30, 3400, 580);
     PosRowSpikes(27, 32, 4260, 580);
-    PosRowSpikes(32, 39, 4500, 580);
-    PosRowSpikes(39, 45, 4750, 580);
+    PosRowSpikes(32, 38, 4470, 580);
+    PosRowSpikes(39, 45, 4580, 580);
     PosRowSpikes(45, 53, 5700, 580);
 }
 void draw_vertical_tiles() {
-    Vertical_tiles_left[0].Vertiacl_Tiles_sprite.setPosition(8750, 400);
-    Vertical_tiles_left[1].Vertiacl_Tiles_sprite.setPosition(8750, 280);
-    Vertical_tiles_right[0].Vertiacl_Tiles_sprite.setPosition(8780, 400);
-    Vertical_tiles_right[1].Vertiacl_Tiles_sprite.setPosition(8780, 280);
+    Vertical_tiles_left[0].Vertical_Tiles_sprite.setPosition(8750, 400);
+    Vertical_tiles_left[1].Vertical_Tiles_sprite.setPosition(8750, 280);
+    Vertical_tiles_right[0].Vertical_Tiles_sprite.setPosition(8780, 400);
+    Vertical_tiles_right[1].Vertical_Tiles_sprite.setPosition(8780, 280);
+    Vertical_tiles_right[1].upper_tilecole.setSize(Vector2f(61.f, 5.f));
+    Vertical_tiles_right[1].upper_tilecole.setPosition(8758, 290);
+
 }
 
 void enemy1_coordinate(int index, int X_pos, int Y_pos, int start, int end) {
     enemies[index].EnenmySprite.setPosition(X_pos, Y_pos);
     enemies[index].xStart = start;
     enemies[index].xEnd = end;
+    enemies[index].Hit = false;
 }
 void enemy2_coordinate(int index, int X_pos, int Y_pos, int start, int end) {
     enemies2[index].EnemySprite.setPosition(X_pos, Y_pos);
     enemies2[index].xStart = start;
     enemies2[index].xEnd = end;
+    enemies[index].Hit = false;
 }
 void draw_enemies() {
     enemy1_coordinate(0, 1500, 580, 500, 1100);
     enemy2_coordinate(0, 1500, 585, 1500, 2500);
     enemy2_coordinate(1, 8300, 585, 8100, 8500);
-
 }
