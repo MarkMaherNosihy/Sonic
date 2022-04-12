@@ -19,13 +19,14 @@ struct Player {
     bool on_ground = true, hitRight = false, hitLeft = false, RunningSound = false;
 } sonic;
 
-struct Boss {
+struct BossSt {
     Texture BossTx;
     Sprite BossSprite;
     RectangleShape HitBox;
-    int hitCounter = 0, TexDealy = 0, TexNumber = 0;
-    bool FightStart = false;
-} Boss;
+    Vector2f Velocity;
+    int hitCounter = 0, TexDelay = 0, TexNumber = 0, lives = 10;
+    bool SceneStart = false, FightStart = false, MoveStart = false, MovingLeft = true, StartDelay = false;
+};
 //Jumpad start
 struct Jumppad {
     Sprite JumppadSprite;
@@ -701,6 +702,23 @@ int main()
         Gameover.setScale(0, 0);
         View GameoverCamera(FloatRect(0, 0, 1200, 720));
         //
+        //Level Passed
+        Texture LevelPassedTx;
+        LevelPassedTx.loadFromFile("Assets/Textures/Lvl1Passed.png");
+        Sprite LevelPassed;
+        LevelPassed.setTexture(LevelPassedTx);
+        LevelPassed.setPosition(14800, 0);
+        LevelPassed.setScale(0, 0);
+
+        //Boss
+        BossSt Boss;
+        Boss.BossTx.loadFromFile("Assets/Textures/Boss.png");
+        Boss.BossSprite.setTexture(Boss.BossTx);
+        Boss.BossSprite.setTextureRect(IntRect( Boss.TexNumber * 100, 800, 100, 64));
+        Boss.BossSprite.setPosition(15800, 470);
+        Boss.HitBox.setPosition(15525, 508);
+        Boss.HitBox.setSize(Vector2f(58 * 2.8, 29 * 2.8));
+        Boss.BossSprite.setScale(2.8, 2.8);
 
         bool paused = false;
         int pauseDelay = 0;
@@ -714,7 +732,9 @@ int main()
         sonic.PlayerSprite.setTextureRect(IntRect(sonic.IdleTexNumber * 59.1578, 0, 59.1578, 60));
         sonic.PlayerColl.setSize(Vector2f(55.f, 80.f));
         sonic.PlayerColl.setPosition(205, 300);
+        //sonic.PlayerColl.setPosition(14500, 300);
         sonic.PlayerSprite.setPosition(200, 300);
+        //sonic.PlayerSprite.setPosition(14500, 300);
         sonic.PlayerSprite.setScale(2.5, 2.5);
         sonic.lives = 3;
         sonic.scoreValue = 0; sonic.hitCounter = -1;
@@ -819,7 +839,7 @@ int main()
         // the music of playgound
         Music BackgroundMusic;
         BackgroundMusic.openFromFile("Assets/Sounds/05-Labyrinth-Zone.ogg");
-        BackgroundMusic.setVolume(50);
+        BackgroundMusic.setVolume(5);
         BackgroundMusic.setLoop(true);
         BackgroundMusic.play();
         //coin sound
@@ -875,6 +895,7 @@ int main()
         //
 
         // view camera
+        //View camera(FloatRect(14300, 0, 1200, 760));
         View camera(FloatRect(0, 0, 1200, 760));
         window.setView(camera);
         //
@@ -898,7 +919,7 @@ int main()
             if (pauseDelay > 0) pauseDelay--;
             if (!paused) pauseMenu.setScale(0, 0);
             //Delays and coins
-            if (sonic.lives > 0 && !paused) {
+            if (sonic.lives > 0 && !paused && Boss.lives > 0) {
                 if (sonic.TexDelay <= 3) sonic.TexDelay++;
                 if (sonic.IdleDelay <= 10) sonic.IdleDelay++;
                 for (int i = 0; i < 400; i++) {
@@ -988,102 +1009,108 @@ int main()
                 }
 
                 //Moving Right
-                if (Keyboard::isKeyPressed(Keyboard::Key::D) && !sonic.hitLeft && !sonic.hitRight) {
-                    if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
-                        // Running Sonic Right
-                        sonic.PlayerSprite.move(15, 0);
-                        if (!sonic.RunningSound) {
-                            RunningSound.play();
-                            sonic.RunningSound = true;
-                        }
-                        if (sonic.PlayerSprite.getPosition().x >= 200) {
-                            camera.move(15, 0);
-                            text.move(15, 0);
-                            lives.move(15, 0);
-                            SonicFace.move(15, 0);
-                            pauseMenu.move(15, 0);
-                        }
-                        if (sonic.TexDelay >= 3) {
-                            sonic.RightTexNumber++;
-                            sonic.TexDelay = 0;
-                            if (sonic.Running) if (sonic.RightTexNumber >= 22) sonic.RightTexNumber = 19;
-                            else sonic.RightTexNumber = (sonic.RightTexNumber % 12) + 12;
-                            if (sonic.RightTexNumber >= 17) sonic.Running = true;
-                            sonic.PlayerSprite.setTextureRect(IntRect(sonic.RightTexNumber * 48.86, 1 * 60, 48.86, 51));
+                if(!Boss.SceneStart) {
+                    if ((Boss.FightStart && sonic.PlayerSprite.getPosition().x < 15900) || !Boss.FightStart) {
+                        if (Keyboard::isKeyPressed(Keyboard::Key::D) && !sonic.hitLeft && !sonic.hitRight) {
+                            if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
+                                // Running Sonic Right
+                                sonic.PlayerSprite.move(15, 0);
+                                if (!sonic.RunningSound) {
+                                    RunningSound.play();
+                                    sonic.RunningSound = true;
+                                }
+                                if (sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStart) {
+                                    camera.move(15, 0);
+                                    text.move(15, 0);
+                                    lives.move(15, 0);
+                                    SonicFace.move(15, 0);
+                                    pauseMenu.move(15, 0);
+                                }
+                                if (sonic.TexDelay >= 3) {
+                                    sonic.RightTexNumber++;
+                                    sonic.TexDelay = 0;
+                                    if (sonic.Running) if (sonic.RightTexNumber >= 22) sonic.RightTexNumber = 19;
+                                    else sonic.RightTexNumber = (sonic.RightTexNumber % 12) + 12;
+                                    if (sonic.RightTexNumber >= 17) sonic.Running = true;
+                                    sonic.PlayerSprite.setTextureRect(IntRect(sonic.RightTexNumber * 48.86, 1 * 60, 48.86, 51));
+                                }
+                            }
+                            else {
+                                // Walking Sonic Right
+                                sonic.PlayerSprite.move(12, 0);
+                                if (sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStart) {
+                                    camera.move(12, 0);
+                                    text.move(12, 0);
+                                    lives.move(12, 0);
+                                    SonicFace.move(12, 0);
+                                    pauseMenu.move(12, 0);
+                                }
+                                if (sonic.TexDelay >= 3) {
+                                    sonic.RightTexNumber++;
+                                    sonic.TexDelay = 0;
+                                    /*if (sonic.txToggle) sonic.RightTexNumber = (sonic.RightTexNumber % 5) + 5;
+                                    else */
+                                    sonic.RightTexNumber %= 11;
+                                    //if (sonic.RightTexNumber == 6) sonic.txToggle = true;
+                                    sonic.PlayerSprite.setTextureRect(IntRect(sonic.RightTexNumber * 48.86, 1 * 60, 48.86, 51));
+                                }
+                            }
                         }
                     }
-                    else {
-                        // Walking Sonic Right
-                        sonic.PlayerSprite.move(12, 0);
-                        if (sonic.PlayerSprite.getPosition().x >= 200) {
-                            camera.move(12, 0);
-                            text.move(12, 0);
-                            lives.move(12, 0);
-                            SonicFace.move(12, 0);
-                            pauseMenu.move(12, 0);
-                        }
-                        if (sonic.TexDelay >= 3) {
-                            sonic.RightTexNumber++;
-                            sonic.TexDelay = 0;
-                            /*if (sonic.txToggle) sonic.RightTexNumber = (sonic.RightTexNumber % 5) + 5;
-                            else */
-                            sonic.RightTexNumber %= 11;
-                            //if (sonic.RightTexNumber == 6) sonic.txToggle = true;
-                            sonic.PlayerSprite.setTextureRect(IntRect(sonic.RightTexNumber * 48.86, 1 * 60, 48.86, 51));
-                        }
-                    }
-                }
 
-                //Moving Left
-                if (Keyboard::isKeyPressed(Keyboard::Key::A) && !sonic.hitLeft && !sonic.hitRight && sonic.PlayerSprite.getPosition().x > 0) {
-                    if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
-                        // Running Sonic Left                
-                        sonic.PlayerSprite.move(-15, 0);
-                        if (!sonic.RunningSound) {
-                            RunningSound.play();
-                            sonic.RunningSound = true;
-                        }
-                        if (sonic.PlayerSprite.getPosition().x >= 200) {
-                            camera.move(-15, 0);
-                            text.move(-15, 0);
-                            lives.move(-15, 0);
-                            SonicFace.move(-15, 0);
-                            pauseMenu.move(-15, 0);
-                        }
-                        if (sonic.TexDelay >= 3) {
-                            sonic.LeftTexNumber--;
-                            sonic.TexDelay = 0;
-                            if (sonic.Running) if (sonic.LeftTexNumber <= 0) sonic.LeftTexNumber = 3;
-                            else if (sonic.LeftTexNumber <= 0) sonic.LeftTexNumber = 12;
-                            if (sonic.LeftTexNumber <= 6) sonic.Running = true;
-                            sonic.PlayerSprite.setTextureRect(IntRect(sonic.LeftTexNumber * 48.86, 3 * 60, 48.86, 51));
-                        }
-                    }
-                    else {
-                        // Moving Sonic Left
-                        sonic.PlayerSprite.move(-12, 0);
-                        if (sonic.PlayerSprite.getPosition().x >= 200) {
-                            camera.move(-12, 0);
-                            text.move(-12, 0);
-                            lives.move(-12, 0);
-                            SonicFace.move(-12, 0);
-                            pauseMenu.move(-12, 0);
-                        }
-                        if (sonic.TexDelay >= 3) {
-                            sonic.LeftTexNumber--;
-                            sonic.TexDelay = 0;
-                            if (sonic.txToggle) if (sonic.LeftTexNumber <= 12) sonic.LeftTexNumber = 22;
-                            else if (sonic.LeftTexNumber <= 12) sonic.LeftTexNumber = 22;
-                            if (sonic.LeftTexNumber <= 17) sonic.txToggle = true;
-                            sonic.PlayerSprite.setTextureRect(IntRect(sonic.LeftTexNumber * 48.86, 3 * 60, 48.86, 51));
+                        //Moving Left
+                    if ((Boss.FightStart && sonic.PlayerSprite.getPosition().x >= 14800) || !Boss.FightStart) {
+                        if (Keyboard::isKeyPressed(Keyboard::Key::A) && !sonic.hitLeft && !sonic.hitRight && sonic.PlayerSprite.getPosition().x > 0) {
+                            if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
+                                // Running Sonic Left                
+                                sonic.PlayerSprite.move(-15, 0);
+                                if (!sonic.RunningSound) {
+                                    RunningSound.play();
+                                    sonic.RunningSound = true;
+                                }
+                                if (sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStart) {
+                                    camera.move(-15, 0);
+                                    text.move(-15, 0);
+                                    lives.move(-15, 0);
+                                    SonicFace.move(-15, 0);
+                                    pauseMenu.move(-15, 0);
+                                }
+                                if (sonic.TexDelay >= 3) {
+                                    sonic.LeftTexNumber--;
+                                    sonic.TexDelay = 0;
+                                    if (sonic.Running) if (sonic.LeftTexNumber <= 0) sonic.LeftTexNumber = 3;
+                                    else if (sonic.LeftTexNumber <= 0) sonic.LeftTexNumber = 12;
+                                    if (sonic.LeftTexNumber <= 6) sonic.Running = true;
+                                    sonic.PlayerSprite.setTextureRect(IntRect(sonic.LeftTexNumber * 48.86, 3 * 60, 48.86, 51));
+                                }
+                            }
+                            else {
+                                // Moving Sonic Left
+                                sonic.PlayerSprite.move(-12, 0);
+                                if (sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStart) {
+                                    camera.move(-12, 0);
+                                    text.move(-12, 0);
+                                    lives.move(-12, 0);
+                                    SonicFace.move(-12, 0);
+                                    pauseMenu.move(-12, 0);
+                                }
+                                if (sonic.TexDelay >= 3) {
+                                    sonic.LeftTexNumber--;
+                                    sonic.TexDelay = 0;
+                                    if (sonic.txToggle) if (sonic.LeftTexNumber <= 12) sonic.LeftTexNumber = 22;
+                                    else if (sonic.LeftTexNumber <= 12) sonic.LeftTexNumber = 22;
+                                    if (sonic.LeftTexNumber <= 17) sonic.txToggle = true;
+                                    sonic.PlayerSprite.setTextureRect(IntRect(sonic.LeftTexNumber * 48.86, 3 * 60, 48.86, 51));
+                                }
+                            }
                         }
                     }
                 }
 
                 //Hit Right and Left
                 if (sonic.hitRight) {
-                    sonic.PlayerSprite.move(5, 0);
-                    if (sonic.PlayerSprite.getPosition().x >= 200) {
+                    if((sonic.PlayerSprite.getPosition().x <= 15900 && Boss.FightStart) || !Boss.FightStart) sonic.PlayerSprite.move(5, 0);
+                    if (sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStart) {
                         camera.move(5, 0);
                         text.move(5, 0);
                         lives.move(5, 0);
@@ -1093,8 +1120,8 @@ int main()
                     if (sonic.on_ground) sonic.hitRight = false;
                 }
                 else if (sonic.hitLeft) {
-                    sonic.PlayerSprite.move(-5, 0);
-                    if (sonic.PlayerSprite.getPosition().x >= 200) {
+                    if ((sonic.PlayerSprite.getPosition().x > 14800 && Boss.FightStart) || !Boss.FightStart) sonic.PlayerSprite.move(-5, 0);
+                    if (sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStart) {
                         camera.move(-5, 0);
                         text.move(-5, 0);
                         lives.move(-5, 0);
@@ -1331,6 +1358,8 @@ int main()
                     }
                 }
 
+
+
                 sonic.PlayerSprite.move(0, -sonic.Velocity.y);
                 sonic.PlayerColl.setPosition(sonic.PlayerSprite.getPosition().x + 28, sonic.PlayerSprite.getPosition().y + 30);
                 window.setView(camera);
@@ -1339,6 +1368,111 @@ int main()
                     sonic.PlayerSprite.setTextureRect(IntRect(278, 240, 48.86, 51));
                     sonic.deathDealy = 10;
                 }
+                if (Boss.TexDelay <= 30 && (!Boss.MoveStart || Boss.StartDelay)) Boss.TexDelay++;
+                if (sonic.PlayerSprite.getPosition().x >= 15000 && !Boss.FightStart) {
+                    Boss.SceneStart = true;
+                }
+                if (Boss.SceneStart) {
+                    if (Boss.TexDelay >= 10) {
+                        Boss.TexNumber++;
+                        Boss.TexDelay = 0;
+                        Boss.BossSprite.setTextureRect(IntRect(Boss.TexNumber * 100, 800, 100, 64));
+                    }
+                    if (Boss.TexNumber == 5) {
+                        Boss.FightStart = true;
+                        Boss.SceneStart = false;
+                        Boss.TexDelay = 0;
+                        Boss.TexNumber = 0;
+                    }
+                }
+                if (Boss.FightStart) {
+                    if (!Boss.MoveStart) {
+                        if(Boss.MovingLeft) {
+                            if(Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(707, 800, 100, 64));
+                            if (!Boss.StartDelay) {
+                                if (Boss.TexDelay >= 10) {
+                                    Boss.MoveStart = true;
+                                    Boss.TexDelay = 0;
+                                    Boss.Velocity.x = -15;
+                                }
+                                else Boss.BossSprite.move(-1, 0);
+                            }
+                            else {
+                                if (Boss.TexDelay >= 30) {
+                                    Boss.StartDelay = false;
+                                    Boss.TexDelay = 0;
+                                }
+                            }
+                        } else {
+                            if(Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(700, 725, 100, 64));
+                            if (!Boss.StartDelay) {
+                                if (Boss.TexDelay >= 10) {
+                                    Boss.MoveStart = true;
+                                    Boss.TexDelay = 0;
+                                    Boss.Velocity.x = 15;
+                                }
+                                else Boss.BossSprite.move(1, 0);
+                            }
+                            else {
+                                if (Boss.TexDelay >= 30) {
+                                    Boss.StartDelay = false;
+                                    Boss.TexDelay = 0;
+                                }
+                            }
+                        }
+                    } else {
+                        if (Boss.MovingLeft) {
+                            if (Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(607, 800, 98, 64));
+                            if (Boss.Velocity.x < 0) {
+                                Boss.Velocity.x += 0.116;
+                                Boss.BossSprite.move(Boss.Velocity.x, 0);
+                            }
+                            
+                        } else {
+                            if (Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(810, 725, 98, 64));
+                            if (Boss.Velocity.x > 0) {
+                                Boss.Velocity.x -= 0.116;
+                                Boss.BossSprite.move(Boss.Velocity.x, 0);
+                            }
+                        }
+                        if (Boss.MovingLeft) {
+                            if (Boss.Velocity.x >= 0) {
+                                Boss.MovingLeft = false;
+                                Boss.MoveStart = false;
+                                Boss.StartDelay = true;
+                            }
+                        }
+                        else {
+                            if (Boss.Velocity.x <= 0) {
+                                Boss.MovingLeft = true;
+                                Boss.MoveStart = false;
+                                Boss.StartDelay = true;
+                            }
+                        }
+                    }
+                }
+                if (sonic.PlayerColl.getGlobalBounds().intersects(Boss.HitBox.getGlobalBounds())) {
+                    if (sonic.Velocity.y >= 0) {
+                        if(!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
+                        if (sonic.PlayerSprite.getPosition().x > Boss.HitBox.getPosition().x + 49) sonic.hitRight = true;
+                        else sonic.hitLeft = true;
+                        sonic.hitCounter = 50;
+                        sonic.Velocity.y = 8;
+                        sonic.PlayerSprite.move(0, -10);
+                        SpikeDeathAudio.play();
+                    }
+                    else if (sonic.Velocity.y < 0) {
+                        if (Boss.hitCounter == -1) {
+                            Boss.lives--;
+                            Boss.hitCounter = 50;
+                        }
+                        sonic.Velocity.y = 10;
+                        if (!Boss.MovingLeft) Boss.BossSprite.setTextureRect(IntRect(111, 875, 86, 60));
+                        else Boss.BossSprite.setTextureRect(IntRect(107, 952, 86, 60));
+                    }
+                }
+                if (Boss.hitCounter != -1) Boss.hitCounter--;
+                Boss.HitBox.setPosition(Boss.BossSprite.getPosition().x + 25, Boss.BossSprite.getPosition().y + 38);
             }
             else if (paused) {
                 pauseMenu.setScale(1.05, 1);
@@ -1357,8 +1491,21 @@ int main()
                         main();
                     }
                 }
-            }
-            else {
+            } else if (Boss.lives <= 0) {
+                LevelPassed.setScale(1, 1);
+                if (Mouse::getPosition(window).x >= 300 && Mouse::getPosition(window).x <= 900 && Mouse::getPosition(window).y >= 632 && Mouse::getPosition(window).y <= 711) {
+                    window.close();
+                    BackgroundMusic.stop();
+                    main();
+                }
+                FinalScore.setFillColor(Color::Black);
+                FinalScore.setPosition(15330, 300);
+                FinalScore.setCharacterSize(60);
+                if (sonic.FinalScore < sonic.scoreValue) {
+                    sonic.FinalScore += 7;
+                }
+                if (sonic.FinalScore > sonic.scoreValue) sonic.FinalScore = sonic.scoreValue;
+            } else {
                 if (Mouse::isButtonPressed(Mouse::Left)) {
                     std::cout << Mouse::getPosition(window).x << ' ' << Mouse::getPosition(window).y << '\n';
                 }
@@ -1390,9 +1537,7 @@ int main()
                 EnemyScore.move(0, -0.5);
                 cout << "Here!\n";
             }
-            else {
-                EnemyScore.setCharacterSize(0);
-            }
+            else EnemyScore.setCharacterSize(0);
 
             // clear
             window.clear();
@@ -1414,13 +1559,15 @@ int main()
             }
             for (int i = 0; i < 2; i++) window.draw(enemies[i].EnemySprite);
             for (int i = 0; i < 3; i++) window.draw(enemies2[i].EnemySprite);
-            
+            window.draw(Boss.BossSprite);
+            //window.draw(Boss.HitBox);
             window.draw(sonic.PlayerSprite);
             window.draw(SonicFace);
             window.draw(text);
             window.draw(lives);
             window.draw(pauseMenu);
             window.draw(Gameover);
+            window.draw(LevelPassed);
             window.draw(FinalScore);
             window.draw(EnemyScore);
             window.display();
