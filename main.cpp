@@ -394,7 +394,6 @@ int main()
                 pressable = false;
                 ExitDelay = 300;
                 CBackAnim = true;
-
             }
         }
         else creditbackIsVisible = false;
@@ -441,7 +440,6 @@ int main()
                 ButtonClickSound.play();
                 settingsIsPlayed = true;
             }
-
         }
         else {
             SettingsText.setFillColor(Color(14, 24, 95));
@@ -460,7 +458,6 @@ int main()
                 ButtonClickSound.play();
                 leaderIsPlayed = true;
             }
-
         }
         else {
             LeaderText.setFillColor(Color(14, 24, 95));
@@ -470,7 +467,6 @@ int main()
             leaderIsPlayed = false;
         }
         //Credits
-
         if (Sensor.getGlobalBounds().intersects(creditBarSprite.getGlobalBounds())) {
             CreditText.setFillColor(Color::White);
             creditBarSprite.setScale(0.17f, 0.135f);
@@ -480,7 +476,6 @@ int main()
                 ButtonClickSound.play();
                 creditIsPlayed = true;
             }
-
         }
         else {
             CreditText.setFillColor(Color(14, 24, 95));
@@ -499,7 +494,6 @@ int main()
                 ButtonClickSound.play();
                 exitIsPlayed = true;
             }
-
         }
         else {
             ExitText.setFillColor(Color(14, 24, 95));
@@ -508,8 +502,6 @@ int main()
             ExitBarSprite.setPosition(160, 700);
             exitIsPlayed = false;
         }
-
-
         Menu.clear();
 
         Menu.draw(MenuBackgroundSprite);
@@ -637,10 +629,12 @@ int main()
         for (int i = 0; i < 10; i++) {
             Vertical_tiles_left[i].Vertical_Tiles_sprite.setTexture(vertical_tile_L);
             Vertical_tiles_left[i].Vertical_Tiles_sprite.setTextureRect(IntRect(0, 0, 46, 253));
-            Vertical_tiles_left[i].tilecole.setSize(Vector2f(1.f, 298.9f));
             Vertical_tiles_right[i].Vertical_Tiles_sprite.setTexture(vertical_tile_R);
             Vertical_tiles_right[i].Vertical_Tiles_sprite.setTextureRect(IntRect(0, 0, 46, 253));
-            Vertical_tiles_right[i].tilecole.setSize(Vector2f(1.f, 298.9f));
+            if (i % 2 != 0) {
+                Vertical_tiles_left[i].tilecole.setSize(Vector2f(1.f, 298.9f));
+                Vertical_tiles_right[i].tilecole.setSize(Vector2f(1.f, 298.9f));
+            }
         }
         draw_vertical_tiles();
 
@@ -1272,7 +1266,7 @@ int main()
             for (int i = 0; i < 200; i++) window.draw(spikes[i].SpikeSprite);
             for (int i = 0; i < 6; i++) window.draw(tiles2[i].TileSprite2);
             for (int i = 0; i < 24; i++) window.draw(spikes2[i].SpikeSprite2);
-            for (int i = 0; i < 280; i++) window.draw(coins[i].CoinSprite);
+            for (int i = 0; i < 320; i++) window.draw(coins[i].CoinSprite);
             for (int i = 0; i < 8; i++) {
                 window.draw(Vertical_tiles_right[i].Vertical_Tiles_sprite);
                 window.draw(Vertical_tiles_left[i].Vertical_Tiles_sprite);
@@ -1441,8 +1435,6 @@ void coinPos() {
     Moving_in_X_Y(270, 275, 12505, 40, 30, -45);
     Moving_in_X_Y(275, 280, 12355, 220, 30, 45);
     //
-    //Moving_in_X_Y(280, 285, 12805 + 100, 20, 30, -45);
-  //  Moving_in_X_Y(280, 290, 12625 + 100, 220, 30, 45);
 }
 
 void PosRowSpikes(int First_index, int Last_index, int X_position, int Y_Position) {
@@ -1488,37 +1480,18 @@ void draw_spikes() {
     PosRowSpikes(34, 41, 6695, 575);
     PosRowSpikes(41, 47, 7335, 575);
     PosRowSpikes(47, 55, 8825, 580);
-   // PosRowSpikes(53, 56, 11800 + 350, 575);
     PosRowSpikes(56, 59, 12100, 575);
     PosRowSpikes(59, 62, 12400, 575);
     PosRowSpikes(184, 187, 12700, 575);
 
 
-
-    //
-    //spikes[195].SpikeSprite.setPosition(12100, 575);
-    //spikes[194].SpikeSprite.setPosition(12150, 575);
-    //spikes[193].SpikeSprite.setPosition(12200, 575);
-    //spikes[192].SpikeSprite.setPosition(12250, 575);
-    //
-    //spikes[191].SpikeSprite.setPosition(12400, 575);
-    //spikes[190].SpikeSprite.setPosition(12450, 575);
-   // spikes[189].SpikeSprite.setPosition(12500, 575);
-   // spikes[188].SpikeSprite.setPosition(12550, 575);
-        //
-   // spikes[187].SpikeSprite.setPosition(12700, 575);
-   // spikes[186].SpikeSprite.setPosition(12750, 575);
-   // spikes[185].SpikeSprite.setPosition(12800, 575);
-    //spikes[184].SpikeSprite.setPosition(12850, 575);
-
-
-    for (int i = 0; i < 30; i++) spikes2[i].SpikeSprite2.setPosition(10000 + (i * 50), 100);
+    for (int i = 0; i < 30; i++) spikes2[i].SpikeSprite2.setPosition(10000 + (i * 50), 113);
 }
 
 void drawVerticalTile(int i, int x, int y) {
     Vertical_tiles_left[i].Vertical_Tiles_sprite.setPosition(x, y);
     Vertical_tiles_right[i].Vertical_Tiles_sprite.setPosition(x + 30, y);
-    Vertical_tiles_left[i].tilecole.setPosition(x + 2, y - 5);
+    Vertical_tiles_left[i].tilecole.setPosition(x + 2, y - 10);
     Vertical_tiles_left[i].tilecole.setSize(Vector2f(70.f, 20.f));
 }
 
@@ -1564,10 +1537,9 @@ void area2() {
     }
     for (int i = 0; i < 30; i++) tiles2[i].TileSprite2.setPosition(10000 + (i * 180), 60);
 
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 24; i++) {
         spikes2[i].SpikeSprite2.setTexture(SpikeTex2);
         spikes2[i].SpikeSprite2.setTextureRect(IntRect(0, 0, 142, 163));
         spikes2[i].SpikeSprite2.setScale(0.5f, 0.5f);
     }
-
 }
