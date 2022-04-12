@@ -2,9 +2,9 @@
 #include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
 #include <iostream>
-
+#include <string.h>
 using namespace sf;
-using std::cout;
+using namespace std;
 
 //Player struct
 struct Player {
@@ -110,14 +110,14 @@ int main()
 {
     RenderWindow Menu(VideoMode(1200, 760), "Sonic", Style::None);
 
-    RenderWindow MenuLoading(VideoMode(1200, 760), "Sonic", Style::None);
+   
     /// Loading tex
     Texture loadingMenuTex;
     loadingMenuTex.loadFromFile("Assets/Textures/loading.png");
     Sprite loadingMenuSprite(loadingMenuTex);
-    MenuLoading.clear();
-    MenuLoading.draw(loadingMenuSprite);
-    MenuLoading.display();
+    Menu.clear();
+    Menu.draw(loadingMenuSprite);
+    Menu.display();
     //Settings choice
     Texture correctTex;
     correctTex.loadFromFile("Assets/Textures/correct-logo.png");
@@ -290,7 +290,7 @@ int main()
     //Menu music
     Music MenuMusic;
     MenuMusic.openFromFile("Assets/Sounds/awesomeness.ogg");
-    MenuMusic.setVolume(50);
+    MenuMusic.setVolume(0);
     MenuMusic.setLoop(true);
     MenuMusic.play();
 
@@ -299,12 +299,48 @@ int main()
     bool keyHold = false;
 
     bool start = false;
-    MenuLoading.close();
+
+    //Taking player name
+    string playerInput;
+    Text playerText;
+    playerText.setPosition(60, 300);
+    playerText.setCharacterSize(80);
+    playerText.setFont(EvilEmpire);
+    playerText.setFillColor(sf::Color::White);
+    bool canWrite = false;
+   
+    
     while (Menu.isOpen())
     {
         Event menuEvent;
         while (Menu.pollEvent(menuEvent))
         {
+           if(canWrite){
+            if (menuEvent.type == Event::TextEntered) {
+                if (Keyboard::isKeyPressed(Keyboard::Backspace) && !playerInput.empty())
+                {
+                    playerInput.pop_back();
+                    playerText.setString(playerInput);
+                }
+                else if (menuEvent.text.unicode < 128 && !Keyboard::isKeyPressed(Keyboard::Backspace))
+                {
+                    playerInput += menuEvent.text.unicode;
+                    playerText.setString(playerInput);
+
+                }
+
+              }
+            if (Keyboard::isKeyPressed(Keyboard::Enter))
+            {
+
+                Menu.close();
+                start = true;
+                MenuMusic.stop();
+            }
+
+           }
+            
+           
             if (menuEvent.type == Event::Closed)
             {
                 Menu.close();
@@ -345,39 +381,37 @@ int main()
 
 
         //Press on leaderboard
-        if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && CreditClosed && LeaderClosed
-            || selection == 3 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed) {
+        if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite
+            || selection == 3 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite) {
             LeaderClosed = false;
             LeaderStopAnim = false;
             leaderSprite.setPosition(-1200, 0);
         }
 
         //Starting game
-        if (Sensor.getGlobalBounds().intersects(startBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed
-            || selection == 1 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed) {
-            Menu.close();
-            start = true;
-            MenuMusic.stop();
+        if (Sensor.getGlobalBounds().intersects(startBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed && !canWrite
+            || selection == 1 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite) {
+            canWrite = true;
         }
         //Press on settings
 
-        if (Sensor.getGlobalBounds().intersects(settingsBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed
-            || selection == 2 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed) {
+        if (Sensor.getGlobalBounds().intersects(settingsBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed && !canWrite
+            || selection == 2 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite) {
             SettingsClosed = false;
             SettingStopAnim = false;
             SettingsBackgroundSprite.setPosition(-1200, 0);
         }
         //Press on credits
-        if (Sensor.getGlobalBounds().intersects(creditBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed
-            || selection == 4 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed)
+        if (Sensor.getGlobalBounds().intersects(creditBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed && !canWrite
+            || selection == 4 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite)
         {
             CreditClosed = false;
             CreditStopAnim = false;
             creditSprite.setPosition(-1200, 0);
         }
         //Press on Exit
-        if ((Sensor.getGlobalBounds().intersects(ExitBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed) && pressable
-            || selection == 5 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && pressable) {
+        if ((Sensor.getGlobalBounds().intersects(ExitBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed) && pressable && !canWrite
+            || selection == 5 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && pressable && !canWrite) {
             MenuMusic.stop();
             Menu.close();
             Exit = true;
@@ -471,7 +505,7 @@ int main()
             StartText.setFillColor(Color(255, 255, 255));
             startBarSprite.setScale(0.19f, 0.155f);
             startBarSprite.setPosition(145, 295);
-            if (!startIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
+            if (!startIsPlayed && SettingsClosed && LeaderClosed && CreditClosed && !canWrite) {
                 ButtonClickSound.play();
                 startIsPlayed = true;
             }
@@ -489,7 +523,7 @@ int main()
             settingsBarSprite.setScale(0.19f, 0.155f);
             settingsBarSprite.setColor(Color(45, 49, 250));
             settingsBarSprite.setPosition(145, 395);
-            if (!settingsIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
+            if (!settingsIsPlayed && SettingsClosed && LeaderClosed && CreditClosed && !canWrite) {
                 ButtonClickSound.play();
                 settingsIsPlayed = true;
             }
@@ -508,7 +542,7 @@ int main()
             leaderBarSprite.setScale(0.27f, 0.145f);
             leaderBarSprite.setColor(Color(45, 49, 250));
             leaderBarSprite.setPosition(120, 495);
-            if (!leaderIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
+            if (!leaderIsPlayed && SettingsClosed && LeaderClosed && CreditClosed && !canWrite) {
                 ButtonClickSound.play();
                 leaderIsPlayed = true;
             }
@@ -528,7 +562,7 @@ int main()
             creditBarSprite.setScale(0.19f, 0.155f);
             creditBarSprite.setColor(Color(45, 49, 250));
             creditBarSprite.setPosition(145, 595);
-            if (!creditIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
+            if (!creditIsPlayed && SettingsClosed && LeaderClosed && CreditClosed && !canWrite) {
                 ButtonClickSound.play();
                 creditIsPlayed = true;
             }
@@ -547,7 +581,7 @@ int main()
             ExitBarSprite.setScale(0.17f, 0.135f);
             ExitBarSprite.setColor(Color(45, 49, 250));
             ExitBarSprite.setPosition(145, 695);
-            if (!exitIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
+            if (!exitIsPlayed && SettingsClosed && LeaderClosed && CreditClosed && !canWrite) {
                 ButtonClickSound.play();
                 exitIsPlayed = true;
             }
@@ -563,7 +597,7 @@ int main()
 
 
         Menu.clear();
-
+        
         Menu.draw(MenuBackgroundSprite);
         Menu.draw(startBarSprite);
         Menu.draw(settingsBarSprite);
@@ -575,6 +609,11 @@ int main()
         Menu.draw(CreditText);
         Menu.draw(ExitBarSprite);
         Menu.draw(ExitText);
+        if (canWrite)
+        {
+            Menu.draw(MenuBackgroundSprite);
+        }
+        Menu.draw(playerText);
         if (!LeaderClosed) {
             Menu.draw(leaderSprite);
             if (leaderbackIsVisible) Menu.draw(leaderbackSprite);
@@ -595,18 +634,18 @@ int main()
         Menu.display();
     }
     // rendering window
-    if (start && !Exit) {
+    if (start && !Exit ) {
         // rendering window
         RenderWindow window(VideoMode(1200, 760), "Sonic!", Style::None);
         window.setFramerateLimit(60);
-        RenderWindow Loading(VideoMode(1200, 760), "Sonic!", Style::None);
+       
         /// Loading tex
         Texture loadingTex;
         loadingTex.loadFromFile("Assets/Textures/loading.png");
         Sprite loadingSprite(loadingTex);
-        Loading.clear();
-        Loading.draw(loadingSprite);
-        Loading.display();
+        window.clear();
+        window.draw(loadingSprite);
+        window.display();
            // map texture
         Texture MapTx;
         MapTx.loadFromFile("Assets/Textures/Map.png");
@@ -760,7 +799,7 @@ int main()
         // the music of playgound
         Music BackgroundMusic;
         BackgroundMusic.openFromFile("Assets/Sounds/Sonic - Green Hill Zone (Rukasu Remix).ogg");
-        BackgroundMusic.setVolume(50);
+        BackgroundMusic.setVolume(0);
         BackgroundMusic.setLoop(true);
         BackgroundMusic.play();
         //coin sound
@@ -818,13 +857,12 @@ int main()
         // view camera
         View camera(FloatRect(0, 0, 1200, 760));
         window.setView(camera);
-        //
-        Loading.close();
+        
         /// game loop
         while (window.isOpen())
         {
             Event event;
-            while (window.pollEvent(event)) {
+            while (window.pollEvent(event)) {   
                 if (event.type == Event::Closed) window.close();
             }
             if (Keyboard::isKeyPressed(Keyboard::Escape)) {
@@ -1299,7 +1337,7 @@ int main()
                         window.setView(GameoverCamera);
                         FinalScore.setCharacterSize(45);
                         Gameover.setScale(1, 0.94);
-                        if (Mouse::getPosition(window).x >= 684 && Mouse::getPosition(window).x <= 935 && Mouse::getPosition(window).y >= 724 && Mouse::getPosition(window).y <= 751) {
+                        if (Mouse::getPosition(window).x >= 407 && Mouse::getPosition(window).x <= 833 && Mouse::getPosition(window).y >= 662 && Mouse::getPosition(window).y <= 737) {
                             if (Mouse::isButtonPressed(Mouse::Left)) {
                                 window.close();
                                 BackgroundMusic.stop();
