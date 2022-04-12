@@ -108,7 +108,16 @@ Texture SpikeTex2;
 // main function
 int main()
 {
-    RenderWindow Menu(VideoMode(1200, 760), "Sonic");
+    RenderWindow Menu(VideoMode(1200, 760), "Sonic", Style::None);
+
+    RenderWindow MenuLoading(VideoMode(1200, 760), "Sonic", Style::None);
+    /// Loading tex
+    Texture loadingMenuTex;
+    loadingMenuTex.loadFromFile("Assets/Textures/loading.png");
+    Sprite loadingMenuSprite(loadingMenuTex);
+    MenuLoading.clear();
+    MenuLoading.draw(loadingMenuSprite);
+    MenuLoading.display();
     //Settings choice
     Texture correctTex;
     correctTex.loadFromFile("Assets/Textures/correct-logo.png");
@@ -290,6 +299,7 @@ int main()
     bool keyHold = false;
 
     bool start = false;
+    MenuLoading.close();
     while (Menu.isOpen())
     {
         Event menuEvent;
@@ -310,7 +320,7 @@ int main()
                 selection++;
             }
             selection %= 6;
-           
+
             keyHold = true;
         }
         else if (menuEvent.type == Event::KeyReleased)
@@ -331,7 +341,7 @@ int main()
         {
             keyHold = false;
         }
-             
+
 
 
         //Press on leaderboard
@@ -343,7 +353,7 @@ int main()
         }
 
         //Starting game
-        if (Sensor.getGlobalBounds().intersects(startBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed 
+        if (Sensor.getGlobalBounds().intersects(startBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed
             || selection == 1 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed) {
             Menu.close();
             start = true;
@@ -351,7 +361,7 @@ int main()
         }
         //Press on settings
 
-        if (Sensor.getGlobalBounds().intersects(settingsBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed 
+        if (Sensor.getGlobalBounds().intersects(settingsBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed
             || selection == 2 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed) {
             SettingsClosed = false;
             SettingStopAnim = false;
@@ -405,7 +415,7 @@ int main()
         if (LBackAnim && LeaderClosed) leaderSprite.move(-7, 0);
 
         //Settings Back button
-        if (Sensor.getGlobalBounds().intersects(backButton.getGlobalBounds()) && !SettingsClosed || Keyboard::isKeyPressed(Keyboard::Escape)&& !SettingsClosed) {
+        if (Sensor.getGlobalBounds().intersects(backButton.getGlobalBounds()) && !SettingsClosed || Keyboard::isKeyPressed(Keyboard::Escape) && !SettingsClosed) {
             backIsVisible = true;
             if (Mouse::isButtonPressed(Mouse::Left) || Keyboard::isKeyPressed(Keyboard::Escape)) {
                 SettingsClosed = true;
@@ -428,7 +438,7 @@ int main()
         }
         else leaderbackIsVisible = false;
         //Credit back button
-        
+
         if (Sensor.getGlobalBounds().intersects(creditbackButton.getGlobalBounds()) && !CreditClosed || Keyboard::isKeyPressed(Keyboard::Escape) && !CreditClosed) {
             creditbackIsVisible = true;
             if (Mouse::isButtonPressed(Mouse::Left) || Keyboard::isKeyPressed(Keyboard::Escape)) {
@@ -587,10 +597,16 @@ int main()
     // rendering window
     if (start && !Exit) {
         // rendering window
-        RenderWindow window(VideoMode(1200, 760), "Sonic!");
+        RenderWindow window(VideoMode(1200, 760), "Sonic!", Style::None);
         window.setFramerateLimit(60);
-
-        /// map
+        RenderWindow Loading(VideoMode(1200, 760), "Sonic!", Style::None);
+        /// Loading tex
+        Texture loadingTex;
+        loadingTex.loadFromFile("Assets/Textures/loading.png");
+        Sprite loadingSprite(loadingTex);
+        Loading.clear();
+        Loading.draw(loadingSprite);
+        Loading.display();
            // map texture
         Texture MapTx;
         MapTx.loadFromFile("Assets/Textures/Map.png");
@@ -689,13 +705,13 @@ int main()
         ///Enemies Setting Texture
         for (int i = 0; i < 20; i++) {
             enemies[i].EnenmySprite.setTexture(EnemyTx);
-            
+
             enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 54, 345, 54, 29.2));
             enemies[i].EnenmySprite.setScale(2.5f, 2.5f);
         }
         for (int i = 0; i < 20; i++) {
             enemies2[i].EnemySprite.setTexture(EnemyTx2);
-           
+
             enemies2[i].EnemySprite.setTextureRect(IntRect(enemies2[i].TexNumber * 47, 411, 47, 30));
             enemies2[i].EnemySprite.setScale(2.5f, 2.5f);
         }
@@ -803,7 +819,7 @@ int main()
         View camera(FloatRect(0, 0, 1200, 760));
         window.setView(camera);
         //
-
+        Loading.close();
         /// game loop
         while (window.isOpen())
         {
