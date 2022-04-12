@@ -2,9 +2,10 @@
 #include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
 #include <iostream>
+#include <string>
 
 using namespace sf;
-using std::cout;
+using namespace std;
 
 //Player struct
 struct Player {
@@ -13,10 +14,18 @@ struct Player {
     RectangleShape PlayerColl;
     Vector2f Velocity;
     int RightTexNumber = 0, IdleTexNumber = 0, TexDelay = 0, IdleDelay = 0, LeftTexNumber = 22;
-    int scoreValue = 0, lives = 3, hitCounter = -1, deathDealy = 0;
+    int scoreValue = 0, lives = 3, hitCounter = -1, deathDealy = 0, FinalScore = 0;
     bool start = false, Running = false, idle1 = false, txToggle = false, onTile = false;
     bool on_ground = true, hitRight = false, hitLeft = false, RunningSound = false;
 } sonic;
+
+struct Boss {
+    Texture BossTx;
+    Sprite BossSprite;
+    RectangleShape HitBox;
+    int hitCounter = 0, TexDealy = 0, TexNumber = 0;
+    bool FightStart = false;
+} Boss;
 //Jumpad start
 struct Jumppad {
     Sprite JumppadSprite;
@@ -46,7 +55,7 @@ struct Red_Coin {
 } Red_coins[200];
 
 struct Enemies {
-    Sprite EnenmySprite;
+    Sprite EnemySprite;
     int TexNumber = 0, TexDelay = 0, xStart = 0, xEnd = 0, DamageDelay = 0;
     bool MovingRight = true;
     bool Hit = false;
@@ -108,7 +117,16 @@ Texture SpikeTex2;
 // main function
 int main()
 {
-    RenderWindow Menu(VideoMode(1200, 760), "Sonic");
+    RenderWindow Menu(VideoMode(1200, 760), "Sonic", Style::None);
+
+
+    /// Loading tex
+    Texture loadingMenuTex;
+    loadingMenuTex.loadFromFile("Assets/Textures/loading.png");
+    Sprite loadingMenuSprite(loadingMenuTex);
+    Menu.clear();
+    Menu.draw(loadingMenuSprite);
+    Menu.display();
     //Settings choice
     Texture correctTex;
     correctTex.loadFromFile("Assets/Textures/correct-logo.png");
@@ -281,52 +299,130 @@ int main()
     //Menu music
     Music MenuMusic;
     MenuMusic.openFromFile("Assets/Sounds/awesomeness.ogg");
-    MenuMusic.setVolume(50);
+    MenuMusic.setVolume(0);
     MenuMusic.setLoop(true);
     MenuMusic.play();
 
+    //Keyboard Selection
+    int selection = 0;
+    bool keyHold = false;
 
     bool start = false;
+
+    //Taking player name
+    string playerInput;
+    Text playerText;
+    playerText.setPosition(320, 350);
+    playerText.setCharacterSize(80);
+    playerText.setFont(EvilEmpire);
+    playerText.setFillColor(sf::Color::White);
+    bool canWrite = false;
+
+    Texture PlayerNameTx;
+    PlayerNameTx.loadFromFile("Assets/Textures/PlayerName.png");
+    Sprite PlayerName;
+    PlayerName.setTexture(PlayerNameTx);
+
+
     while (Menu.isOpen())
     {
         Event menuEvent;
         while (Menu.pollEvent(menuEvent))
         {
+            if (canWrite) {
+                if (menuEvent.type == Event::TextEntered) {
+                    if (Keyboard::isKeyPressed(Keyboard::Backspace) && !playerInput.empty())
+                    {
+                        playerInput.pop_back();
+                        playerText.setString(playerInput);
+                    }
+                    else if (menuEvent.text.unicode < 128 && !Keyboard::isKeyPressed(Keyboard::Backspace))
+                    {
+                        playerInput += menuEvent.text.unicode;
+                        playerText.setString(playerInput);
+
+                    }
+
+                }
+                if (Keyboard::isKeyPressed(Keyboard::Enter))
+                {
+                    Menu.close();
+                    start = true;
+                    MenuMusic.stop();
+                }
+            }
+
+
             if (menuEvent.type == Event::Closed)
             {
                 Menu.close();
                 MenuMusic.stop();
             }
         }
+        //Keyboard controller
+
+        if (Keyboard::isKeyPressed(Keyboard::Down))
+        {
+            if (!keyHold)
+            {
+                selection++;
+            }
+            selection %= 6;
+            keyHold = true;
+        }
+        else if (menuEvent.type == Event::KeyReleased)
+        {
+            keyHold = false;
+        }
+        if (Keyboard::isKeyPressed(Keyboard::Up))
+        {
+            if (!keyHold)
+            {
+                selection--;
+            }
+            if (selection <= 0)
+                selection = 5;
+            keyHold = true;
+        }
+        else if (menuEvent.type == Event::KeyReleased)
+        {
+            keyHold = false;
+        }
+
+
+
         //Press on leaderboard
-        if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && CreditClosed) {
+        if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite
+            || selection == 3 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite) {
             LeaderClosed = false;
             LeaderStopAnim = false;
             leaderSprite.setPosition(-1200, 0);
         }
 
         //Starting game
-        if (Sensor.getGlobalBounds().intersects(startBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed) {
-            Menu.close();
-            start = true;
-            MenuMusic.stop();
+        if (Sensor.getGlobalBounds().intersects(startBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed && !canWrite
+            || selection == 1 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite) {
+            canWrite = true;
         }
         //Press on settings
 
-        if (Sensor.getGlobalBounds().intersects(settingsBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed) {
+        if (Sensor.getGlobalBounds().intersects(settingsBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed && !canWrite
+            || selection == 2 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite) {
             SettingsClosed = false;
             SettingStopAnim = false;
             SettingsBackgroundSprite.setPosition(-1200, 0);
         }
         //Press on credits
-        if (Sensor.getGlobalBounds().intersects(creditBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed)
+        if (Sensor.getGlobalBounds().intersects(creditBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed && !canWrite
+            || selection == 4 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite)
         {
             CreditClosed = false;
             CreditStopAnim = false;
             creditSprite.setPosition(-1200, 0);
         }
         //Press on Exit
-        if ((Sensor.getGlobalBounds().intersects(ExitBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed) && pressable) {
+        if ((Sensor.getGlobalBounds().intersects(ExitBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed) && pressable && !canWrite
+            || selection == 5 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && pressable && !canWrite) {
             MenuMusic.stop();
             Menu.close();
             Exit = true;
@@ -364,9 +460,9 @@ int main()
         if (LBackAnim && LeaderClosed) leaderSprite.move(-7, 0);
 
         //Settings Back button
-        if (Sensor.getGlobalBounds().intersects(backButton.getGlobalBounds()) && !SettingsClosed) {
+        if (Sensor.getGlobalBounds().intersects(backButton.getGlobalBounds()) && !SettingsClosed || Keyboard::isKeyPressed(Keyboard::Escape) && !SettingsClosed) {
             backIsVisible = true;
-            if (Mouse::isButtonPressed(Mouse::Left)) {
+            if (Mouse::isButtonPressed(Mouse::Left) || Keyboard::isKeyPressed(Keyboard::Escape)) {
                 SettingsClosed = true;
                 pressable = false;
                 ExitDelay = 300;
@@ -376,9 +472,9 @@ int main()
         }
         else backIsVisible = false;
         //Leader back button
-        if (Sensor.getGlobalBounds().intersects(leaderbackButton.getGlobalBounds()) && !LeaderClosed) {
+        if (Sensor.getGlobalBounds().intersects(leaderbackButton.getGlobalBounds()) && !LeaderClosed || Keyboard::isKeyPressed(Keyboard::Escape) && !LeaderClosed) {
             leaderbackIsVisible = true;
-            if (Mouse::isButtonPressed(Mouse::Left)) {
+            if (Mouse::isButtonPressed(Mouse::Left) || Keyboard::isKeyPressed(Keyboard::Escape)) {
                 LeaderClosed = true;
                 pressable = false;
                 ExitDelay = 300;
@@ -387,13 +483,15 @@ int main()
         }
         else leaderbackIsVisible = false;
         //Credit back button
-        if (Sensor.getGlobalBounds().intersects(creditbackButton.getGlobalBounds()) && !CreditClosed) {
+
+        if (Sensor.getGlobalBounds().intersects(creditbackButton.getGlobalBounds()) && !CreditClosed || Keyboard::isKeyPressed(Keyboard::Escape) && !CreditClosed) {
             creditbackIsVisible = true;
-            if (Mouse::isButtonPressed(Mouse::Left)) {
+            if (Mouse::isButtonPressed(Mouse::Left) || Keyboard::isKeyPressed(Keyboard::Escape)) {
                 CreditClosed = true;
                 pressable = false;
                 ExitDelay = 300;
                 CBackAnim = true;
+
             }
         }
         else creditbackIsVisible = false;
@@ -413,12 +511,12 @@ int main()
         //Sensor pos
         Sensor.setPosition(Mouse::getPosition(Menu).x, Mouse::getPosition(Menu).y);
         //Start
-        if (Sensor.getGlobalBounds().intersects(startBarSprite.getGlobalBounds())) {
+        if (Sensor.getGlobalBounds().intersects(startBarSprite.getGlobalBounds()) || selection == 1) {
             startBarSprite.setColor(Color(45, 49, 250));
             StartText.setFillColor(Color(255, 255, 255));
-            startBarSprite.setScale(0.17f, 0.135f);
+            startBarSprite.setScale(0.19f, 0.155f);
             startBarSprite.setPosition(145, 295);
-            if (!startIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
+            if (!startIsPlayed && SettingsClosed && LeaderClosed && CreditClosed && !canWrite) {
                 ButtonClickSound.play();
                 startIsPlayed = true;
             }
@@ -431,15 +529,16 @@ int main()
             startIsPlayed = false;
         }
         //Settings
-        if (Sensor.getGlobalBounds().intersects(settingsBarSprite.getGlobalBounds())) {
+        if (Sensor.getGlobalBounds().intersects(settingsBarSprite.getGlobalBounds()) || selection == 2) {
             SettingsText.setFillColor(Color::White);
-            settingsBarSprite.setScale(0.17f, 0.135f);
+            settingsBarSprite.setScale(0.19f, 0.155f);
             settingsBarSprite.setColor(Color(45, 49, 250));
             settingsBarSprite.setPosition(145, 395);
-            if (!settingsIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
+            if (!settingsIsPlayed && SettingsClosed && LeaderClosed && CreditClosed && !canWrite) {
                 ButtonClickSound.play();
                 settingsIsPlayed = true;
             }
+
         }
         else {
             SettingsText.setFillColor(Color(14, 24, 95));
@@ -449,15 +548,16 @@ int main()
             settingsIsPlayed = false;
         }
         //Leaderboard
-        if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds())) {
+        if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()) || selection == 3) {
             LeaderText.setFillColor(Color::White);
-            leaderBarSprite.setScale(0.25f, 0.135f);
+            leaderBarSprite.setScale(0.27f, 0.145f);
             leaderBarSprite.setColor(Color(45, 49, 250));
             leaderBarSprite.setPosition(120, 495);
-            if (!leaderIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
+            if (!leaderIsPlayed && SettingsClosed && LeaderClosed && CreditClosed && !canWrite) {
                 ButtonClickSound.play();
                 leaderIsPlayed = true;
             }
+
         }
         else {
             LeaderText.setFillColor(Color(14, 24, 95));
@@ -467,15 +567,17 @@ int main()
             leaderIsPlayed = false;
         }
         //Credits
-        if (Sensor.getGlobalBounds().intersects(creditBarSprite.getGlobalBounds())) {
+
+        if (Sensor.getGlobalBounds().intersects(creditBarSprite.getGlobalBounds()) || selection == 4) {
             CreditText.setFillColor(Color::White);
-            creditBarSprite.setScale(0.17f, 0.135f);
+            creditBarSprite.setScale(0.19f, 0.155f);
             creditBarSprite.setColor(Color(45, 49, 250));
             creditBarSprite.setPosition(145, 595);
-            if (!creditIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
+            if (!creditIsPlayed && SettingsClosed && LeaderClosed && CreditClosed && !canWrite) {
                 ButtonClickSound.play();
                 creditIsPlayed = true;
             }
+
         }
         else {
             CreditText.setFillColor(Color(14, 24, 95));
@@ -485,15 +587,16 @@ int main()
             creditIsPlayed = false;
         }
         //Exit
-        if (Sensor.getGlobalBounds().intersects(ExitBarSprite.getGlobalBounds())) {
+        if (Sensor.getGlobalBounds().intersects(ExitBarSprite.getGlobalBounds()) || selection == 5) {
             ExitText.setFillColor(Color::White);
             ExitBarSprite.setScale(0.17f, 0.135f);
             ExitBarSprite.setColor(Color(45, 49, 250));
             ExitBarSprite.setPosition(145, 695);
-            if (!exitIsPlayed && SettingsClosed && LeaderClosed && CreditClosed) {
+            if (!exitIsPlayed && SettingsClosed && LeaderClosed && CreditClosed && !canWrite) {
                 ButtonClickSound.play();
                 exitIsPlayed = true;
             }
+
         }
         else {
             ExitText.setFillColor(Color(14, 24, 95));
@@ -502,6 +605,8 @@ int main()
             ExitBarSprite.setPosition(160, 700);
             exitIsPlayed = false;
         }
+
+
         Menu.clear();
 
         Menu.draw(MenuBackgroundSprite);
@@ -515,6 +620,11 @@ int main()
         Menu.draw(CreditText);
         Menu.draw(ExitBarSprite);
         Menu.draw(ExitText);
+        if (canWrite)
+        {
+            Menu.draw(PlayerName);
+        }
+        Menu.draw(playerText);
         if (!LeaderClosed) {
             Menu.draw(leaderSprite);
             if (leaderbackIsVisible) Menu.draw(leaderbackSprite);
@@ -539,7 +649,13 @@ int main()
         // rendering window
         RenderWindow window(VideoMode(1200, 760), "Sonic!");
         window.setFramerateLimit(60);
-
+        //Loading Screen
+        Texture loadingTex;
+        loadingTex.loadFromFile("Assets/Textures/loading.png");
+        Sprite loadingSprite(loadingTex);
+        window.clear();
+        window.draw(loadingSprite);
+        window.display();
         /// map
            // map texture
         Texture MapTx;
@@ -572,7 +688,7 @@ int main()
         vertical_tile_L.loadFromFile("Assets/Textures/Vertical_tile_L.png");
         //Pause Menu
         Texture PauseMenuTx;
-        PauseMenuTx.loadFromFile("Assets/Textures/pause-menu.png");
+        PauseMenuTx.loadFromFile("Assets/Textures/Pause_Menu.png");
         Sprite pauseMenu;
         pauseMenu.setTexture(PauseMenuTx);
         pauseMenu.setScale(0, 0);
@@ -641,9 +757,9 @@ int main()
 
         ///Enemies Setting Texture
         for (int i = 0; i < 20; i++) {
-            enemies[i].EnenmySprite.setTexture(EnemyTx);
-            enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 54, 345, 54, 29.2));
-            enemies[i].EnenmySprite.setScale(2.5f, 2.5f);
+            enemies[i].EnemySprite.setTexture(EnemyTx);
+            enemies[i].EnemySprite.setTextureRect(IntRect(enemies[i].TexNumber * 54, 345, 54, 29.2));
+            enemies[i].EnemySprite.setScale(2.5f, 2.5f);
         }
         for (int i = 0; i < 20; i++) {
             enemies2[i].EnemySprite.setTexture(EnemyTx2);
@@ -665,15 +781,23 @@ int main()
         font.loadFromFile("Assets/EvilEmpire-4BBVK.ttf");
         Text FinalScore;
         FinalScore.setFont(font);
-        FinalScore.setFillColor(Color::White);
+        FinalScore.setFillColor(Color::Yellow);
         FinalScore.setCharacterSize(0);
-        FinalScore.setPosition(800, 545);
+        FinalScore.setPosition(737, 195);
         Text text;
         text.setFont(font);
         text.setString("Score: " + std::to_string(sonic.scoreValue));
         text.setFillColor(Color::Yellow);
         text.setPosition(10, 10);
         text.setCharacterSize(35);
+
+        Text EnemyScore;
+        EnemyScore.setFont(font);
+        EnemyScore.setString("+100");
+        EnemyScore.setFillColor(Color::Yellow);
+        EnemyScore.setCharacterSize(100);
+        EnemyScore.setPosition(400, 400);
+        int EnemyScoreCounter = 0;
 
         //health_bar
         Texture SonicFaceTx;
@@ -984,39 +1108,41 @@ int main()
                 for (int i = 0; i < 20; i++) {
                     if (enemies[i].TexDelay <= 8) enemies[i].TexDelay++;
                     if (enemies[i].MovingRight) {
-                        enemies[i].EnenmySprite.move(4, 0);
+                        enemies[i].EnemySprite.move(4, 0);
                         if (enemies[i].TexDelay >= 8) {
                             enemies[i].TexDelay = 0;
                             enemies[i].TexNumber++;
                             enemies[i].TexNumber %= 11;
-                            enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 58, 345, 58, 29.2));
+                            enemies[i].EnemySprite.setTextureRect(IntRect(enemies[i].TexNumber * 58, 345, 58, 29.2));
                         }
-                        if (enemies[i].EnenmySprite.getPosition().x >= enemies[i].xEnd) enemies[i].MovingRight = false;
+                        if (enemies[i].EnemySprite.getPosition().x >= enemies[i].xEnd) enemies[i].MovingRight = false;
                     }
                     else {
-                        enemies[i].EnenmySprite.move(-4, 0);
+                        enemies[i].EnemySprite.move(-4, 0);
                         if (enemies[i].TexDelay >= 8) {
                             enemies[i].TexDelay = 0;
                             enemies[i].TexNumber--;
                             if (enemies[i].TexNumber <= 0) enemies[i].TexNumber = 10;
-                            enemies[i].EnenmySprite.setTextureRect(IntRect(enemies[i].TexNumber * 58, 313, 58, 29.2));
+                            enemies[i].EnemySprite.setTextureRect(IntRect(enemies[i].TexNumber * 58, 313, 58, 29.2));
                         }
-                        if (enemies[i].EnenmySprite.getPosition().x <= enemies[i].xStart) enemies[i].MovingRight = true;
+                        if (enemies[i].EnemySprite.getPosition().x <= enemies[i].xStart) enemies[i].MovingRight = true;
                     }
 
-                    if (enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+                    if (enemies[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
                         if (!enemies[i].Hit) enemies[i].Hit = true;
                         else {
-                            enemies[i].EnenmySprite.setScale(0, 0);
+                            enemies[i].EnemySprite.setScale(0, 0);
                             sonic.scoreValue += 100;
-
+                            EnemyScore.setCharacterSize(50);
+                            EnemyScore.setPosition(enemies[i].EnemySprite.getPosition().x + 60, enemies[i].EnemySprite.getPosition().y + 60);
+                            EnemyScoreCounter = 100;
                         }
                         sonic.Velocity.y = 10;
                         EnemyDamageSound.play();
                     }
-                    else if (enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0)) {
+                    else if (enemies[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0)) {
                         if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
-                        if (sonic.PlayerSprite.getPosition().x > enemies[i].EnenmySprite.getPosition().x) sonic.hitRight = true;
+                        if (sonic.PlayerSprite.getPosition().x > enemies[i].EnemySprite.getPosition().x) sonic.hitRight = true;
                         else sonic.hitLeft = true;
                         sonic.hitCounter = 50;
                         sonic.Velocity.y = 8;
@@ -1025,10 +1151,10 @@ int main()
                     }
                     if (enemies[i].Hit && enemies[i].DamageDelay <= 30 && enemies[i].DamageDelay >= 0) {
                         enemies[i].DamageDelay++;
-                        enemies[i].EnenmySprite.setColor(Color(255, 0, 0, 200));
+                        enemies[i].EnemySprite.setColor(Color(255, 0, 0, 200));
                     }
                     else if (enemies[i].Hit && enemies[i].DamageDelay >= 30) {
-                        enemies[i].EnenmySprite.setColor(Color::White);
+                        enemies[i].EnemySprite.setColor(Color::White);
                         enemies[i].DamageDelay = -1;
                     }
                     if (enemies2[i].TexDelay <= 8) enemies2[i].TexDelay++;
@@ -1060,6 +1186,9 @@ int main()
                         else {
                             enemies2[i].EnemySprite.setScale(0, 0);
                             sonic.scoreValue += 100;
+                            EnemyScore.setCharacterSize(50);
+                            EnemyScore.setPosition(enemies2[i].EnemySprite.getPosition().x + 60, enemies2[i].EnemySprite.getPosition().y);
+                            EnemyScoreCounter = 100;
                         }
                         sonic.Velocity.y = 10;
                         EnemyDamageSound.play();
@@ -1216,12 +1345,12 @@ int main()
                 if (Mouse::isButtonPressed(Mouse::Left)) {
                     std::cout << Mouse::getPosition(window).x << ' ' << Mouse::getPosition(window).y << '\n';
                 }
-                if (Mouse::getPosition(window).x >= 530 && Mouse::getPosition(window).x <= 730 && Mouse::getPosition(window).y >= 302 && Mouse::getPosition(window).y <= 345) {
+                if (Mouse::getPosition(window).x >= 440 && Mouse::getPosition(window).x <= 778 && Mouse::getPosition(window).y >= 344 && Mouse::getPosition(window).y <= 409) {
                     if (Mouse::isButtonPressed(Mouse::Left)) {
                         paused = false;
                     }
                 }
-                if (Mouse::getPosition(window).x >= 428 && Mouse::getPosition(window).x <= 810 && Mouse::getPosition(window).y >= 360 && Mouse::getPosition(window).y <= 420) {
+                if (Mouse::getPosition(window).x >= 420 && Mouse::getPosition(window).x <= 865 && Mouse::getPosition(window).y >= 434 && Mouse::getPosition(window).y <= 480) {
                     if (Mouse::isButtonPressed(Mouse::Left)) {
                         window.close();
                         BackgroundMusic.stop();
@@ -1230,6 +1359,9 @@ int main()
                 }
             }
             else {
+                if (Mouse::isButtonPressed(Mouse::Left)) {
+                    std::cout << Mouse::getPosition(window).x << ' ' << Mouse::getPosition(window).y << '\n';
+                }
                 sonic.deathDealy--;
                 if (sonic.deathDealy >= 0) {
                     sonic.PlayerSprite.move(0, -1);
@@ -1239,25 +1371,34 @@ int main()
                     sonic.PlayerSprite.move(0, 7);
                     if (sonic.PlayerSprite.getPosition().y > 800) {
                         window.setView(GameoverCamera);
-                        FinalScore.setCharacterSize(45);
+                        FinalScore.setCharacterSize(70);
                         Gameover.setScale(1, 0.94);
-                        if (Mouse::getPosition(window).x >= 684 && Mouse::getPosition(window).x <= 935 && Mouse::getPosition(window).y >= 724 && Mouse::getPosition(window).y <= 751) {
+                        if (Mouse::getPosition(window).x >= 407 && Mouse::getPosition(window).x <= 833 && Mouse::getPosition(window).y >= 662 && Mouse::getPosition(window).y <= 737) {
                             if (Mouse::isButtonPressed(Mouse::Left)) {
                                 window.close();
                                 BackgroundMusic.stop();
                                 main();
                             }
                         }
+                        if (sonic.FinalScore < sonic.scoreValue) sonic.FinalScore += 7;
+                        else if (sonic.FinalScore > sonic.scoreValue) sonic.FinalScore = sonic.scoreValue;
                     }
                 }
             }
-
+            if (EnemyScoreCounter > 0) {
+                EnemyScoreCounter--;
+                EnemyScore.move(0, -0.5);
+                cout << "Here!\n";
+            }
+            else {
+                EnemyScore.setCharacterSize(0);
+            }
 
             // clear
             window.clear();
             lives.setString("x" + std::to_string(sonic.lives));
             text.setString("Score: " + std::to_string(sonic.scoreValue));
-            FinalScore.setString(std::to_string(sonic.scoreValue));
+            FinalScore.setString(std::to_string(sonic.FinalScore));
             //draw
             window.draw(Map);
             for (int i = 0; i < 9; i++) window.draw(tiles[i].TileSprite);
@@ -1271,8 +1412,9 @@ int main()
                 window.draw(Vertical_tiles_right[i].Vertical_Tiles_sprite);
                 window.draw(Vertical_tiles_left[i].Vertical_Tiles_sprite);
             }
-            for (int i = 0; i < 2; i++) window.draw(enemies[i].EnenmySprite);
+            for (int i = 0; i < 2; i++) window.draw(enemies[i].EnemySprite);
             for (int i = 0; i < 3; i++) window.draw(enemies2[i].EnemySprite);
+            
             window.draw(sonic.PlayerSprite);
             window.draw(SonicFace);
             window.draw(text);
@@ -1280,6 +1422,7 @@ int main()
             window.draw(pauseMenu);
             window.draw(Gameover);
             window.draw(FinalScore);
+            window.draw(EnemyScore);
             window.display();
         }
     }
@@ -1507,7 +1650,7 @@ void draw_vertical_tiles() {
 }
 
 void enemy1_coordinate(int index, int X_pos, int Y_pos, int start, int end) {
-    enemies[index].EnenmySprite.setPosition(X_pos, Y_pos);
+    enemies[index].EnemySprite.setPosition(X_pos, Y_pos);
     enemies[index].xStart = start;
     enemies[index].xEnd = end;
     enemies[index].Hit = false;
