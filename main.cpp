@@ -551,10 +551,11 @@ int main()
         /// map
            // map texture
         Texture MapTx;
-        MapTx.loadFromFile("Assets/Textures/Map.png");
+        MapTx.loadFromFile("Assets/Textures/Map24.png");
         // map player
         Sprite Map;
         Map.setTexture(MapTx);
+        Map.setScale(1, 1.013);
         //
 
         //Coin texture
@@ -1011,7 +1012,10 @@ int main()
 
                     if (enemies[i].EnenmySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
                         if (!enemies[i].Hit) enemies[i].Hit = true;
-                        else enemies[i].EnenmySprite.setScale(0, 0);
+                        else { enemies[i].EnenmySprite.setScale(0, 0); 
+                        sonic.scoreValue += 100;
+
+                        }
                         sonic.Velocity.y = 10;
                         EnemyDamageSound.play();
                     }
@@ -1058,7 +1062,10 @@ int main()
 
                     if (enemies2[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
                         if (!enemies2[i].Hit) enemies2[i].Hit = true;
-                        else enemies2[i].EnemySprite.setScale(0, 0);
+                        else {
+                            enemies2[i].EnemySprite.setScale(0, 0);
+                            sonic.scoreValue+=100;
+                        }
                         sonic.Velocity.y = 10;
                         EnemyDamageSound.play();
                     }
@@ -1258,19 +1265,19 @@ int main()
             FinalScore.setString(std::to_string(sonic.scoreValue));
             //draw
             window.draw(Map);
-            for (int i = 0; i < 20; i++) window.draw(tiles[i].TileSprite);
-            for (int i = 0; i < 20; i++) window.draw(jumppad[i].JumppadSprite);
-            for (int i = 0; i < 150; i++) window.draw(Red_coins[i].CoinSprite);
+            for (int i = 0; i < 9; i++) window.draw(tiles[i].TileSprite);
+            for (int i = 0; i < 13; i++) window.draw(jumppad[i].JumppadSprite);
+            for (int i = 0; i < 2; i++) window.draw(Red_coins[i].CoinSprite);
             for (int i = 0; i < 200; i++) window.draw(spikes[i].SpikeSprite);
             for (int i = 0; i < 6; i++) window.draw(tiles2[i].TileSprite2);
             for (int i = 0; i < 24; i++) window.draw(spikes2[i].SpikeSprite2);
-            for (int i = 0; i < 400; i++) window.draw(coins[i].CoinSprite);
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 280; i++) window.draw(coins[i].CoinSprite);
+            for (int i = 0; i < 8; i++) {
                 window.draw(Vertical_tiles_right[i].Vertical_Tiles_sprite);
                 window.draw(Vertical_tiles_left[i].Vertical_Tiles_sprite);
             }
-            for (int i = 0; i < 5; i++) window.draw(enemies[i].EnenmySprite);
-            for (int i = 0; i < 20; i++) window.draw(enemies2[i].EnemySprite);
+            for (int i = 0; i < 2; i++) window.draw(enemies[i].EnenmySprite);
+            for (int i = 0; i < 3; i++) window.draw(enemies2[i].EnemySprite);
             window.draw(sonic.PlayerSprite);
             window.draw(SonicFace);
             window.draw(text);
@@ -1442,7 +1449,7 @@ void PosRowSpikes(int First_index, int Last_index, int X_position, int Y_Positio
         spikes[i].SpikeSprite.setTexture(SpikeTex);
         spikes[i].SpikeSprite.setTextureRect(IntRect(0, 0, 142, 163));
         spikes[i].SpikeSprite.setScale(0.5f, 0.5f);
-        spikes[i].SpikeSprite.setPosition(X_position + (i * 71), Y_Position);
+        spikes[i].SpikeSprite.setPosition(X_position + ((i-First_index) * 71), Y_Position);
     }
 }
 
@@ -1454,12 +1461,12 @@ void Draw_jumppad() {
     jumppad[4].JumppadSprite.setPosition(7220, 590);
     jumppad[5].JumppadSprite.setPosition(8600, 590);
     jumppad[6].JumppadSprite.setPosition(7800, 590);
-    jumppad[14].JumppadSprite.setPosition(11700, 590);
-    jumppad[19].JumppadSprite.setPosition(10000, 590);
-    jumppad[18].JumppadSprite.setPosition(10250, 590);
-    jumppad[17].JumppadSprite.setPosition(10500, 590);
-    jumppad[16].JumppadSprite.setPosition(10750, 590);
-    jumppad[15].JumppadSprite.setPosition(11000, 590);
+    jumppad[7].JumppadSprite.setPosition(11700, 590);
+    jumppad[8].JumppadSprite.setPosition(10000, 590);
+    jumppad[9].JumppadSprite.setPosition(10250, 590);
+    jumppad[10].JumppadSprite.setPosition(10500, 590);
+    jumppad[11].JumppadSprite.setPosition(10750, 590);
+    jumppad[12].JumppadSprite.setPosition(11000, 590);
 }
 
 void draw_tiles() {
@@ -1475,33 +1482,42 @@ void draw_tiles() {
 
 }
 void draw_spikes() {
-    PosRowSpikes(0, 30, 3400, 580);
-    PosRowSpikes(27, 32, 4260, 580);
-    PosRowSpikes(32, 38, 4470, 580);
-    PosRowSpikes(39, 45, 4580, 580);
-    PosRowSpikes(45, 53, 5700, 580);
-    spikes[199].SpikeSprite.setPosition(11800, 575);
-    spikes[198].SpikeSprite.setPosition(11850, 575);
-    spikes[197].SpikeSprite.setPosition(11900, 575);
-    spikes[196].SpikeSprite.setPosition(11950, 575);
-    spikes[195].SpikeSprite.setPosition(12100, 575);
-    spikes[194].SpikeSprite.setPosition(12150, 575);
-    spikes[193].SpikeSprite.setPosition(12200, 575);
-    spikes[192].SpikeSprite.setPosition(12250, 575);
-    spikes[191].SpikeSprite.setPosition(12400, 575);
-    spikes[190].SpikeSprite.setPosition(12450, 575);
-    spikes[189].SpikeSprite.setPosition(12500, 575);
-    spikes[188].SpikeSprite.setPosition(12550, 575);
-    spikes[187].SpikeSprite.setPosition(12700, 575);
-    spikes[186].SpikeSprite.setPosition(12750, 575);
-    spikes[185].SpikeSprite.setPosition(12800, 575);
-    spikes[184].SpikeSprite.setPosition(12850, 575);
+    PosRowSpikes(0, 28, 3400, 580);
+    PosRowSpikes(28, 34, 6145, 580);
+    PosRowSpikes(34, 41, 6695, 580);
+    PosRowSpikes(38, 42, 6575 +100 + 100 + 200-890, 580);
+    PosRowSpikes(45, 53, 7795 + 100 + 100 + 200, 580);
+    PosRowSpikes(53, 56, 11800 + 350, 575);
+    PosRowSpikes(56, 59, 12100, 575);
+    PosRowSpikes(59, 62, 12400, 575);  
+    PosRowSpikes(184, 187, 12700, 575);
+
+
+   
+    //
+    //spikes[195].SpikeSprite.setPosition(12100, 575);
+    //spikes[194].SpikeSprite.setPosition(12150, 575);
+    //spikes[193].SpikeSprite.setPosition(12200, 575);
+    //spikes[192].SpikeSprite.setPosition(12250, 575);
+    //
+    //spikes[191].SpikeSprite.setPosition(12400, 575);
+    //spikes[190].SpikeSprite.setPosition(12450, 575);
+   // spikes[189].SpikeSprite.setPosition(12500, 575);
+   // spikes[188].SpikeSprite.setPosition(12550, 575);
+        //
+   // spikes[187].SpikeSprite.setPosition(12700, 575);
+   // spikes[186].SpikeSprite.setPosition(12750, 575);
+   // spikes[185].SpikeSprite.setPosition(12800, 575);
+    //spikes[184].SpikeSprite.setPosition(12850, 575);
+
+
+    for (int i = 0; i < 30; i++) spikes2[i].SpikeSprite2.setPosition(10000 + (i * 50), 100);
 }
 
 void drawVerticalTile(int i, int x, int y) {
     Vertical_tiles_left[i].Vertical_Tiles_sprite.setPosition(x, y);
     Vertical_tiles_right[i].Vertical_Tiles_sprite.setPosition(x + 30, y);
-    Vertical_tiles_left[i].tilecole.setPosition(x + 2, y-5);
+    Vertical_tiles_left[i].tilecole.setPosition(x + 2, y - 5);
     Vertical_tiles_left[i].tilecole.setSize(Vector2f(70.f, 20.f));
 }
 
@@ -1521,19 +1537,22 @@ void enemy1_coordinate(int index, int X_pos, int Y_pos, int start, int end) {
     enemies[index].xStart = start;
     enemies[index].xEnd = end;
     enemies[index].Hit = false;
+    enemies[index].DamageDelay = 0;
 }
 void enemy2_coordinate(int index, int X_pos, int Y_pos, int start, int end) {
     enemies2[index].EnemySprite.setPosition(X_pos, Y_pos);
     enemies2[index].xStart = start;
     enemies2[index].xEnd = end;
-    enemies[index].Hit = false;
+    enemies2[index].Hit = false;
+    enemies[index].DamageDelay = 0;
 }
 void draw_enemies() {
     enemy1_coordinate(0, 1500, 580, 500, 1100);
     enemy2_coordinate(0, 1500, 585, 1500, 2500);
-    enemy2_coordinate(1, 8300, 585, 8100, 8500);
-    enemy2_coordinate(19, 10000, 585, 10000, 10500);
-    enemy2_coordinate(18, 10550, 585, 10550, 11000);
+
+    enemy1_coordinate(1, 8300, 585, 8100, 8500);
+    enemy2_coordinate(1, 10000, 585, 10000, 10500);
+    enemy2_coordinate(2, 10550, 585, 10550, 11000);
 }
 
 void area2() {
@@ -1549,5 +1568,5 @@ void area2() {
         spikes2[i].SpikeSprite2.setTextureRect(IntRect(0, 0, 142, 163));
         spikes2[i].SpikeSprite2.setScale(0.5f, 0.5f);
     }
-    for (int i = 0; i < 30; i++) spikes2[i].SpikeSprite2.setPosition(10000 + (i * 50), 100);
+    
 }
