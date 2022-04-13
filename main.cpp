@@ -714,7 +714,7 @@ int main()
         BossSt Boss;
         Boss.BossTx.loadFromFile("Assets/Textures/Boss.png");
         Boss.BossSprite.setTexture(Boss.BossTx);
-        Boss.BossSprite.setTextureRect(IntRect( Boss.TexNumber * 100, 800, 100, 64));
+        Boss.BossSprite.setTextureRect(IntRect(Boss.TexNumber * 100, 800, 100, 64));
         Boss.BossSprite.setPosition(15800, 470);
         Boss.HitBox.setPosition(15525, 508);
         Boss.HitBox.setSize(Vector2f(58 * 2.8, 29 * 2.8));
@@ -1009,7 +1009,7 @@ int main()
                 }
 
                 //Moving Right
-                if(!Boss.SceneStart) {
+                if (!Boss.SceneStart) {
                     if ((Boss.FightStart && sonic.PlayerSprite.getPosition().x < 15900) || !Boss.FightStart) {
                         if (Keyboard::isKeyPressed(Keyboard::Key::D) && !sonic.hitLeft && !sonic.hitRight) {
                             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
@@ -1058,7 +1058,7 @@ int main()
                         }
                     }
 
-                        //Moving Left
+                    //Moving Left
                     if ((Boss.FightStart && sonic.PlayerSprite.getPosition().x >= 14800) || !Boss.FightStart) {
                         if (Keyboard::isKeyPressed(Keyboard::Key::A) && !sonic.hitLeft && !sonic.hitRight && sonic.PlayerSprite.getPosition().x > 0) {
                             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
@@ -1109,7 +1109,7 @@ int main()
 
                 //Hit Right and Left
                 if (sonic.hitRight) {
-                    if((sonic.PlayerSprite.getPosition().x <= 15900 && Boss.FightStart) || !Boss.FightStart) sonic.PlayerSprite.move(5, 0);
+                    if ((sonic.PlayerSprite.getPosition().x <= 15900 && Boss.FightStart) || !Boss.FightStart) sonic.PlayerSprite.move(5, 0);
                     if (sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStart) {
                         camera.move(5, 0);
                         text.move(5, 0);
@@ -1387,8 +1387,8 @@ int main()
                 }
                 if (Boss.FightStart) {
                     if (!Boss.MoveStart) {
-                        if(Boss.MovingLeft) {
-                            if(Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(707, 800, 100, 64));
+                        if (Boss.MovingLeft) {
+                            if (Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(707, 800, 100, 64));
                             if (!Boss.StartDelay) {
                                 if (Boss.TexDelay >= 10) {
                                     Boss.MoveStart = true;
@@ -1403,8 +1403,9 @@ int main()
                                     Boss.TexDelay = 0;
                                 }
                             }
-                        } else {
-                            if(Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(700, 725, 100, 64));
+                        }
+                        else {
+                            if (Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(700, 725, 100, 64));
                             if (!Boss.StartDelay) {
                                 if (Boss.TexDelay >= 10) {
                                     Boss.MoveStart = true;
@@ -1420,15 +1421,17 @@ int main()
                                 }
                             }
                         }
-                    } else {
+                    }
+                    else {
                         if (Boss.MovingLeft) {
                             if (Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(607, 800, 98, 64));
                             if (Boss.Velocity.x < 0) {
                                 Boss.Velocity.x += 0.116;
                                 Boss.BossSprite.move(Boss.Velocity.x, 0);
                             }
-                            
-                        } else {
+
+                        }
+                        else {
                             if (Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(810, 725, 98, 64));
                             if (Boss.Velocity.x > 0) {
                                 Boss.Velocity.x -= 0.116;
@@ -1453,7 +1456,7 @@ int main()
                 }
                 if (sonic.PlayerColl.getGlobalBounds().intersects(Boss.HitBox.getGlobalBounds())) {
                     if (sonic.Velocity.y >= 0) {
-                        if(!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
+                        if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
                         if (sonic.PlayerSprite.getPosition().x > Boss.HitBox.getPosition().x + 49) sonic.hitRight = true;
                         else sonic.hitLeft = true;
                         sonic.hitCounter = 50;
@@ -1491,7 +1494,8 @@ int main()
                         main();
                     }
                 }
-            } else if (Boss.lives <= 0) {
+            }
+            else if (Boss.lives <= 0) {
                 LevelPassed.setScale(1, 1);
                 if (Mouse::getPosition(window).x >= 300 && Mouse::getPosition(window).x <= 900 && Mouse::getPosition(window).y >= 632 && Mouse::getPosition(window).y <= 711) {
                     window.close();
@@ -1505,7 +1509,8 @@ int main()
                     sonic.FinalScore += 7;
                 }
                 if (sonic.FinalScore > sonic.scoreValue) sonic.FinalScore = sonic.scoreValue;
-            } else {
+            }
+            else {
                 if (Mouse::isButtonPressed(Mouse::Left)) {
                     std::cout << Mouse::getPosition(window).x << ' ' << Mouse::getPosition(window).y << '\n';
                 }
@@ -1549,7 +1554,7 @@ int main()
             for (int i = 0; i < 9; i++) window.draw(tiles[i].TileSprite);
             for (int i = 0; i < 13; i++) window.draw(jumppad[i].JumppadSprite);
             for (int i = 0; i < 2; i++) window.draw(Red_coins[i].CoinSprite);
-            for (int i = 0; i < 200; i++) window.draw(spikes[i].SpikeSprite);
+            for (int i = 0; i < 65; i++) window.draw(spikes[i].SpikeSprite);
             for (int i = 0; i < 6; i++) window.draw(tiles2[i].TileSprite2);
             for (int i = 0; i < 24; i++) window.draw(spikes2[i].SpikeSprite2);
             for (int i = 0; i < 320; i++) window.draw(coins[i].CoinSprite);
@@ -1629,9 +1634,9 @@ void PosRowCoins(int First_index, int Last_index, int X_position, int Y_Position
 void coinPos() {
     // coins positioning ........................................................................................
     // Walll..............
-    PosRowCoins(0, 8, 3400, 265);
-    PosRowCoins(8, 16, 3889, 170);
-    PosRowCoins(16, 24, 4356, 220);
+    PosRowCoins(0, 8, 3400, 260);
+    PosRowCoins(8, 16, 3889, 160);
+    PosRowCoins(16, 24, 4356, 210);
     //letter S .................................
     Moving_in_X_Axis(24, 27, 1160, 350);
     Moving_in_X_Axis(34, 37, 1160, 580);
@@ -1690,11 +1695,11 @@ void coinPos() {
     Moving_in_X_Axis(82, 84, 2190, 600);
     Moving_in_X_Axis(84, 86, 2190, 420);
     //Red coins................................
-    singleRedCoinPs(1, 1980, 350);
-    Red_coins[2].CoinSprite.setTexture(RedCoinTx);
-    Red_coins[2].CoinSprite.setTextureRect(IntRect(0, 0, 1588, 112));
-    Red_coins[2].CoinSprite.setScale(1.5, 1.5);
-    Red_coins[2].CoinSprite.setPosition(1440, 430);
+    singleRedCoinPs(0, 1980, 350);
+    Red_coins[1].CoinSprite.setTexture(RedCoinTx);
+    Red_coins[1].CoinSprite.setTextureRect(IntRect(0, 0, 1588, 112));
+    Red_coins[1].CoinSprite.setScale(1.5, 1.5);
+    Red_coins[1].CoinSprite.setPosition(1440, 430);
     //final final
     Moving_in_X_Y(86, 92, 6070, 550, 30);
     Moving_in_X_Axis(92, 95, 6280, 315);
@@ -1719,11 +1724,11 @@ void coinPos() {
     //
     Moving_in_X_Axis(248, 291, 6080, 200);
     //
-    Moving_in_X_Y(260, 265, 12220, 20, 30, -45);
-    Moving_in_X_Y(265, 270, 12030, 220, 30, 45);
+    Moving_in_X_Y(291, 296, 12220, 20, 30, -45);
+    Moving_in_X_Y(296, 301, 12030, 220, 30, 45);
     //
-    Moving_in_X_Y(270, 275, 12505, 40, 30, -45);
-    Moving_in_X_Y(275, 280, 12355, 220, 30, 45);
+    Moving_in_X_Y(301, 306, 12505, 40, 30, -45);
+    Moving_in_X_Y(306, 311, 12355, 220, 30, 45);
     //
 }
 
@@ -1770,9 +1775,9 @@ void draw_spikes() {
     PosRowSpikes(34, 41, 6695, 575);
     PosRowSpikes(41, 47, 7335, 575);
     PosRowSpikes(47, 55, 8825, 580);
-    PosRowSpikes(56, 59, 12100, 575);
-    PosRowSpikes(59, 62, 12400, 575);
-    PosRowSpikes(184, 187, 12700, 575);
+    PosRowSpikes(55, 58, 12100, 575);
+    PosRowSpikes(58, 61, 12400, 575);
+    PosRowSpikes(61, 64, 12700, 575);
 
 
     for (int i = 0; i < 30; i++) spikes2[i].SpikeSprite2.setPosition(10000 + (i * 50), 113);
@@ -1813,6 +1818,7 @@ void enemy2_coordinate(int index, int X_pos, int Y_pos, int start, int end) {
 void draw_enemies() {
     enemy1_coordinate(0, 1500, 580, 500, 1100);
     enemy2_coordinate(0, 1500, 585, 1500, 2500);
+   
 
     enemy1_coordinate(1, 8300, 585, 8100, 8500);
     enemy2_coordinate(1, 10000, 585, 10000, 10500);
