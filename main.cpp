@@ -718,6 +718,17 @@ int main()
         LevelPassed.setPosition(14800, 0);
         LevelPassed.setScale(0, 0);
 
+        //BackgroundShip
+        Texture ShipTx;
+        ShipTx.loadFromFile("Assets/Textures/Tyara.png");
+        Sprite ShipSprite;
+        ShipSprite.setTexture(ShipTx);
+        int shipTexDelay = 0, ShipTexNumber = 0;
+        bool ShipMovingLeft = true;
+        ShipSprite.setTextureRect(IntRect(ShipTexNumber * 313.8, 183, 313.8, 183));
+        ShipSprite.setPosition(1600, 200);
+        ShipSprite.setScale(0.7, 0.7);
+
         //Boss
         BossSt Boss;
         Boss.BossTx.loadFromFile("Assets/Textures/Boss.png");
@@ -940,6 +951,40 @@ int main()
             /// UPDATE
             if (pauseDelay > 0) pauseDelay--;
             if (!paused) pauseMenu.setScale(0, 0);
+            //Background Ship
+            if (shipTexDelay <= 10) shipTexDelay++;
+            if (ShipMovingLeft) {
+                if (ShipSprite.getPosition().x > sonic.PlayerSprite.getPosition().x + 1500) {
+                    ShipMovingLeft = false;
+                    ShipTexNumber = 4;
+                }
+                else {
+                    ShipSprite.move(20, 0);
+                }
+                if (shipTexDelay >= 10) {
+                    shipTexDelay = 0;
+                    ShipTexNumber++;
+                    ShipTexNumber %= 5;
+                    ShipSprite.setTextureRect(IntRect(ShipTexNumber * 313.8, 183, 313.8, 183));
+                    
+                }
+            }
+            else {
+                if (ShipSprite.getPosition().x < sonic.PlayerSprite.getPosition().x - 500) {
+                    ShipMovingLeft = true;
+                }
+                else {
+                    ShipSprite.move(-20, 0);
+                }
+                if (shipTexDelay >= 10) {
+                    shipTexDelay = 0;
+                    ShipTexNumber--;
+                    if(ShipTexNumber <= 0) ShipTexNumber = 4;
+                    ShipSprite.setTextureRect(IntRect(ShipTexNumber * 313.8, 0, 313.8, 183));
+                }
+            }
+            cout << ShipSprite.getPosition().x << ' ' << ShipSprite.getPosition().y << '\n';
+            
             //Delays and coins
             if (sonic.lives > 0 && !paused && Boss.lives > 0) {
                 if (sonic.TexDelay <= 3) sonic.TexDelay++;
@@ -1636,9 +1681,7 @@ int main()
             window.draw(Boss.BossSprite);
             //window.draw(Boss.HitBox);
             window.draw(sonic.PlayerSprite);
-            for (int i = 0; i < 5; i++) {
-                window.draw(skyBullets[i].SkyBulletsSprite);
-            }
+            for (int i = 0; i < 5; i++) window.draw(skyBullets[i].SkyBulletsSprite);
             window.draw(SonicFace);
             window.draw(text);
             window.draw(lives);
@@ -1647,6 +1690,7 @@ int main()
             window.draw(LevelPassed);
             window.draw(FinalScore);
             window.draw(EnemyScore);
+            window.draw(ShipSprite);
             window.display();
         }
     }
