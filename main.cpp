@@ -1367,6 +1367,8 @@ int main()
                 if (sonic.lives <= 0) {
                     sonic.PlayerSprite.setTextureRect(IntRect(278, 240, 48.86, 51));
                     sonic.deathDealy = 10;
+                    BackgroundMusic.stop();
+                    GameoverAudio.play();
                 }
                 if (Boss.TexDelay <= 30 && (!Boss.MoveStart || Boss.StartDelay)) Boss.TexDelay++;
                 if (sonic.PlayerSprite.getPosition().x >= 15000 && !Boss.FightStart) {
@@ -1529,6 +1531,7 @@ int main()
                             if (Mouse::isButtonPressed(Mouse::Left)) {
                                 window.close();
                                 BackgroundMusic.stop();
+                                GameoverAudio.stop();
                                 main();
                             }
                         }
@@ -1818,7 +1821,7 @@ void enemy2_coordinate(int index, int X_pos, int Y_pos, int start, int end) {
 void draw_enemies() {
     enemy1_coordinate(0, 1500, 580, 500, 1100);
     enemy2_coordinate(0, 1500, 585, 1500, 2500);
-   
+
 
     enemy1_coordinate(1, 8300, 585, 8100, 8500);
     enemy2_coordinate(1, 10000, 585, 10000, 10500);
