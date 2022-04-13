@@ -3,6 +3,8 @@
 #include <SFML/System.hpp>
 #include <iostream>
 #include <string>
+#include <cstdlib>
+#include <ctime>
 
 using namespace sf;
 using namespace std;
@@ -18,7 +20,7 @@ struct Player {
     bool start = false, Running = false, idle1 = false, txToggle = false, onTile = false;
     bool on_ground = true, hitRight = false, hitLeft = false, RunningSound = false;
 } sonic;
-
+//Boss
 struct BossSt {
     Texture BossTx;
     Sprite BossSprite;
@@ -85,6 +87,13 @@ struct Vertical_Tiles {
     RectangleShape tilecole;
     RectangleShape upper_tilecole;
 }Vertical_tiles_right[10], Vertical_tiles_left[10];
+
+struct SkyBullets {
+    Sprite SkyBulletsSprite;
+    RectangleShape BulletColl;
+    int TexNumber = 0, TexDelay = 0;
+    bool spawned = false;
+} skyBullets[10];
 
 // function
 void setTilePos(FloatingTiles& tile, int x, int y, int x1 = 0, int x2 = 0);
@@ -337,22 +346,20 @@ int main()
                         playerInput.pop_back();
                         playerText.setString(playerInput);
                     }
-                    else if (menuEvent.text.unicode < 128 && !Keyboard::isKeyPressed(Keyboard::Backspace))
+                    else if (menuEvent.text.unicode >= 65 && menuEvent.text.unicode < 128)
                     {
                         playerInput += menuEvent.text.unicode;
                         playerText.setString(playerInput);
-
                     }
 
                 }
-                if (Keyboard::isKeyPressed(Keyboard::Enter))
+                if (Keyboard::isKeyPressed(Keyboard::Enter) && playerInput.size() > 1)
                 {
                     Menu.close();
                     start = true;
                     MenuMusic.stop();
                 }
             }
-
 
             if (menuEvent.type == Event::Closed)
             {
@@ -647,6 +654,7 @@ int main()
     }
     // rendering window
     if (start && !Exit) {
+        srand(time(0));
         // rendering window
         RenderWindow window(VideoMode(1200, 760), "Sonic!");
         window.setFramerateLimit(60);
@@ -719,6 +727,20 @@ int main()
         Boss.HitBox.setPosition(15525, 508);
         Boss.HitBox.setSize(Vector2f(58 * 2.8, 29 * 2.8));
         Boss.BossSprite.setScale(2.8, 2.8);
+
+        //Sky Bullet
+        Texture SkyBulletTx;
+        SkyBulletTx.loadFromFile("Assets/Textures/SkyBullet.png");
+        int BulletsSpawnDelay = 0, BulletDelay = 0, BulletsSpawned = 0;
+        bool SpawnStart = false, BulletsPositioned = false;
+        for (int i = 0; i < 5; i++) {
+            skyBullets[i].SkyBulletsSprite.setTexture(SkyBulletTx);
+            skyBullets[i].SkyBulletsSprite.setTextureRect(IntRect(skyBullets[i].TexNumber * 114, 0, 114, 227));
+            skyBullets[i].SkyBulletsSprite.setScale(0.8, 0.8);
+            skyBullets[i].SkyBulletsSprite.setPosition(-500, -500);
+            skyBullets[i].BulletColl.setSize(Vector2f(24, 108.8));
+            //24 108.8
+        }
 
         bool paused = false;
         int pauseDelay = 0;
@@ -1014,17 +1036,17 @@ int main()
                         if (Keyboard::isKeyPressed(Keyboard::Key::D) && !sonic.hitLeft && !sonic.hitRight) {
                             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
                                 // Running Sonic Right
-                                sonic.PlayerSprite.move(15, 0);
+                                sonic.PlayerSprite.move(12, 0);
                                 if (!sonic.RunningSound) {
                                     RunningSound.play();
                                     sonic.RunningSound = true;
                                 }
                                 if (sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStart) {
-                                    camera.move(15, 0);
-                                    text.move(15, 0);
-                                    lives.move(15, 0);
-                                    SonicFace.move(15, 0);
-                                    pauseMenu.move(15, 0);
+                                    camera.move(12, 0);
+                                    text.move(12, 0);
+                                    lives.move(12, 0);
+                                    SonicFace.move(12, 0);
+                                    pauseMenu.move(12, 0);
                                 }
                                 if (sonic.TexDelay >= 3) {
                                     sonic.RightTexNumber++;
@@ -1037,13 +1059,13 @@ int main()
                             }
                             else {
                                 // Walking Sonic Right
-                                sonic.PlayerSprite.move(12, 0);
+                                sonic.PlayerSprite.move(9, 0);
                                 if (sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStart) {
-                                    camera.move(12, 0);
-                                    text.move(12, 0);
-                                    lives.move(12, 0);
-                                    SonicFace.move(12, 0);
-                                    pauseMenu.move(12, 0);
+                                    camera.move(9, 0);
+                                    text.move(9, 0);
+                                    lives.move(9, 0);
+                                    SonicFace.move(9, 0);
+                                    pauseMenu.move(9, 0);
                                 }
                                 if (sonic.TexDelay >= 3) {
                                     sonic.RightTexNumber++;
@@ -1063,17 +1085,17 @@ int main()
                         if (Keyboard::isKeyPressed(Keyboard::Key::A) && !sonic.hitLeft && !sonic.hitRight && sonic.PlayerSprite.getPosition().x > 0) {
                             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
                                 // Running Sonic Left                
-                                sonic.PlayerSprite.move(-15, 0);
+                                sonic.PlayerSprite.move(-12, 0);
                                 if (!sonic.RunningSound) {
                                     RunningSound.play();
                                     sonic.RunningSound = true;
                                 }
                                 if (sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStart) {
-                                    camera.move(-15, 0);
-                                    text.move(-15, 0);
-                                    lives.move(-15, 0);
-                                    SonicFace.move(-15, 0);
-                                    pauseMenu.move(-15, 0);
+                                    camera.move(-12, 0);
+                                    text.move(-12, 0);
+                                    lives.move(-12, 0);
+                                    SonicFace.move(-12, 0);
+                                    pauseMenu.move(-12, 0);
                                 }
                                 if (sonic.TexDelay >= 3) {
                                     sonic.LeftTexNumber--;
@@ -1086,13 +1108,13 @@ int main()
                             }
                             else {
                                 // Moving Sonic Left
-                                sonic.PlayerSprite.move(-12, 0);
+                                sonic.PlayerSprite.move(-9, 0);
                                 if (sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStart) {
-                                    camera.move(-12, 0);
-                                    text.move(-12, 0);
-                                    lives.move(-12, 0);
-                                    SonicFace.move(-12, 0);
-                                    pauseMenu.move(-12, 0);
+                                    camera.move(-9, 0);
+                                    text.move(-9, 0);
+                                    lives.move(-9, 0);
+                                    SonicFace.move(-9, 0);
+                                    pauseMenu.move(-9, 0);
                                 }
                                 if (sonic.TexDelay >= 3) {
                                     sonic.LeftTexNumber--;
@@ -1357,9 +1379,6 @@ int main()
                         }
                     }
                 }
-
-
-
                 sonic.PlayerSprite.move(0, -sonic.Velocity.y);
                 sonic.PlayerColl.setPosition(sonic.PlayerSprite.getPosition().x + 28, sonic.PlayerSprite.getPosition().y + 30);
                 window.setView(camera);
@@ -1455,6 +1474,52 @@ int main()
                             }
                         }
                     }
+                    if (BulletsSpawnDelay <= 300 && !SpawnStart) BulletsSpawnDelay++;
+                    if (BulletDelay <= 30 && SpawnStart) BulletDelay++;
+                    if (BulletsSpawnDelay >= 300) {
+                        SpawnStart = true;
+                        if (!BulletsPositioned) {
+                            for (int i = 0; i < 5; i++) {
+                                skyBullets[i].SkyBulletsSprite.setPosition(rand() % 1109 + 14800, -300);
+                                skyBullets[i].spawned = false;
+                                skyBullets[i].SkyBulletsSprite.setScale(0.8, 0.8);
+                                skyBullets[i].BulletColl.setScale(1, 1);
+                                skyBullets[i].TexNumber = 0;
+                            }
+                            BulletsPositioned = true;
+                        }
+                        if (BulletDelay >= 30 && BulletsSpawned < 5) {
+                            BulletDelay = 0;
+                            skyBullets[BulletsSpawned].spawned = true;
+                            BulletsSpawned++;
+                            cout << BulletsSpawned << '\n';
+                        }
+                    }
+                    for (int i = 0; i < 5; i++) {
+                        if (skyBullets[i].spawned) {
+                            if (skyBullets[i].SkyBulletsSprite.getPosition().y <= 485) {
+                                skyBullets[i].SkyBulletsSprite.move(0, 12);
+                                skyBullets[i].SkyBulletsSprite.setTextureRect(IntRect(114, 0, 114, 227));
+                            } else if (skyBullets[i].SkyBulletsSprite.getPosition().y > 485) {
+                                skyBullets[i].SkyBulletsSprite.setScale(0, 0);
+                                skyBullets[i].BulletColl.setScale(0, 0);
+                            }
+                        }
+                        skyBullets[i].BulletColl.setPosition(skyBullets[i].SkyBulletsSprite.getPosition().x + 34.4, skyBullets[i].SkyBulletsSprite.getPosition().y + 56.8);
+                        if (skyBullets[i].BulletColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
+                            skyBullets[i].SkyBulletsSprite.setScale(0, 0);
+                            skyBullets[i].BulletColl.setScale(0, 0);
+                            if (sonic.hitCounter == -1) sonic.lives--;
+                            sonic.hitCounter = 50;
+                            SpikeDeathAudio.play();
+                        }
+                    }
+                    if (SpawnStart && !skyBullets[4].SkyBulletsSprite.getScale().x) {
+                        SpawnStart = false;
+                        BulletsPositioned = false;
+                        BulletsSpawnDelay = 0;
+                        BulletsSpawned = 0;
+                    }
                 }
                 if (sonic.PlayerColl.getGlobalBounds().intersects(Boss.HitBox.getGlobalBounds())) {
                     if (sonic.Velocity.y >= 0) {
@@ -1500,9 +1565,11 @@ int main()
             else if (Boss.lives <= 0) {
                 LevelPassed.setScale(1, 1);
                 if (Mouse::getPosition(window).x >= 300 && Mouse::getPosition(window).x <= 900 && Mouse::getPosition(window).y >= 632 && Mouse::getPosition(window).y <= 711) {
-                    window.close();
-                    BackgroundMusic.stop();
-                    main();
+                    if (Mouse::isButtonPressed(Mouse::Left)) {
+                        window.close();
+                        BackgroundMusic.stop();
+                        main();
+                    }
                 }
                 FinalScore.setFillColor(Color::Black);
                 FinalScore.setPosition(15330, 300);
@@ -1543,7 +1610,6 @@ int main()
             if (EnemyScoreCounter > 0) {
                 EnemyScoreCounter--;
                 EnemyScore.move(0, -0.5);
-                cout << "Here!\n";
             }
             else EnemyScore.setCharacterSize(0);
 
@@ -1557,7 +1623,7 @@ int main()
             for (int i = 0; i < 9; i++) window.draw(tiles[i].TileSprite);
             for (int i = 0; i < 13; i++) window.draw(jumppad[i].JumppadSprite);
             for (int i = 0; i < 2; i++) window.draw(Red_coins[i].CoinSprite);
-            for (int i = 0; i < 65; i++) window.draw(spikes[i].SpikeSprite);
+            for (int i = 0; i < 64; i++) window.draw(spikes[i].SpikeSprite);
             for (int i = 0; i < 6; i++) window.draw(tiles2[i].TileSprite2);
             for (int i = 0; i < 24; i++) window.draw(spikes2[i].SpikeSprite2);
             for (int i = 0; i < 320; i++) window.draw(coins[i].CoinSprite);
@@ -1570,6 +1636,9 @@ int main()
             window.draw(Boss.BossSprite);
             //window.draw(Boss.HitBox);
             window.draw(sonic.PlayerSprite);
+            for (int i = 0; i < 5; i++) {
+                window.draw(skyBullets[i].SkyBulletsSprite);
+            }
             window.draw(SonicFace);
             window.draw(text);
             window.draw(lives);
