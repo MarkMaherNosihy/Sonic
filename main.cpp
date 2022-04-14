@@ -5,6 +5,9 @@
 #include <string>
 #include <cstdlib>
 #include <ctime>
+#include<sstream>
+#include<cmath>
+#include<fstream>
 
 using namespace sf;
 using namespace std;
@@ -26,7 +29,7 @@ struct BossSt {
     Sprite BossSprite;
     RectangleShape HitBox;
     Vector2f Velocity;
-    int hitCounter = 0, TexDelay = 0, TexNumber = 0, lives = 10;
+    int hitCounter = 0, TexDelay = 0, TexNumber = 0, lives = 1;
     bool SceneStart = false, FightStart = false, MoveStart = false, MovingLeft = true, StartDelay = false;
 };
 //Jumpad start
@@ -55,7 +58,7 @@ struct Coin {
 struct Red_Coin {
     Sprite CoinSprite;
     int TexNumber = 0, TexDelay = 0;
-} Red_coins[200];
+} Red_coins[6];
 
 struct Enemies {
     Sprite EnemySprite;
@@ -95,6 +98,23 @@ struct SkyBullets {
     bool spawned = false;
 } skyBullets[10];
 
+struct FloatingShip {
+    Sprite ShipSprite;
+    int shipTexDelay = 0, ShipTexNumber = 0;
+    bool ShipMovingLeft = true;
+} floatingShips[3];
+
+//leaderboaerd functions
+
+    //leaderboard map
+multimap <  int, string, greater<> > leaderBoard;
+
+void saveLDToFile();
+void clearLeaderBoard();
+void pushScore(pair<int, string> score);
+void loadLDFromFile();
+
+
 // function
 void setTilePos(FloatingTiles& tile, int x, int y, int x1 = 0, int x2 = 0);
 void PosRowCoins(int First_index, int Last_index, int X_position, int Y_Position);
@@ -127,8 +147,29 @@ Texture SpikeTex2;
 // main function
 int main()
 {
+    leaderBoard.clear();
     RenderWindow Menu(VideoMode(1200, 760), "Sonic", Style::None);
+    /// leaderboard
 
+    Font font;
+    font.loadFromFile("Assets/EvilEmpire-4BBVK.ttf");
+
+    Text LDNames[10];
+    Text scores[10];
+
+    for (int i = 0; i < 10; i++)
+    {
+        LDNames[i].setFont(font);
+        scores[i].setFont(font);
+
+        LDNames[i].setFillColor(Color::White);
+        scores[i].setFillColor(Color::White);
+    }
+
+
+    string Sscore;
+    int Iscore;
+    int i;
 
     /// Loading tex
     Texture loadingMenuTex;
@@ -298,6 +339,10 @@ int main()
     ExitText.setCharacterSize(50);
     ExitText.setPosition(240, 693);
 
+    Text LDName;
+    LDName.setFont(font);
+    LDName.setFillColor(Color::Yellow);
+    LDName.setCharacterSize(50);
     BarTex.setSmooth(true);
     //Button selection sound
     SoundBuffer ButtonClickBuffer;
@@ -333,7 +378,7 @@ int main()
     Sprite PlayerName;
     PlayerName.setTexture(PlayerNameTx);
 
-
+    loadLDFromFile();
     while (Menu.isOpen())
     {
         Event menuEvent;
@@ -397,14 +442,37 @@ int main()
             keyHold = false;
         }
 
+        multimap<int, string>::iterator it;
 
+        //LDName.setPosition(1000, 500);
+        //marko2
 
         //Press on leaderboard
+
         if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite
             || selection == 3 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite) {
             LeaderClosed = false;
             LeaderStopAnim = false;
             leaderSprite.setPosition(-1200, 0);
+
+
+            if (!leaderBoard.empty()) {
+                for (i = 0, it = leaderBoard.begin(); it != leaderBoard.end() && (i < leaderBoard.size()); it++, i++)
+                {
+                    if (i >= 10)
+                        break;
+                    cout << it->second << "\t" << it->first << endl;
+                    // cout << leaderBoard.size()<<endl;
+                     //cout << endl <<it->second << "\t" << it->first << endl;
+                    LDNames[i].setString(it->second);
+                    Iscore = (it->first);
+                    Sscore = to_string(Iscore);
+                    scores[i].setString(Sscore);
+                }
+                cout << "Done!" << endl;
+            }
+            else
+                cout << "leaderBoard is empty" << endl;
         }
 
         //Starting game
@@ -628,6 +696,7 @@ int main()
         Menu.draw(CreditText);
         Menu.draw(ExitBarSprite);
         Menu.draw(ExitText);
+
         if (canWrite)
         {
             Menu.draw(PlayerName);
@@ -635,7 +704,25 @@ int main()
         Menu.draw(playerText);
         if (!LeaderClosed) {
             Menu.draw(leaderSprite);
-            if (leaderbackIsVisible) Menu.draw(leaderbackSprite);
+            if (LeaderStopAnim)
+            {
+                for (i = 0; i < leaderBoard.size(); i++)
+                {
+                    if (i >= 10)
+                        break;
+                    LDNames[i].setPosition(295, 172 + i * 52);
+                    LDNames[i].setCharacterSize(22);
+
+                    scores[i].setPosition(734, 172 + i * 52);
+                    scores[i].setCharacterSize(22);
+
+                    Menu.draw(LDNames[i]);
+                    Menu.draw(scores[i]);
+                }
+                if (leaderbackIsVisible){
+                    Menu.draw(leaderbackSprite);
+                }
+            }
         }
         if (!CreditClosed) {
             Menu.draw(creditSprite);
@@ -721,13 +808,13 @@ int main()
         //BackgroundShip
         Texture ShipTx;
         ShipTx.loadFromFile("Assets/Textures/Tyara.png");
-        Sprite ShipSprite;
-        ShipSprite.setTexture(ShipTx);
-        int shipTexDelay = 0, ShipTexNumber = 0;
-        bool ShipMovingLeft = true;
-        ShipSprite.setTextureRect(IntRect(ShipTexNumber * 313.8, 183, 313.8, 183));
-        ShipSprite.setPosition(1600, 200);
-        ShipSprite.setScale(0.7, 0.7);
+
+        for (int i = 0; i < 3; i++) {
+            floatingShips[i].ShipSprite.setTexture(ShipTx);
+            floatingShips[i].ShipSprite.setTextureRect(IntRect(floatingShips[i].ShipTexNumber * 313.8, 183, 313.8, 183));
+            floatingShips[i].ShipSprite.setPosition(5000 * i, 100 + (i * 50));
+            floatingShips[i].ShipSprite.setScale(0.4, 0.4);
+        }
 
         //Boss
         BossSt Boss;
@@ -951,40 +1038,7 @@ int main()
             /// UPDATE
             if (pauseDelay > 0) pauseDelay--;
             if (!paused) pauseMenu.setScale(0, 0);
-            //Background Ship
-            if (shipTexDelay <= 10) shipTexDelay++;
-            if (ShipMovingLeft) {
-                if (ShipSprite.getPosition().x > sonic.PlayerSprite.getPosition().x + 1500) {
-                    ShipMovingLeft = false;
-                    ShipTexNumber = 4;
-                }
-                else {
-                    ShipSprite.move(20, 0);
-                }
-                if (shipTexDelay >= 10) {
-                    shipTexDelay = 0;
-                    ShipTexNumber++;
-                    ShipTexNumber %= 5;
-                    ShipSprite.setTextureRect(IntRect(ShipTexNumber * 313.8, 183, 313.8, 183));
-                    
-                }
-            }
-            else {
-                if (ShipSprite.getPosition().x < sonic.PlayerSprite.getPosition().x - 500) {
-                    ShipMovingLeft = true;
-                }
-                else {
-                    ShipSprite.move(-20, 0);
-                }
-                if (shipTexDelay >= 10) {
-                    shipTexDelay = 0;
-                    ShipTexNumber--;
-                    if(ShipTexNumber <= 0) ShipTexNumber = 4;
-                    ShipSprite.setTextureRect(IntRect(ShipTexNumber * 313.8, 0, 313.8, 183));
-                }
-            }
-            cout << ShipSprite.getPosition().x << ' ' << ShipSprite.getPosition().y << '\n';
-            
+
             //Delays and coins
             if (sonic.lives > 0 && !paused && Boss.lives > 0) {
                 if (sonic.TexDelay <= 3) sonic.TexDelay++;
@@ -1004,7 +1058,7 @@ int main()
                     }
                 }
                 //Red Coins
-                for (int i = 0; i < 100; i++) {
+                for (int i = 0; i < 6; i++) {
                     if (Red_coins[i].TexDelay <= 3)Red_coins[i].TexDelay++;
                     if (Red_coins[i].TexDelay >= 3) {
                         Red_coins[i].TexDelay = 0;
@@ -1184,7 +1238,7 @@ int main()
                         SonicFace.move(5, 0);
                         pauseMenu.move(5, 0);
                     }
-                    if (sonic.on_ground) sonic.hitRight = false;
+                    if (sonic.on_ground || sonic.onTile) sonic.hitRight = false;
                 }
                 else if (sonic.hitLeft) {
                     if ((sonic.PlayerSprite.getPosition().x > 14800 && Boss.FightStart) || !Boss.FightStart) sonic.PlayerSprite.move(-5, 0);
@@ -1195,7 +1249,7 @@ int main()
                         SonicFace.move(-5, 0);
                         pauseMenu.move(-5, 0);
                     }
-                    if (sonic.on_ground) sonic.hitLeft = false;
+                    if (sonic.on_ground || sonic.onTile) sonic.hitLeft = false;
                 }
 
                 //Enemy System
@@ -1428,6 +1482,64 @@ int main()
                 sonic.PlayerColl.setPosition(sonic.PlayerSprite.getPosition().x + 28, sonic.PlayerSprite.getPosition().y + 30);
                 window.setView(camera);
 
+                //Background Ship
+                for (int i = 0; i < 3; i++) {
+                    if (floatingShips[i].shipTexDelay <= 10) floatingShips[i].shipTexDelay++;
+                    if (floatingShips[i].ShipMovingLeft) {
+                        if (floatingShips[i].ShipSprite.getPosition().x < -200) {
+                            floatingShips[i].ShipMovingLeft = false;
+                            floatingShips[i].ShipTexNumber = 4;
+                            floatingShips[i].shipTexDelay = 0;
+                        }
+                        else {
+                            floatingShips[i].ShipSprite.move(-10, 0);
+                        }
+                        if (floatingShips[i].shipTexDelay >= 10) {
+                            floatingShips[i].shipTexDelay = 0;
+                            if (floatingShips[i].ShipTexNumber < 4) {
+                                floatingShips[i].ShipTexNumber++;
+                                floatingShips[i].ShipSprite.setTextureRect(IntRect(floatingShips[i].ShipTexNumber * 313.8, 183, 313.8, 183));
+                            }
+
+                        }
+                    }
+                    else {
+                        if (floatingShips[i].ShipSprite.getPosition().x > 16500) {
+                            floatingShips[i].ShipMovingLeft = true;
+                            floatingShips[i].shipTexDelay = 0;
+                        }
+                        else {
+                            floatingShips[i].ShipSprite.move(10, 0);
+                        }
+                        if (floatingShips[i].shipTexDelay >= 10) {
+                            floatingShips[i].shipTexDelay = 0;
+                            if (floatingShips[i].ShipTexNumber > 0) {
+                                floatingShips[i].ShipTexNumber--;
+                                floatingShips[i].ShipSprite.setTextureRect(IntRect(floatingShips[i].ShipTexNumber * 313.8, 0, 313.8, 183));
+                            }
+                        }
+                    }
+                    if (floatingShips[i].ShipSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
+                        if (!sonic.on_ground && sonic.Velocity.y < 0 && sonic.hitCounter == -1) {
+                            sonic.scoreValue += 300;
+                            sonic.Velocity.y = 7;
+                            floatingShips[i].ShipSprite.setScale(0, 0);
+                        }
+                        else {
+                            if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
+                            if (sonic.PlayerSprite.getPosition().x > floatingShips[i].ShipSprite.getPosition().x) sonic.hitRight = true;
+                            else sonic.hitLeft = true;
+                            sonic.hitCounter = 50;
+                            if (sonic.PlayerSprite.getPosition().y > floatingShips[i].ShipSprite.getPosition().y + 73.2)
+                                sonic.Velocity.y = -4;
+                            else
+                                sonic.Velocity.y = 7;
+                            SpikeDeathAudio.play();
+                        }
+                    }
+                    //cout << floatingShips[i].ShipSprite.getPosition().x << ' ' << floatingShips[i].ShipSprite.getPosition().y << '\n';
+                }
+
                 if (sonic.lives <= 0) {
                     sonic.PlayerSprite.setTextureRect(IntRect(278, 240, 48.86, 51));
                     sonic.deathDealy = 10;
@@ -1545,7 +1657,8 @@ int main()
                             if (skyBullets[i].SkyBulletsSprite.getPosition().y <= 485) {
                                 skyBullets[i].SkyBulletsSprite.move(0, 12);
                                 skyBullets[i].SkyBulletsSprite.setTextureRect(IntRect(114, 0, 114, 227));
-                            } else if (skyBullets[i].SkyBulletsSprite.getPosition().y > 485) {
+                            }
+                            else if (skyBullets[i].SkyBulletsSprite.getPosition().y > 485) {
                                 skyBullets[i].SkyBulletsSprite.setScale(0, 0);
                                 skyBullets[i].BulletColl.setScale(0, 0);
                             }
@@ -1607,10 +1720,20 @@ int main()
                     }
                 }
             }
+
+
+            //marko
             else if (Boss.lives <= 0) {
                 LevelPassed.setScale(1, 1);
                 if (Mouse::getPosition(window).x >= 300 && Mouse::getPosition(window).x <= 900 && Mouse::getPosition(window).y >= 632 && Mouse::getPosition(window).y <= 711) {
                     if (Mouse::isButtonPressed(Mouse::Left)) {
+
+                        // saving score to leaderboard
+                        saveLDToFile();
+                        loadLDFromFile();
+                        pushScore(pair<int, string>(sonic.scoreValue, playerInput));
+                        saveLDToFile();
+
                         window.close();
                         BackgroundMusic.stop();
                         main();
@@ -1665,6 +1788,7 @@ int main()
             FinalScore.setString(std::to_string(sonic.FinalScore));
             //draw
             window.draw(Map);
+            for (int i = 0; i < 3; i++) window.draw(floatingShips[i].ShipSprite);
             for (int i = 0; i < 9; i++) window.draw(tiles[i].TileSprite);
             for (int i = 0; i < 13; i++) window.draw(jumppad[i].JumppadSprite);
             for (int i = 0; i < 2; i++) window.draw(Red_coins[i].CoinSprite);
@@ -1690,7 +1814,6 @@ int main()
             window.draw(LevelPassed);
             window.draw(FinalScore);
             window.draw(EnemyScore);
-            window.draw(ShipSprite);
             window.display();
         }
     }
@@ -1934,8 +2057,6 @@ void enemy2_coordinate(int index, int X_pos, int Y_pos, int start, int end) {
 void draw_enemies() {
     enemy1_coordinate(0, 1500, 580, 500, 1100);
     enemy2_coordinate(0, 1500, 585, 1500, 2500);
-
-
     enemy1_coordinate(1, 8300, 585, 8100, 8500);
     enemy2_coordinate(1, 10000, 585, 10000, 10500);
     enemy2_coordinate(2, 10550, 585, 10550, 11000);
@@ -1954,4 +2075,98 @@ void area2() {
         spikes2[i].SpikeSprite2.setTextureRect(IntRect(0, 0, 142, 163));
         spikes2[i].SpikeSprite2.setScale(0.5f, 0.5f);
     }
+}
+//leaderboard finctions defenitions
+
+
+
+// push the into the leader board map from the code after the game play
+void pushScore(pair<int, string> score)
+{
+    leaderBoard.insert(score);
+}
+
+//clear leader board (file&map)
+
+void clearLeaderBoard()
+{
+    leaderBoard.clear();
+    //clearing the leader board file
+    fstream LDFile;
+    LDFile.open("leaderBoard.txt", ios::app);
+    if (LDFile.is_open())
+    {
+        LDFile << "#";
+        //closing file stream
+        LDFile.close();
+    }
+    else
+        cout << "Failed to Open THis file";
+}
+
+
+// push the into the leader board file
+
+void saveLDToFile()
+{
+    fstream LDFile; //creating file stream
+    LDFile.open("leaderBoard.txt", ios::out);
+
+    if (LDFile.is_open())
+    {
+        //saving the leaderboard elements
+        multimap <  int, string > ::iterator itr;
+
+        for (itr = (leaderBoard.begin()); itr != leaderBoard.end(); ++itr)
+        {
+            LDFile << itr->first << " " << itr->second << endl;
+
+        }
+        LDFile << "#";
+        //closing file stream
+        LDFile.close();
+    }
+
+    else
+        cout << "Failed to Open THis file";
+}
+
+// loading scores from file
+
+void loadLDFromFile()
+{
+    bool Empty = false;
+    string score, name;
+    int intSCore;
+
+    fstream LDFile; //creating file stream
+    LDFile.open("leaderBoard.txt", ios::in);
+
+    if (LDFile.is_open())
+    {
+        //loading data from the file
+        while (!Empty)
+        {
+            LDFile >> score;
+            if (score == "#")
+            {
+                Empty = true;
+                cout << "this folder is empty";
+            }
+            else
+            {
+                LDFile >> name;
+                //converting the score  to int
+                stringstream convert;
+                convert << score;
+                convert >> intSCore;
+
+                //pushing score into the leader board map
+                pushScore(pair<int, string>(intSCore, name));
+            }
+        }
+        LDFile.close();
+    }
+    else
+        cout << "Cannot Open This File";
 }
