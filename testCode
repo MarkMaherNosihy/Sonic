@@ -109,6 +109,8 @@ void pushScore(pair<int, string> score);
 void loadLDFromFile();
 
 
+
+
 // function
 void setTilePos(FloatingTiles& tile, int x, int y, int x1 = 0, int x2 = 0);
 void PosRowCoins(int First_index, int Last_index, int X_position, int Y_Position);
@@ -142,6 +144,37 @@ Texture SpikeTex2;
 int main()
 {
     RenderWindow Menu(VideoMode(1200, 760), "Sonic", Style::None);
+
+
+    /// leaderboard
+
+    Font font;
+    font.loadFromFile("Assets/EvilEmpire-4BBVK.ttf");
+    
+    Text LDNames[10];
+    Text scores[10];
+
+    for (int i = 0; i < 10; i++)
+    {
+        LDNames[i].setFont(font);
+        scores[i].setFont(font);
+
+        LDNames[i].setFillColor(Color::Yellow);
+        scores[i].setFillColor(Color::Yellow);
+    }
+    
+    
+    string Sscore;
+    int Iscore;
+    int c;
+    int i;
+
+
+
+
+
+    //
+
 
 
     /// Loading tex
@@ -381,6 +414,12 @@ int main()
                 MenuMusic.stop();
             }
         }
+
+
+        //getmouseposition
+        if(Mouse::isButtonPressed(Mouse::Left))
+            cout << Mouse::getPosition(Menu).x<<"\t"<< Mouse::getPosition(Menu).y<<endl;
+
         //Keyboard controller
 
         if (Keyboard::isKeyPressed(Keyboard::Down))
@@ -412,16 +451,14 @@ int main()
         }
 
         multimap<int, string>::iterator it;
-        Font font;
-        font.loadFromFile("Assets/EvilEmpire-4BBVK.ttf");
-        Text LDName;
-        LDName.setFont(font);
-        LDName.setFillColor(Color::Yellow);
-       // LDName.setCharacterSize(0);
-        //LDName.setPosition(1000, 500);
-        //marko2
 
-        //Press on leaderboard
+
+
+     
+        
+         //marko2
+
+         //Press on leaderboard
         if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite
             || selection == 3 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite) {
             LeaderClosed = false;
@@ -429,14 +466,24 @@ int main()
             leaderSprite.setPosition(-1200, 0);
 
             
+
             loadLDFromFile();
             if (!leaderBoard.empty())
             {
-                for (it = leaderBoard.begin(); it != leaderBoard.end(); it++)
+                int i ; 
+                for (i=9,it = leaderBoard.begin(); it != leaderBoard.end() && (i >= 0); it++,i--)
                 {
-                    cout << it->second << endl;
-                    LDName.setString(it->second);
-                    LDName.setPosition(0, 0);
+                   // cout << it->second << endl;
+
+                    cout << endl <<it->second << "\t" << it->first << endl;
+                    LDNames[i].setString(it->second);
+                    Iscore = (it->first);
+                    Sscore = to_string(Iscore);
+
+                    scores[i].setString(Sscore);
+
+                    /*LDName.setPosition(400, 400);
+                    score.setPosition(600, 400);*/
                 }
 
                 cout << "Done!" << endl;
@@ -668,7 +715,7 @@ int main()
         Menu.draw(CreditText);
         Menu.draw(ExitBarSprite);
         Menu.draw(ExitText);
-        
+
         if (canWrite)
         {
             Menu.draw(PlayerName);
@@ -676,11 +723,20 @@ int main()
         Menu.draw(playerText);
         if (!LeaderClosed) {
             Menu.draw(leaderSprite);
+            
+           /* for (i = 0, c = 0 ; i < 10,c<=500; i++,c+=50)
+            {*/
+            string s = LDNames[0].getString();
+            cout << s;
+                LDNames[0].setPosition(290,184);
+                Menu.draw(LDNames[0]);
+            //}
+            
             if (leaderbackIsVisible)
             {
                 //marko3
                 Menu.draw(leaderbackSprite);
-                Menu.draw(LDName);
+               
             }
         }
         if (!CreditClosed) {
@@ -1665,7 +1721,7 @@ int main()
 
                         saveLDToFile();
                         loadLDFromFile();
-                        pushScore(pair<int,string>(sonic.scoreValue,playerInput));
+                        pushScore(pair<int, string>(sonic.scoreValue, playerInput));
                         saveLDToFile();
                         //
 
@@ -2063,11 +2119,11 @@ void saveLDToFile()
         //saving the leaderboard elements
         multimap <  int, string > ::iterator itr;
         \
-        for (itr = (leaderBoard.begin()); itr != leaderBoard.end(); ++itr)
-        {
-            LDFile << itr->first << " " << itr->second << endl;
+            for (itr = (leaderBoard.begin()); itr != leaderBoard.end(); ++itr)
+            {
+                LDFile << itr->first << " " << itr->second << endl;
 
-        }
+            }
         LDFile << "#";
         //closing file stream
         LDFile.close();
@@ -2123,7 +2179,6 @@ void loadLDFromFile()
         cout << "Cannot Open This File";
 
 }
-
 
 
 
