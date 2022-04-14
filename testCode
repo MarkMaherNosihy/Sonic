@@ -159,8 +159,8 @@ int main()
         LDNames[i].setFont(font);
         scores[i].setFont(font);
 
-        LDNames[i].setFillColor(Color::Yellow);
-        scores[i].setFillColor(Color::Yellow);
+        LDNames[i].setFillColor(Color::White);
+        scores[i].setFillColor(Color::White);
     }
     
     
@@ -471,20 +471,25 @@ int main()
             if (!leaderBoard.empty())
             {
                 int i ; 
-                for (i=9,it = leaderBoard.begin(); it != leaderBoard.end() && (i >= 0); it++,i--)
-                {
-                   // cout << it->second << endl;
 
-                    cout << endl <<it->second << "\t" << it->first << endl;
-                    LDNames[i].setString(it->second);
-                    Iscore = (it->first);
-                    Sscore = to_string(Iscore);
+                
 
-                    scores[i].setString(Sscore);
+                    for (i=0,it = leaderBoard.begin(); it != leaderBoard.end() && (i <leaderBoard.size()); it++,i++)
+                    {
+                        /*if (i >= 10)
+                            break;*/
+                       // cout << it->second << endl;
+                       // cout << leaderBoard.size()<<endl;
+                        //cout << endl <<it->second << "\t" << it->first << endl;
+                        LDNames[i].setString(it->second);
+                        Iscore = (it->first);
+                        Sscore = to_string(Iscore);
 
-                    /*LDName.setPosition(400, 400);
-                    score.setPosition(600, 400);*/
-                }
+                        scores[i].setString(Sscore);
+
+                    
+                    }
+                
 
                 cout << "Done!" << endl;
 
@@ -549,10 +554,11 @@ int main()
 
         if (SBackAnim && SettingsClosed) SettingsBackgroundSprite.move(-7, 0);
         //leaderboard animation
-        if (leaderSprite.getPosition().x >= 0) LeaderStopAnim = true;
+        if (leaderSprite.getPosition().x >= -4) LeaderStopAnim = true;
         if (!LeaderStopAnim && !LeaderClosed) leaderSprite.move(7, 0);
         if (leaderSprite.getPosition().x <= -1200) LBackAnim = false;
         if (LBackAnim && LeaderClosed) leaderSprite.move(-7, 0);
+        //cout << leaderSprite.getPosition().x;
 
         //Settings Back button
         if (Sensor.getGlobalBounds().intersects(backButton.getGlobalBounds()) && !SettingsClosed || Keyboard::isKeyPressed(Keyboard::Escape) && !SettingsClosed) {
@@ -723,15 +729,23 @@ int main()
         Menu.draw(playerText);
         if (!LeaderClosed) {
             Menu.draw(leaderSprite);
+            if (LeaderStopAnim)
+            {
+
+                for (i = leaderBoard.size()-1, c = 0 ; i >=0 && c <= 500; i--, c += 50)
+                {
+                    //if(i)
+                    LDNames[i].setPosition(295,172+c);
+                    LDNames[i].setCharacterSize(22);
+
+                    scores[i].setPosition(734, 172 + c);
+                    scores[i].setCharacterSize(22);
+
+                    Menu.draw(LDNames[i]);
+                    Menu.draw(scores[i]);
+                }
             
-           /* for (i = 0, c = 0 ; i < 10,c<=500; i++,c+=50)
-            {*/
-            string s = LDNames[0].getString();
-            cout << s;
-                LDNames[0].setPosition(290,184);
-                Menu.draw(LDNames[0]);
-            //}
-            
+            }
             if (leaderbackIsVisible)
             {
                 //marko3
@@ -2118,7 +2132,7 @@ void saveLDToFile()
     {
         //saving the leaderboard elements
         multimap <  int, string > ::iterator itr;
-        \
+        
             for (itr = (leaderBoard.begin()); itr != leaderBoard.end(); ++itr)
             {
                 LDFile << itr->first << " " << itr->second << endl;
@@ -2155,7 +2169,7 @@ void loadLDFromFile()
             if (score == "#")
             {
                 Empty = true;
-                cout << "this folder is empty";
+               // cout << "this folder is empty";
             }
 
             else
