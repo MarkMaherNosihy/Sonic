@@ -101,7 +101,7 @@ struct SkyBullets {
 //leaderboaerd functions
 
     //leaderboard map
-map <  int, string > leaderBoard;
+multimap <  int, string, greater<> > leaderBoard;
 
 void saveLDToFile();
 void clearLeaderBoard();
@@ -470,15 +470,15 @@ int main()
             loadLDFromFile();
             if (!leaderBoard.empty())
             {
-                int i ; 
+                 
 
                 
 
-                    for (i=0,it = leaderBoard.begin(); it != leaderBoard.end() && (i <leaderBoard.size()); it++,i++)
+                    for (i =0,it = leaderBoard.begin(); it != leaderBoard.end() && (i <leaderBoard.size()); it++,i++)
                     {
-                        /*if (i >= 10)
-                            break;*/
-                       // cout << it->second << endl;
+                        if (i >= 10)
+                            break;
+                        cout << it->second <<"\t"<<it->first<< endl;
                        // cout << leaderBoard.size()<<endl;
                         //cout << endl <<it->second << "\t" << it->first << endl;
                         LDNames[i].setString(it->second);
@@ -732,13 +732,16 @@ int main()
             if (LeaderStopAnim)
             {
 
-                for (i = leaderBoard.size()-1, c = 0 ; i >=0 && c <= 500; i--, c += 50)
+                for (i =0 ; i <leaderBoard.size() ; i++)
                 {
-                    //if(i)
-                    LDNames[i].setPosition(295,172+c);
+                  
+                    if (i >= 10)
+                        break;
+
+                    LDNames[i].setPosition(295,172+i*52);
                     LDNames[i].setCharacterSize(22);
 
-                    scores[i].setPosition(734, 172 + c);
+                    scores[i].setPosition(734, 172 + i*52);
                     scores[i].setCharacterSize(22);
 
                     Menu.draw(LDNames[i]);
