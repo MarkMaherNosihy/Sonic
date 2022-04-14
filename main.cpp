@@ -29,7 +29,7 @@ struct BossSt {
     Sprite BossSprite;
     RectangleShape HitBox;
     Vector2f Velocity;
-    int hitCounter = 0, TexDelay = 0, TexNumber = 0, lives = 1;
+    int hitCounter = 0, TexDelay = 0, TexNumber = 0, lives = 10;
     bool SceneStart = false, FightStart = false, MoveStart = false, MovingLeft = true, StartDelay = false;
 };
 //Jumpad start
