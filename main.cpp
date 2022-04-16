@@ -62,6 +62,7 @@ struct Red_Coin {
 
 struct Enemies {
     Sprite EnemySprite;
+    RectangleShape EnemyColl;
     int TexNumber = 0, TexDelay = 0, xStart = 0, xEnd = 0, DamageDelay = 0;
     bool MovingRight = true;
     bool Hit = false;
@@ -69,6 +70,7 @@ struct Enemies {
 
 struct Enemies2 {
     Sprite EnemySprite;
+    RectangleShape EnemyColl;
     int TexNumber = 0, TexDelay = 0, xStart = 0, xEnd = 0, DamageDelay = 0;
     bool MovingRight = true;
     bool Hit = false;
@@ -805,6 +807,9 @@ int main()
         LevelPassed.setPosition(14800, 0);
         LevelPassed.setScale(0, 0);
 
+        bool paused = false;
+        int pauseDelay = 0;
+
         //BackgroundShip
         Texture ShipTx;
         ShipTx.loadFromFile("Assets/Textures/Tyara.png");
@@ -839,9 +844,6 @@ int main()
             skyBullets[i].BulletColl.setSize(Vector2f(24, 108.8));
             //24 108.8
         }
-
-        bool paused = false;
-        int pauseDelay = 0;
 
         coinPos();
         //// sonic player
@@ -898,16 +900,21 @@ int main()
         ///Enemies Setting Texture
         for (int i = 0; i < 20; i++) {
             enemies[i].EnemySprite.setTexture(EnemyTx);
+            enemies[i].EnemyColl.setSize(Vector2f(110.f, 50.f));
+            enemies[i].EnemyColl.setScale(Vector2f(1, 1));
             enemies[i].EnemySprite.setTextureRect(IntRect(enemies[i].TexNumber * 54, 345, 54, 29.2));
             enemies[i].EnemySprite.setScale(2.5f, 2.5f);
         }
         for (int i = 0; i < 20; i++) {
             enemies2[i].EnemySprite.setTexture(EnemyTx2);
+            enemies2[i].EnemyColl.setSize(Vector2f(100.f, 60.f));
+            enemies2[i].EnemyColl.setScale(Vector2f(1, 1));
             enemies2[i].EnemySprite.setTextureRect(IntRect(enemies2[i].TexNumber * 47, 411, 47, 30));
             enemies2[i].EnemySprite.setScale(2.5f, 2.5f);
         }
         draw_enemies();
         //
+        
         //Spikes system
         for (int i = 0; i < 200; i++) {
             spikes[i].SpikeSprite.setTexture(SpikeTex);
@@ -1111,7 +1118,8 @@ int main()
                 else if (sonic.hitCounter == -1) sonic.PlayerSprite.setColor(Color::White);
 
                 //Idle Animation
-                if (!Keyboard::isKeyPressed(Keyboard::D) && !Keyboard::isKeyPressed(Keyboard::A) && !Keyboard::isKeyPressed(Keyboard::W) && !Keyboard::isKeyPressed(Keyboard::S)) {
+                if (!Keyboard::isKeyPressed(Keyboard::D) && !Keyboard::isKeyPressed(Keyboard::A) && !Keyboard::isKeyPressed(Keyboard::W) && !Keyboard::isKeyPressed(Keyboard::Space)
+                    && !Keyboard::isKeyPressed(Keyboard::Right) && !Keyboard::isKeyPressed(Keyboard::Left) && !Keyboard::isKeyPressed(Keyboard::Up)) {
                     sonic.Running = false;
                     sonic.txToggle = false;
                     sonic.RunningSound = false;
@@ -1132,7 +1140,7 @@ int main()
                 //Moving Right
                 if (!Boss.SceneStart) {
                     if ((Boss.FightStart && sonic.PlayerSprite.getPosition().x < 15900) || !Boss.FightStart) {
-                        if (Keyboard::isKeyPressed(Keyboard::Key::D) && !sonic.hitLeft && !sonic.hitRight) {
+                        if ((Keyboard::isKeyPressed(Keyboard::D) || Keyboard::isKeyPressed(Keyboard::Right)) && !sonic.hitLeft && !sonic.hitRight) {
                             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
                                 // Running Sonic Right
                                 sonic.PlayerSprite.move(12, 0);
@@ -1169,10 +1177,7 @@ int main()
                                 if (sonic.TexDelay >= 3) {
                                     sonic.RightTexNumber++;
                                     sonic.TexDelay = 0;
-                                    /*if (sonic.txToggle) sonic.RightTexNumber = (sonic.RightTexNumber % 5) + 5;
-                                    else */
                                     sonic.RightTexNumber %= 11;
-                                    //if (sonic.RightTexNumber == 6) sonic.txToggle = true;
                                     sonic.PlayerSprite.setTextureRect(IntRect(sonic.RightTexNumber * 48.86, 1 * 60, 48.86, 51));
                                 }
                             }
@@ -1181,7 +1186,7 @@ int main()
 
                     //Moving Left
                     if ((Boss.FightStart && sonic.PlayerSprite.getPosition().x >= 14800) || !Boss.FightStart) {
-                        if (Keyboard::isKeyPressed(Keyboard::Key::A) && !sonic.hitLeft && !sonic.hitRight && sonic.PlayerSprite.getPosition().x > 0) {
+                        if ((Keyboard::isKeyPressed(Keyboard::Key::A) || Keyboard::isKeyPressed(Keyboard::Left)) && !sonic.hitLeft && !sonic.hitRight && sonic.PlayerSprite.getPosition().x > 0) {
                             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
                                 // Running Sonic Left                
                                 sonic.PlayerSprite.move(-12, 0);
@@ -1276,19 +1281,20 @@ int main()
                         if (enemies[i].EnemySprite.getPosition().x <= enemies[i].xStart) enemies[i].MovingRight = true;
                     }
 
-                    if (enemies[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+                    if (enemies[i].EnemyColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
                         if (!enemies[i].Hit) enemies[i].Hit = true;
                         else {
                             enemies[i].EnemySprite.setScale(0, 0);
+                            enemies[i].EnemyColl.setScale(0, 0);
                             sonic.scoreValue += 100;
                             EnemyScore.setCharacterSize(50);
-                            EnemyScore.setPosition(enemies[i].EnemySprite.getPosition().x + 60, enemies[i].EnemySprite.getPosition().y + 60);
+                            EnemyScore.setPosition(enemies[i].EnemyColl.getPosition().x + 60, enemies[i].EnemyColl.getPosition().y + 60);
                             EnemyScoreCounter = 100;
                         }
                         sonic.Velocity.y = 10;
                         EnemyDamageSound.play();
                     }
-                    else if (enemies[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0)) {
+                    else if (enemies[i].EnemyColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0)) {
                         if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
                         if (sonic.PlayerSprite.getPosition().x > enemies[i].EnemySprite.getPosition().x) sonic.hitRight = true;
                         else sonic.hitLeft = true;
@@ -1305,6 +1311,7 @@ int main()
                         enemies[i].EnemySprite.setColor(Color::White);
                         enemies[i].DamageDelay = -1;
                     }
+                    enemies[i].EnemyColl.setPosition(enemies[i].EnemySprite.getPosition().x + 15, enemies[i].EnemySprite.getPosition().y + 8);
                     if (enemies2[i].TexDelay <= 8) enemies2[i].TexDelay++;
                     if (enemies2[i].MovingRight) {
                         enemies2[i].EnemySprite.move(4, 0);
@@ -1329,19 +1336,20 @@ int main()
                         if (enemies2[i].EnemySprite.getPosition().x <= enemies2[i].xStart) enemies2[i].MovingRight = true;
                     }
 
-                    if (enemies2[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+                    if (enemies2[i].EnemyColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
                         if (!enemies2[i].Hit) enemies2[i].Hit = true;
                         else {
                             enemies2[i].EnemySprite.setScale(0, 0);
+                            enemies2[i].EnemyColl.setScale(0, 0);
                             sonic.scoreValue += 100;
                             EnemyScore.setCharacterSize(50);
-                            EnemyScore.setPosition(enemies2[i].EnemySprite.getPosition().x + 60, enemies2[i].EnemySprite.getPosition().y);
+                            EnemyScore.setPosition(enemies2[i].EnemyColl.getPosition().x + 60, enemies2[i].EnemyColl.getPosition().y);
                             EnemyScoreCounter = 100;
                         }
                         sonic.Velocity.y = 10;
                         EnemyDamageSound.play();
                     }
-                    else if ((enemies2[i].EnemySprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) {
+                    else if ((enemies2[i].EnemyColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) {
                         if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
                         if (sonic.PlayerSprite.getPosition().x > enemies2[i].EnemySprite.getPosition().x) sonic.hitRight = true;
                         else sonic.hitLeft = true;
@@ -1358,8 +1366,8 @@ int main()
                         enemies2[i].EnemySprite.setColor(Color::White);
                         enemies2[i].DamageDelay = -1;
                     }
+                    enemies2[i].EnemyColl.setPosition(enemies2[i].EnemySprite.getPosition().x + 10, enemies2[i].EnemySprite.getPosition().y + 8);
                 }
-
 
                 // Jumppad System
                 for (int i = 0; i < 30; i++) {
@@ -1396,7 +1404,7 @@ int main()
                 if (sonic.PlayerColl.getGlobalBounds().intersects(ground.getGlobalBounds())) {
                     sonic.on_ground = true;
                     sonic.Velocity.y = 0;
-                    if (Keyboard::isKeyPressed(Keyboard::Key::Space)) {
+                    if (Keyboard::isKeyPressed(Keyboard::Space) || Keyboard::isKeyPressed(Keyboard::W) || Keyboard::isKeyPressed(Keyboard::Up)) {
                         sonic.Velocity.y = 10;
                         JumpSound.play();
                     }
@@ -1436,7 +1444,9 @@ int main()
                     }
                     if (sonic.onTile) {
                         sonic.Velocity.y = 0;
-                        if (Keyboard::isKeyPressed(Keyboard::Key::Space)) sonic.Velocity.y = 10;
+                        if (Keyboard::isKeyPressed(Keyboard::Space) || Keyboard::isKeyPressed(Keyboard::W) || Keyboard::isKeyPressed(Keyboard::Up)) {
+                            sonic.Velocity.y = 10;
+                        }
                     }
                 }
 
@@ -1729,8 +1739,6 @@ int main()
                     if (Mouse::isButtonPressed(Mouse::Left)) {
 
                         // saving score to leaderboard
-                        saveLDToFile();
-                        loadLDFromFile();
                         pushScore(pair<int, string>(sonic.scoreValue, playerInput));
                         saveLDToFile();
 
@@ -2017,8 +2025,6 @@ void draw_spikes() {
     PosRowSpikes(55, 58, 12100, 575);
     PosRowSpikes(58, 61, 12400, 575);
     PosRowSpikes(61, 64, 12700, 575);
-
-
     for (int i = 0; i < 30; i++) spikes2[i].SpikeSprite2.setPosition(10000 + (i * 50), 113);
 }
 
@@ -2052,7 +2058,7 @@ void enemy2_coordinate(int index, int X_pos, int Y_pos, int start, int end) {
     enemies2[index].xStart = start;
     enemies2[index].xEnd = end;
     enemies2[index].Hit = false;
-    enemies[index].DamageDelay = 0;
+    enemies2[index].DamageDelay = 0;
 }
 void draw_enemies() {
     enemy1_coordinate(0, 1500, 580, 500, 1100);
@@ -2081,8 +2087,7 @@ void area2() {
 
 
 // push the into the leader board map from the code after the game play
-void pushScore(pair<int, string> score)
-{
+void pushScore(pair<int, string> score) {
     leaderBoard.insert(score);
 }
 
@@ -2094,31 +2099,26 @@ void clearLeaderBoard()
     //clearing the leader board file
     fstream LDFile;
     LDFile.open("leaderBoard.txt", ios::app);
-    if (LDFile.is_open())
-    {
+    if (LDFile.is_open()) {
         LDFile << "#";
         //closing file stream
         LDFile.close();
     }
-    else
-        cout << "Failed to Open THis file";
+    else cout << "Failed to Open THis file";
 }
 
 
 // push the into the leader board file
 
-void saveLDToFile()
-{
+void saveLDToFile() {
     fstream LDFile; //creating file stream
     LDFile.open("leaderBoard.txt", ios::out);
 
-    if (LDFile.is_open())
-    {
+    if (LDFile.is_open()) {
         //saving the leaderboard elements
         multimap <  int, string > ::iterator itr;
 
-        for (itr = (leaderBoard.begin()); itr != leaderBoard.end(); ++itr)
-        {
+        for (itr = (leaderBoard.begin()); itr != leaderBoard.end(); ++itr) {
             LDFile << itr->first << " " << itr->second << endl;
 
         }
@@ -2127,34 +2127,25 @@ void saveLDToFile()
         LDFile.close();
     }
 
-    else
-        cout << "Failed to Open THis file";
+    else cout << "Failed to Open THis file";
 }
 
 // loading scores from file
 
-void loadLDFromFile()
-{
+void loadLDFromFile(){
     bool Empty = false;
     string score, name;
     int intSCore;
-
     fstream LDFile; //creating file stream
     LDFile.open("leaderBoard.txt", ios::in);
 
-    if (LDFile.is_open())
-    {
+    if (LDFile.is_open()) {
         //loading data from the file
-        while (!Empty)
-        {
+        while (!Empty) {
             LDFile >> score;
-            if (score == "#")
-            {
+            if (score == "#") {
                 Empty = true;
-                cout << "this folder is empty";
-            }
-            else
-            {
+            } else {
                 LDFile >> name;
                 //converting the score  to int
                 stringstream convert;
@@ -2167,6 +2158,5 @@ void loadLDFromFile()
         }
         LDFile.close();
     }
-    else
-        cout << "Cannot Open This File";
+    else cout << "Cannot Open This File";
 }
