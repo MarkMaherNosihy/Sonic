@@ -816,7 +816,6 @@ int main()
 
         for (int i = 0; i < 3; i++) {
             floatingShips[i].ShipSprite.setTexture(ShipTx);
-            floatingShips[i].ShipSprite.setTextureRect(IntRect(floatingShips[i].ShipTexNumber * 313.8, 183, 313.8, 183));
             floatingShips[i].ShipSprite.setPosition(5000 * i, 100 + (i * 50));
             floatingShips[i].ShipSprite.setScale(0.4, 0.4);
         }
@@ -1504,14 +1503,6 @@ int main()
                         else {
                             floatingShips[i].ShipSprite.move(-10, 0);
                         }
-                        if (floatingShips[i].shipTexDelay >= 10) {
-                            floatingShips[i].shipTexDelay = 0;
-                            if (floatingShips[i].ShipTexNumber < 4) {
-                                floatingShips[i].ShipTexNumber++;
-                                floatingShips[i].ShipSprite.setTextureRect(IntRect(floatingShips[i].ShipTexNumber * 313.8, 183, 313.8, 183));
-                            }
-
-                        }
                     }
                     else {
                         if (floatingShips[i].ShipSprite.getPosition().x > 16500) {
@@ -1520,13 +1511,6 @@ int main()
                         }
                         else {
                             floatingShips[i].ShipSprite.move(10, 0);
-                        }
-                        if (floatingShips[i].shipTexDelay >= 10) {
-                            floatingShips[i].shipTexDelay = 0;
-                            if (floatingShips[i].ShipTexNumber > 0) {
-                                floatingShips[i].ShipTexNumber--;
-                                floatingShips[i].ShipSprite.setTextureRect(IntRect(floatingShips[i].ShipTexNumber * 313.8, 0, 313.8, 183));
-                            }
                         }
                     }
                     if (floatingShips[i].ShipSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
