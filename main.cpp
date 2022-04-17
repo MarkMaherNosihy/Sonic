@@ -988,9 +988,15 @@ int main()
         // the music of playgound
         Music BackgroundMusic;
         BackgroundMusic.openFromFile("Assets/Sounds/05-Labyrinth-Zone.ogg");
-        BackgroundMusic.setVolume(5);
+        BackgroundMusic.setVolume(50);
         BackgroundMusic.setLoop(true);
         BackgroundMusic.play();
+        //Boss Fight
+        Music BossFightMusic;
+        BossFightMusic.openFromFile("Assets/Sounds/Sonic-3-Final-Boss-_Big-Arms_-Remix-_Kamex__1.ogg");
+        BossFightMusic.setVolume(50);
+        BossFightMusic.setLoop(true);
+        bool BossMusicStarted = false;
         //coin sound
         SoundBuffer CoinBuffer;
         CoinBuffer.loadFromFile("Assets/Sounds/coin.WAV");
@@ -1530,6 +1536,11 @@ int main()
                     Boss.SceneStart = true;
                 }
                 if (Boss.SceneStart) {
+                    if (!BossMusicStarted) {
+                        BackgroundMusic.stop();
+                        BossFightMusic.play();
+                        BossMusicStarted = true;
+                    }
                     sonic.Velocity.x = 0;
                     if (Boss.TexDelay >= 10) {
                         Boss.TexNumber++;
@@ -1700,6 +1711,10 @@ int main()
                     else if (Level != 2) {
                         Level = 2;
                     }
+                    if (BossMusicStarted) {
+                        BackgroundMusic.play();
+                        BossFightMusic.stop();
+                    }
                 }
                 if (!Fade1End && sonic.PlayerSprite.getPosition().x >= 16020){
                     if (Level == 2 && !Level2AnimStart) {
@@ -1762,6 +1777,7 @@ int main()
                     if (Mouse::isButtonPressed(Mouse::Left)) {
                         window.close();
                         BackgroundMusic.stop();
+                        BossFightMusic.stop();
                         main();
                     }
                 }
