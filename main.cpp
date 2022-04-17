@@ -31,7 +31,7 @@ struct BossSt {
     Vector2f Velocity;
     Texture BossFaceTx;
     Sprite BossFaceSprite;
-    int hitCounter = 0, TexDelay = 0, TexNumber = 0, lives = 1, BarCounter = 0;
+    int hitCounter = 0, TexDelay = 0, TexNumber = 0, lives = 10, BarCounter = 0;
     double HealthBar = 10;
     bool SceneStart = false, FightStart = false, MoveStart = false, MovingLeft = true, StartDelay = false;
 };
@@ -1022,6 +1022,11 @@ int main()
         EnemyDamageBuffer.loadFromFile("Assets/Sounds/enemy damage.WAV");
         Sound EnemyDamageSound;
         EnemyDamageSound.setBuffer(EnemyDamageBuffer);
+        //Boss damage sound
+        SoundBuffer BossDamageBuffer;
+        BossDamageBuffer.loadFromFile("Assets/Sounds/EggmanHit.ogg");
+        Sound BossDamageSound;
+        BossDamageSound.setBuffer(BossDamageBuffer);
         //spring sound
         SoundBuffer JumppadBuffer;
         JumppadBuffer.loadFromFile("Assets/Sounds/spring.WAV");
@@ -1524,14 +1529,7 @@ int main()
                     }
                 }
                    
-                //}
-                if (sonic.lives <= 0) {
-                    sonic.PlayerSprite.setTextureRect(IntRect(278, 240, 48.86, 51));
-                    sonic.deathDealy = 10;
-                    BackgroundMusic.stop();
-                    BossFightMusic.stop();
-                    GameoverAudio.play();
-                }
+                //
                 if (Boss.TexDelay <= 30 && (!Boss.MoveStart || Boss.StartDelay)) Boss.TexDelay++;
                 if (sonic.PlayerSprite.getPosition().x >= 15000 && !Boss.FightStart) {
                     Boss.SceneStart = true;
@@ -1694,6 +1692,7 @@ int main()
                             Boss.lives--;
                             Boss.hitCounter = 50;
                             Boss.BarCounter += 50;
+                            BossDamageSound.play();
                         }
                         if (Boss.lives == 0) sonic.scoreValue += 1000;
                         sonic.Velocity.y = 10;
@@ -1762,6 +1761,13 @@ int main()
                         }
                         else Level2Start = true;
                     }
+                }
+                if (sonic.lives <= 0) {
+                    sonic.PlayerSprite.setTextureRect(IntRect(278, 240, 48.86, 51));
+                    sonic.deathDealy = 10;
+                    BackgroundMusic.stop();
+                    BossFightMusic.stop();
+                    GameoverAudio.play();
                 }
             }
             else if (paused) {
