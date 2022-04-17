@@ -1529,6 +1529,7 @@ int main()
                     sonic.PlayerSprite.setTextureRect(IntRect(278, 240, 48.86, 51));
                     sonic.deathDealy = 10;
                     BackgroundMusic.stop();
+                    BossFightMusic.stop();
                     GameoverAudio.play();
                 }
                 if (Boss.TexDelay <= 30 && (!Boss.MoveStart || Boss.StartDelay)) Boss.TexDelay++;
