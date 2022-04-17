@@ -1803,6 +1803,7 @@ int main()
                                 window.close();
                                 BackgroundMusic.stop();
                                 GameoverAudio.stop();
+                                BossFightMusic.stop();
                                 main();
                             }
                         }
