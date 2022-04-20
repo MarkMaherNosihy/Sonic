@@ -57,7 +57,7 @@ struct AnimatedTiles {
     Sprite TileSprite;
     RectangleShape TileColl;
     int xStart, xEnd, yStart, yEnd, counter = 0, dCounter = 0, AnimCounter = 0;
-    bool Direction = true, Disappeared = false;
+    bool Direction = true, FullDisappeared = false, Disappeared = true;
 } HAnimTiles[20], VAnimTiles[30], DisappearingTiles[5];
 //Coins
 struct Coin {
@@ -1094,25 +1094,20 @@ int main()
         }
 
         for (int i = 0; i < 5; i++) {
-            /*DisappearingTiles[i].TileSprite.setTexture(TilesTx);
+            DisappearingTiles[i].TileSprite.setTexture(TilesTx);
             DisappearingTiles[i].TileSprite.setScale(1.3, 1.3);
-            DisappearingTiles[i].TileColl.setSize(Vector2f(298.9f, 1.f));*/
+            DisappearingTiles[i].TileColl.setSize(Vector2f(298.9f, 1.f));
         }
-        /*DisappearingTiles[0].TileSprite.setPosition(19000, 600);
-        DisappearingTiles[0].TileColl.setPosition(19000, 590);*/
+        DisappearingTiles[0].TileSprite.setPosition(19000, 600);
+        DisappearingTiles[0].TileColl.setPosition(19000, 590);
 
-        for (int i = 0; i < 100; i++)
-        {
+        for (int i = 0; i < 100; i++) {
             animespikes2[i].SpikeSprite2.setTexture(SpikeTex2);
             animespikes2[i].SpikeSprite2.setTextureRect(IntRect(0, 0, 142, 163));
             animespikes2[i].SpikeSprite2.setScale(0.5f, 0.5f);
-
         }
         DrawAnimTiles();
         area3();
-
-
-
 
         /// ground rectangle shape
         RectangleShape ground(Vector2f(50000, 70)); ground.setScale(1, 1); ground.setPosition(0, 640);
@@ -1943,6 +1938,43 @@ int main()
                         VAnimTiles[i].Direction = true;
                     }
                 }
+                for (int i = 0; i < 5; i++) {
+                    if (!DisappearingTiles[i].FullDisappeared) {
+                        if (DisappearingTiles[i].dCounter <= 160) DisappearingTiles[i].dCounter++;
+                        else {
+                            DisappearingTiles[i].TileSprite.setScale(0, 0);
+                            DisappearingTiles[i].TileColl.setScale(0, 0);
+                            DisappearingTiles[i].FullDisappeared = true;
+                            DisappearingTiles[i].dCounter = 0;
+                        }
+                        if (DisappearingTiles[i].dCounter >= 100) {
+                            if (DisappearingTiles[i].AnimCounter <= 5) DisappearingTiles[i].AnimCounter++;
+                            else {
+                                DisappearingTiles[i].AnimCounter = 0;
+                                if (!DisappearingTiles[i].Disappeared) {
+                                    DisappearingTiles[i].TileSprite.setColor(Color(255, 255, 255, 0));
+                                    DisappearingTiles[i].Disappeared = true;
+                                } else {
+                                    DisappearingTiles[i].TileSprite.setColor(Color(255, 255, 255, 255));
+                                    DisappearingTiles[i].Disappeared = false;
+                                }
+                            }
+                            cout << "Here! " << DisappearingTiles[i].AnimCounter << '\n';
+                        }
+                        else {
+                            DisappearingTiles[i].TileSprite.setColor(Color(255, 255, 255, 255));
+                        }
+                    } else {
+                        DisappearingTiles[i].AnimCounter = 0;
+                        if (DisappearingTiles[i].dCounter <= 80) DisappearingTiles[i].dCounter++;
+                        else {
+                            DisappearingTiles[i].TileSprite.setScale(1.3, 1.3);
+                            DisappearingTiles[i].TileColl.setScale(1.3, 1.3);
+                            DisappearingTiles[i].FullDisappeared = false;
+                            DisappearingTiles[i].dCounter = 0;
+                        }
+                    }
+                }
 
                 if (sonic.lives <= 0) {
                     sonic.PlayerSprite.setTextureRect(IntRect(278, 240, 48.86, 51));
@@ -2033,7 +2065,7 @@ int main()
             }
             for (int i = 0; i < 5; i++) {
                 window.draw(HAnimTiles[i].TileSprite);
-                //window.draw(DisappearingTiles[i].TileSprite);
+                window.draw(DisappearingTiles[i].TileSprite);
             }
             for (int i = 0; i < 30; i++)window.draw(VAnimTiles[i].TileSprite);
             for (int i = 0; i < 2; i++) window.draw(enemies[i].EnemySprite);
