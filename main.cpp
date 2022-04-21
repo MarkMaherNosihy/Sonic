@@ -47,6 +47,7 @@ struct FloatingTiles {
     RectangleShape TileColl;
     RectangleShape LowerTileColl;
 } tiles[200];
+
 struct FloatingTiles2 {
     Texture TileTx2;
     Sprite TileSprite2;
@@ -126,7 +127,7 @@ struct FloatingShip {
 //leaderboaerd functions
 
 //leaderboard map
-multimap <  int, string, greater<> > leaderBoard;
+multimap <int, string, greater<>> leaderBoard;
 
 void saveLDToFile();
 void clearLeaderBoard();
@@ -191,6 +192,12 @@ int main()
     string Sscore;
     int Iscore;
     int i;
+
+    // the music of playgound
+    Music BackgroundMusic;
+    BackgroundMusic.openFromFile("Assets/Sounds/05-Labyrinth-Zone.ogg");
+    BackgroundMusic.setVolume(50);
+    BackgroundMusic.setLoop(true);
 
     /// Loading tex
     Texture loadingMenuTex;
@@ -285,6 +292,18 @@ int main()
     backButton.setPosition(50, 700);
     bool backIsVisible = false;
     bool SBackAnim = true;
+
+    // music slider components
+    CircleShape slider(30);
+    slider.setFillColor(Color::Blue);
+    slider.setOrigin(30, 30);
+    slider.setPosition(563, 250);
+    slider.setOutlineThickness(10);
+    slider.setOutlineColor(Color::Black);
+    BackgroundMusic.setVolume(0);
+
+    double vloumePercentage;
+    bool selected = false;
 
 
     //Settings Music button
@@ -398,6 +417,7 @@ int main()
     PlayerNameTx.loadFromFile("Assets/Textures/PlayerName.png");
     Sprite PlayerName;
     PlayerName.setTexture(PlayerNameTx);
+    BackgroundMusic.play();
 
     loadLDFromFile();
     while (Menu.isOpen())
@@ -504,6 +524,30 @@ int main()
             SettingStopAnim = false;
             SettingsBackgroundSprite.setPosition(-1200, 0);
         }
+
+        // slider functionality
+        if (!SettingsClosed) {
+            if (Sensor.getGlobalBounds().intersects(slider.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left))
+                selected = true;
+            if (!(Mouse::isButtonPressed(Mouse::Left)))
+                selected = false;
+
+            if (selected)
+            {
+                if (!(Sensor.getPosition().x <= 563 || Sensor.getPosition().x >= 863))
+                {
+                    slider.setPosition(Sensor.getPosition().x, slider.getPosition().y);
+                    // dellay = 0;
+                    //cout << "slider" << slider.getPosition().x << endl;
+                    vloumePercentage = (slider.getPosition().x - 563) / (863 - 563) * 100;
+                    if (vloumePercentage <= 5)
+                        vloumePercentage = 0;
+                    BackgroundMusic.setVolume(vloumePercentage);
+                    //cout << "Volume" << vloumePercentage << endl;
+                }
+            }
+        }
+
         //Press on credits
         if (Sensor.getGlobalBounds().intersects(creditBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed && !canWrite
             || selection == 4 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite)
@@ -525,7 +569,7 @@ int main()
         }
 
         //credit animation
-        if (creditSprite.getPosition().x >= 0) CreditStopAnim = true;
+        if (creditSprite.getPosition().x >= -4) CreditStopAnim = true;
         if (!CreditStopAnim && !CreditClosed) creditSprite.move(7, 0);
         if (creditSprite.getPosition().x <= -1200) CBackAnim = false;
 
@@ -533,7 +577,7 @@ int main()
 
 
         // setting animation 
-        if (SettingsBackgroundSprite.getPosition().x >= 0)
+        if (SettingsBackgroundSprite.getPosition().x >= -4)
         {
             SettingStopAnim = true;
             correctIsVisible = true;
@@ -546,7 +590,7 @@ int main()
 
         if (SBackAnim && SettingsClosed) SettingsBackgroundSprite.move(-7, 0);
         //leaderboard animation
-        if (leaderSprite.getPosition().x >= 0) LeaderStopAnim = true;
+        if (leaderSprite.getPosition().x >= -4) LeaderStopAnim = true;
         if (!LeaderStopAnim && !LeaderClosed) leaderSprite.move(7, 0);
         if (leaderSprite.getPosition().x <= -1200) LBackAnim = false;
         if (LBackAnim && LeaderClosed) leaderSprite.move(-7, 0);
@@ -600,6 +644,19 @@ int main()
             ButtonDelay = 0;
         }
         if (ButtonDelay <= 60) ButtonDelay++;
+
+        // Slider music controller
+        if (Sensor.getGlobalBounds().intersects(MusicCircle.getGlobalBounds()) && !SettingsClosed && Mouse::isButtonPressed(Mouse::Left) && ButtonDelay >= 60) {
+            if (MusicOn) {
+                MusicOn = false;
+                MenuMusic.stop();
+            }
+            else {
+                MusicOn = true;
+                MenuMusic.play();
+            }
+            ButtonDelay = 0;
+        }
         //Sensor pos
         Sensor.setPosition(Mouse::getPosition(Menu).x, Mouse::getPosition(Menu).y);
         //Start
@@ -751,7 +808,7 @@ int main()
         if (!SettingsClosed) {
             Menu.draw(SettingsBackgroundSprite);
             if (backIsVisible) Menu.draw(backSprite);
-            if (MusicOn && correctIsVisible) Menu.draw(correctSprite[0]);
+            if(SettingStopAnim) Menu.draw(slider);
         }
         Menu.display();
     }
@@ -800,7 +857,7 @@ int main()
         RedCoinTx.loadFromFile("Assets/Textures/Some-Sprites-red-coin.png");
         //Jumppad Texture
         Texture JumppadTx;
-        JumppadTx.loadFromFile("Assets/Textures/Some Sprites.png");
+        JumppadTx.loadFromFile("Assets/Textures/Some Sprites2.png");
         //Enemy texture
         Texture EnemyTx;
         EnemyTx.loadFromFile("Assets/Textures/Enemies.png");
@@ -994,12 +1051,6 @@ int main()
         // the music of main menu
         Music MainMenuMusic;
         MainMenuMusic.openFromFile("Assets/Sounds/mainmenu.wav");
-        // the music of playgound
-        Music BackgroundMusic;
-        BackgroundMusic.openFromFile("Assets/Sounds/05-Labyrinth-Zone.ogg");
-        BackgroundMusic.setVolume(50);
-        BackgroundMusic.setLoop(true);
-        BackgroundMusic.play();
         //Boss Fight
         Music BossFightMusic;
         BossFightMusic.openFromFile("Assets/Sounds/Sonic-3-Final-Boss-_Big-Arms_-Remix-_Kamex__1.ogg");
@@ -1073,7 +1124,6 @@ int main()
         draw_tiles();
         coinPos();
         area2();
-
 
         //level 2
         for (int i = 0; i < 20; i++) {
