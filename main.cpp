@@ -464,12 +464,8 @@ int main()
         }
 
         multimap<int, string>::iterator it;
-
-        //LDName.setPosition(1000, 500);
-        //marko2
-
+        
         //Press on leaderboard
-
         if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite
             || selection == 3 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite) {
             LeaderClosed = false;
@@ -812,7 +808,7 @@ int main()
         EnemyTx2.loadFromFile("Assets/Textures/Enemies.png");
         //Spike texture
         SpikeTex.loadFromFile("Assets/Textures/Spike.png");
-        //Tiles texture      
+        //Tiles texture
         TilesTx.loadFromFile("Assets/Textures/Wall2.png");
         TileTx2.loadFromFile("Assets/Textures/UpsideDownWall.png");
         SpikeTex2.loadFromFile("Assets/Textures/UpsidedownSpike.png");
@@ -1811,6 +1807,9 @@ int main()
 
                 }
                 if (Boss.lives <= 0 && Level != 2) {
+                    Boss.HealthBarRect.setScale(0, 0);
+                    Boss.HealthBarBG.setScale(0, 0);
+                    Boss.BossFaceSprite.setScale(0, 0);
                     if (Boss.BossSprite.getPosition().y >= 150) {
                         Boss.BossSprite.setTextureRect(IntRect(500, 725, 100, 64));
                         Boss.BossSprite.move(0, -6);
@@ -1827,9 +1826,6 @@ int main()
                 }
                 if (!Fade1End && sonic.PlayerSprite.getPosition().x >= 16020) {
                     if (Level == 2 && !Level2AnimStart) {
-                        Boss.HealthBarRect.setScale(0, 0);
-                        Boss.HealthBarBG.setScale(0, 0);
-                        Boss.BossFaceSprite.setScale(0, 0);
                         LevelPassed.setScale(1, 1);
                         FinalScore.setFillColor(Color::Black);
                         FinalScore.setPosition(15330, 300);
@@ -1959,7 +1955,6 @@ int main()
                                     DisappearingTiles[i].Disappeared = false;
                                 }
                             }
-                            cout << "Here! " << DisappearingTiles[i].AnimCounter << '\n';
                         }
                         else {
                             DisappearingTiles[i].TileSprite.setColor(Color(255, 255, 255, 255));
