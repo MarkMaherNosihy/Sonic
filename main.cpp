@@ -57,7 +57,7 @@ struct FloatingTiles2 {
 struct AnimatedTiles {
     Sprite TileSprite;
     RectangleShape TileColl;
-    int xStart, xEnd, yStart, yEnd, counter = 0, dCounter = 0, AnimCounter = 0;
+    int xStart = 0, xEnd = 0, yStart = 0, yEnd = 0, counter = 0, dCounter = 0, AnimCounter = 0;
     bool Direction = true, FullDisappeared = false, Disappeared = true;
 } HAnimTiles[2], VAnimTiles[23], DisappearingTiles[11];
 //Coins
@@ -101,7 +101,7 @@ struct Spikes2 {
 struct animatedSpikes2 {
     Texture SpikeTex2;
     Sprite SpikeSprite2;
-    int xStart, xEnd, yStart, yEnd, counter = 0;
+    int xStart = 0, xEnd = 0, yStart = 0, yEnd = 0, counter = 0;
     bool Direction = true;
 }animespikes2[100];
 
@@ -325,7 +325,7 @@ int main()
     //Leader back button
     Sprite leaderbackSprite;
     leaderbackSprite.setPosition(43, 716);
-    leaderbackSprite.setScale(0.7, 0.7);
+    leaderbackSprite.setScale(0.7f, 0.7f);
     leaderbackSprite.setTexture(backButtonTex);
     RectangleShape leaderbackButton;
     leaderbackButton.setSize(Vector2f(150, 50));
@@ -1423,6 +1423,8 @@ int main()
                         enemies[i].DamageDelay = -1;
                     }
                     enemies[i].EnemyColl.setPosition(enemies[i].EnemySprite.getPosition().x + 15, enemies[i].EnemySprite.getPosition().y + 8);
+
+
                     if (enemies2[i].TexDelay <= 8) enemies2[i].TexDelay++;
                     if (enemies2[i].MovingRight) {
                         enemies2[i].EnemySprite.move(4, 0);
@@ -2086,7 +2088,7 @@ int main()
             for (int i = 0; i < 68; i++) window.draw(spikes2[i].SpikeSprite);
             for (int i = 0; i < 82; i++) window.draw(animespikes2[i].SpikeSprite2);
             for (int i = 0; i < 320; i++) window.draw(coins[i].CoinSprite);
-            for (int i = 0; i < 5; i++) window.draw(DisappearingTiles[i].TileSprite);
+            for (int i = 0; i < 6; i++) window.draw(DisappearingTiles[i].TileSprite);
             for (int i = 0; i < 8; i++) {
                 window.draw(Vertical_tiles_right[i].Vertical_Tiles_sprite);
                 window.draw(Vertical_tiles_left[i].Vertical_Tiles_sprite);
