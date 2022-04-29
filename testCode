@@ -19,10 +19,10 @@ struct Player {
     RectangleShape PlayerColl;
     Vector2f Velocity;
     int RightTexNumber = 0, IdleTexNumber = 0, TexDelay = 0, IdleDelay = 0, LeftTexNumber = 22;
-    int scoreValue = 0, lives = 3, hitCounter = -1, deathDealy = 0, FinalScore = 0;
+    int scoreValue = 0, lives = 20, hitCounter = -1, deathDealy = 0, FinalScore = 0;
     bool start = false, Running = false, idle1 = false, txToggle = false, onTile = false;
     bool on_ground = true, hitRight = false, hitLeft = false, RunningSound = false;
-} sonic;
+};
 //Boss
 struct BossSt {
     Texture BossTx;
@@ -31,9 +31,9 @@ struct BossSt {
     Vector2f Velocity;
     Texture BossFaceTx;
     Sprite BossFaceSprite;
-    int hitCounter = 0, TexDelay = 0, TexNumber = 0, lives = 1, BarCounter = 0;
+    int hitCounter = 0, TexDelay = 0, TexNumber = 0, lives = 0, BarCounter = 0;
     double HealthBar = 10;
-    bool SceneStart = false, FightStart = false, MoveStart = false, MovingLeft = true, StartDelay = false;
+    bool SceneStart = false, FightStartLevel1 = false, FightStartLevel2 = false, MoveStart = false, MovingLeft = true, StartDelay = false;
 };
 //Jumpad start
 struct Jumppad {
@@ -47,18 +47,19 @@ struct FloatingTiles {
     RectangleShape TileColl;
     RectangleShape LowerTileColl;
 } tiles[200];
+
 struct FloatingTiles2 {
     Texture TileTx2;
-    Sprite TileSprite2;
-    RectangleShape TileColl2;
-} tiles2[30];
+    Sprite TileSprite;
+    RectangleShape TileColl;
+} tiles2[6];
 
 struct AnimatedTiles {
     Sprite TileSprite;
     RectangleShape TileColl;
-    int xStart, xEnd, yStart, yEnd, counter = 0;
-    bool Direction = true;
-} HAnimTiles[5], VAnimTiles[5];
+    int xStart = 0, xEnd = 0, yStart = 0, yEnd = 0, counter = 0, dCounter = 0, AnimCounter = 0;
+    bool Direction = true, FullDisappeared = false, Disappeared = true;
+} HAnimTiles[2], VAnimTiles[23], DisappearingTiles[11];
 //Coins
 struct Coin {
     Sprite CoinSprite;
@@ -76,26 +77,25 @@ struct Enemies {
     int TexNumber = 0, TexDelay = 0, xStart = 0, xEnd = 0, DamageDelay = 0;
     bool MovingRight = true;
     bool Hit = false;
-} enemies[20];
-
-struct Enemies2 {
-    Sprite EnemySprite;
-    RectangleShape EnemyColl;
-    int TexNumber = 0, TexDelay = 0, xStart = 0, xEnd = 0, DamageDelay = 0;
-    bool MovingRight = true;
-    bool Hit = false;
-} enemies2[20];
+} Worms[20], Crabs[20], Enemy3[20];
 
 struct Spikes {
     Texture SpikeTex;
     Sprite SpikeSprite;
     int TexNum = 0, TexDelay = 0;
-}spikes[200];
+}spikes[300];
 
 struct Spikes2 {
     Texture SpikeTex2;
+    Sprite SpikeSprite;
+}spikes2[76];
+
+struct animatedSpikes2 {
+    Texture SpikeTex2;
     Sprite SpikeSprite2;
-}spikes2[100];
+    int xStart = 0, xEnd = 0, yStart = 0, yEnd = 0, counter = 0;
+    bool Direction = true;
+}animespikes2[100];
 
 struct Vertical_Tiles {
     Sprite Vertical_Tiles_sprite;
@@ -118,8 +118,8 @@ struct FloatingShip {
 
 //leaderboaerd functions
 
-    //leaderboard map
-multimap <  int, string, greater<> > leaderBoard;
+//leaderboard map
+multimap <int, string, greater<>> leaderBoard;
 
 void saveLDToFile();
 void clearLeaderBoard();
@@ -141,13 +141,16 @@ void Draw_jumppad();
 void draw_tiles();
 void draw_spikes();
 void draw_vertical_tiles();
-void enemy1_coordinate(int index, int X_pos, int Y_pos, int start, int end);
-void enemy2_coordinate(int index, int X_pos, int Y_pos, int start, int end);
+void WormsPos(int index, int X_pos, int Y_pos, int start, int end);
+void CrabsPos(int index, int X_pos, int Y_pos, int start, int end);
+void DisappearingTilesd(int index, int X_position, int Y_position, int delay);
 void draw_enemies();
 void area2();
+void area3();
 void DrawAnimTiles();
+void DrawDisappearingTiles();
+
 //Textures and Variables
-int enemy_cnt = 0; bool enemy_check = false;
 Texture CoinTex;
 Texture RedCoinTx;
 Texture SpikeTex;
@@ -189,8 +192,6 @@ int main()
     BackgroundMusic.openFromFile("Assets/Sounds/05-Labyrinth-Zone.ogg");
     BackgroundMusic.setVolume(50);
     BackgroundMusic.setLoop(true);
-    BackgroundMusic.play();
-
 
     /// Loading tex
     Texture loadingMenuTex;
@@ -200,14 +201,6 @@ int main()
     Menu.draw(loadingMenuSprite);
     Menu.display();
     //Settings choice
-    Texture correctTex;
-    correctTex.loadFromFile("Assets/Textures/correct-logo.png");
-    Sprite correctSprite[2];
-    correctSprite[0].setTexture(correctTex);
-    correctSprite[0].setPosition(620, 240);
-    correctSprite[0].setScale(0.032, 0.032);
-    correctSprite[1].setTexture(correctTex);
-    bool correctIsVisible = false;
 
     //Leaderboard
     Texture LeaderBackgroundTex;
@@ -297,8 +290,7 @@ int main()
 
     double vloumePercentage;
     bool selected = false;
-    int dellay = 0;
-    
+
 
     //Settings Music button
     CircleShape MusicCircle;
@@ -325,7 +317,7 @@ int main()
     //Leader back button
     Sprite leaderbackSprite;
     leaderbackSprite.setPosition(43, 716);
-    leaderbackSprite.setScale(0.7, 0.7);
+    leaderbackSprite.setScale(0.7f, 0.7f);
     leaderbackSprite.setTexture(backButtonTex);
     RectangleShape leaderbackButton;
     leaderbackButton.setSize(Vector2f(150, 50));
@@ -411,6 +403,7 @@ int main()
     PlayerNameTx.loadFromFile("Assets/Textures/PlayerName.png");
     Sprite PlayerName;
     PlayerName.setTexture(PlayerNameTx);
+    BackgroundMusic.play();
 
     loadLDFromFile();
     while (Menu.isOpen())
@@ -477,12 +470,8 @@ int main()
         }
 
         multimap<int, string>::iterator it;
-
-        //LDName.setPosition(1000, 500);
-        //marko2
-
+        
         //Press on leaderboard
-
         if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite
             || selection == 3 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite) {
             LeaderClosed = false;
@@ -523,10 +512,7 @@ int main()
         }
 
         // slider functionality
-
-        if (!SettingsClosed)
-        {
-
+        if (!SettingsClosed) {
             if (Sensor.getGlobalBounds().intersects(slider.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left))
                 selected = true;
             if (!(Mouse::isButtonPressed(Mouse::Left)))
@@ -534,29 +520,19 @@ int main()
 
             if (selected)
             {
-             
-             
-
-
-                    if (!(Sensor.getPosition().x <= 563 || Sensor.getPosition().x >=863))
-                    {
-                        slider.setPosition(Sensor.getPosition().x, slider.getPosition().y);
-                       // dellay = 0;
-                        cout <<"slider" << slider.getPosition().x << endl;
-                        vloumePercentage = (slider.getPosition().x-563)/(863-563)*100;
-                        if (vloumePercentage <= 5)
-                            vloumePercentage = 0;
-                        BackgroundMusic.setVolume(vloumePercentage);
-                        cout <<"Volume" << vloumePercentage << endl;
-                        
-                    }
-                  
-            
-                
-
+                if (!(Sensor.getPosition().x <= 563 || Sensor.getPosition().x >= 863))
+                {
+                    slider.setPosition(Sensor.getPosition().x, slider.getPosition().y);
+                    // dellay = 0;
+                    //cout << "slider" << slider.getPosition().x << endl;
+                    vloumePercentage = (slider.getPosition().x - 563) / (863 - 563) * 100;
+                    if (vloumePercentage <= 5)
+                        vloumePercentage = 0;
+                    BackgroundMusic.setVolume(vloumePercentage);
+                    //cout << "Volume" << vloumePercentage << endl;
+                }
             }
         }
-
 
         //Press on credits
         if (Sensor.getGlobalBounds().intersects(creditBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && LeaderClosed && CreditClosed && !canWrite
@@ -579,8 +555,7 @@ int main()
         }
 
         //credit animation
-        if (creditSprite.getPosition().x >= -4)CreditStopAnim = true;
-       
+        if (creditSprite.getPosition().x >= -4) CreditStopAnim = true;
         if (!CreditStopAnim && !CreditClosed) creditSprite.move(7, 0);
         if (creditSprite.getPosition().x <= -1200) CBackAnim = false;
 
@@ -588,12 +563,7 @@ int main()
 
 
         // setting animation 
-        if (SettingsBackgroundSprite.getPosition().x >= -4)
-        {
-            SettingStopAnim = true;
-            correctIsVisible = true;
-        }
-        else correctIsVisible = false;
+        if (SettingsBackgroundSprite.getPosition().x >= -4) SettingStopAnim = true;
 
         if (!SettingStopAnim && !SettingsClosed) SettingsBackgroundSprite.move(7, 0);
 
@@ -601,11 +571,7 @@ int main()
 
         if (SBackAnim && SettingsClosed) SettingsBackgroundSprite.move(-7, 0);
         //leaderboard animation
-        if (leaderSprite.getPosition().x >= -4)
-        {
-            LeaderStopAnim = true;
-            
-        }
+        if (leaderSprite.getPosition().x >= -4) LeaderStopAnim = true;
         if (!LeaderStopAnim && !LeaderClosed) leaderSprite.move(7, 0);
         if (leaderSprite.getPosition().x <= -1200) LBackAnim = false;
         if (LBackAnim && LeaderClosed) leaderSprite.move(-7, 0);
@@ -661,7 +627,6 @@ int main()
         if (ButtonDelay <= 60) ButtonDelay++;
 
         // Slider music controller
-
         if (Sensor.getGlobalBounds().intersects(MusicCircle.getGlobalBounds()) && !SettingsClosed && Mouse::isButtonPressed(Mouse::Left) && ButtonDelay >= 60) {
             if (MusicOn) {
                 MusicOn = false;
@@ -673,7 +638,6 @@ int main()
             }
             ButtonDelay = 0;
         }
-
         //Sensor pos
         Sensor.setPosition(Mouse::getPosition(Menu).x, Mouse::getPosition(Menu).y);
         //Start
@@ -814,14 +778,6 @@ int main()
                 }
             }
         }
-        /// getting mouse position in main menu 
-
-        //if (Mouse::isButtonPressed(Mouse::Left))
-        //{
-        //    cout <<"X:" << Mouse::getPosition(Menu).x << endl;
-        //    cout <<"Y:" << Mouse::getPosition(Menu).y << endl;
-        //}
-
         if (!CreditClosed) {
             Menu.draw(creditSprite);
             if (creditbackIsVisible) Menu.draw(creditbackSprite);
@@ -829,13 +785,11 @@ int main()
         if (SBackAnim) Menu.draw(SettingsBackgroundSprite);
         if (LBackAnim) Menu.draw(leaderSprite);
         if (CBackAnim)Menu.draw(creditSprite);
-        // #MARKO
+
         if (!SettingsClosed) {
             Menu.draw(SettingsBackgroundSprite);
             if (backIsVisible) Menu.draw(backSprite);
-            if (1) Menu.draw(slider);
-            
-
+            if(SettingStopAnim) Menu.draw(slider);
         }
         Menu.display();
     }
@@ -884,15 +838,13 @@ int main()
         RedCoinTx.loadFromFile("Assets/Textures/Some-Sprites-red-coin.png");
         //Jumppad Texture
         Texture JumppadTx;
-        JumppadTx.loadFromFile("Assets/Textures/Some Sprites.png");
+        JumppadTx.loadFromFile("Assets/Textures/Some Sprites2.png");
         //Enemy texture
-        Texture EnemyTx;
-        EnemyTx.loadFromFile("Assets/Textures/Enemies.png");
-        Texture EnemyTx2;
-        EnemyTx2.loadFromFile("Assets/Textures/Enemies.png");
+        Texture Enemies;
+        Enemies.loadFromFile("Assets/Textures/Enemies.png");
         //Spike texture
         SpikeTex.loadFromFile("Assets/Textures/Spike.png");
-        //Tiles texture      
+        //Tiles texture
         TilesTx.loadFromFile("Assets/Textures/Wall2.png");
         TileTx2.loadFromFile("Assets/Textures/UpsideDownWall.png");
         SpikeTex2.loadFromFile("Assets/Textures/UpsidedownSpike.png");
@@ -957,6 +909,30 @@ int main()
         Boss.BossFaceSprite.setScale(0, 0);
         Boss.BossFaceSprite.setPosition(15090.92, 24);
 
+            
+
+        Texture WreckingChainTx;
+        WreckingChainTx.loadFromFile("Assets/Textures/BossWreckingBall.png");
+        Sprite WreckingChainSprite;
+        WreckingChainSprite.setTexture(WreckingChainTx);
+        WreckingChainSprite.setTextureRect(IntRect(38, 30, 32, 128));
+        WreckingChainSprite.setScale(1.5, 1.5);
+        WreckingChainSprite.setOrigin(16, 0);
+        WreckingChainSprite.setPosition(500, 300);
+        WreckingChainSprite.rotate(290);
+
+        Texture WreckingBallTx;
+        WreckingBallTx.loadFromFile("Assets/Textures/BossWreckingBall.png");
+        Sprite WreckingBallSprite;
+        WreckingBallSprite.setTexture(WreckingBallTx);
+        WreckingBallSprite.setTextureRect(IntRect(6, 165, 96, 96));
+        WreckingBallSprite.setScale(1.5, 1.5);
+        WreckingBallSprite.setOrigin(48, -128);
+        WreckingBallSprite.setPosition(500, 300);
+        WreckingBallSprite.rotate(290);
+        double Velocity = 1;
+        bool Dir = true;
+
         //Sky Bullet
         Texture SkyBulletTx;
         SkyBulletTx.loadFromFile("Assets/Textures/SkyBullet.png");
@@ -972,7 +948,8 @@ int main()
 
 
         //// sonic player
-           // sonic texture
+        Player sonic;
+        // sonic texture
         sonic.PlayerTex.loadFromFile("Assets/Textures/Sonic-Character.png");
         sonic.PlayerSprite.setTexture(sonic.PlayerTex);
         // sonic sprite
@@ -983,9 +960,6 @@ int main()
         //sonic.PlayerSprite.setPosition(200, 300);
         sonic.PlayerSprite.setPosition(14500, 300);
         sonic.PlayerSprite.setScale(2.5, 2.5);
-        sonic.lives = 3;
-        sonic.scoreValue = 0; sonic.hitCounter = -1;
-        sonic.hitRight = false; sonic.hitLeft = false;
         //
 
         ///Jumppad Setting Texture
@@ -995,13 +969,12 @@ int main()
         }
 
         ///Floating Tiles Setting Texture
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 60; i++) {
             tiles[i].TileSprite.setTexture(TilesTx);
             tiles[i].TileSprite.setScale(1.3, 1.3);
             tiles[i].TileColl.setSize(Vector2f(298.9f, 1.f));
             tiles[i].LowerTileColl.setSize(Vector2f(298.9f, 1.f));
         }
-
         //
         // vertical Walls setting 
 
@@ -1019,18 +992,23 @@ int main()
 
         ///Enemies Setting Texture
         for (int i = 0; i < 20; i++) {
-            enemies[i].EnemySprite.setTexture(EnemyTx);
-            enemies[i].EnemyColl.setSize(Vector2f(110.f, 50.f));
-            enemies[i].EnemyColl.setScale(Vector2f(1, 1));
-            enemies[i].EnemySprite.setTextureRect(IntRect(enemies[i].TexNumber * 54, 345, 54, 29.2));
-            enemies[i].EnemySprite.setScale(2.5f, 2.5f);
-        }
-        for (int i = 0; i < 20; i++) {
-            enemies2[i].EnemySprite.setTexture(EnemyTx2);
-            enemies2[i].EnemyColl.setSize(Vector2f(100.f, 60.f));
-            enemies2[i].EnemyColl.setScale(Vector2f(1, 1));
-            enemies2[i].EnemySprite.setTextureRect(IntRect(enemies2[i].TexNumber * 47, 411, 47, 30));
-            enemies2[i].EnemySprite.setScale(2.5f, 2.5f);
+            Worms[i].EnemySprite.setTexture(Enemies);
+            Worms[i].EnemyColl.setSize(Vector2f(110.f, 50.f));
+            Worms[i].EnemyColl.setScale(Vector2f(1, 1));
+            Worms[i].EnemySprite.setTextureRect(IntRect(Worms[i].TexNumber * 54, 345, 54, 29.2));
+            Worms[i].EnemySprite.setScale(2.5f, 2.5f);
+
+            Crabs[i].EnemySprite.setTexture(Enemies);
+            Crabs[i].EnemyColl.setSize(Vector2f(100.f, 60.f));
+            Crabs[i].EnemyColl.setScale(Vector2f(1, 1));
+            Crabs[i].EnemySprite.setTextureRect(IntRect(Crabs[i].TexNumber * 47, 411, 47, 30));
+            Crabs[i].EnemySprite.setScale(2.5f, 2.5f);
+
+            Enemy3[i].EnemySprite.setTexture(Enemies);
+            Enemy3[i].EnemyColl.setSize(Vector2f(90.f, 60.f));
+            Enemy3[i].EnemyColl.setScale(Vector2f(1, 1));
+            Enemy3[i].EnemySprite.setTextureRect(IntRect(Enemy3[i].TexNumber * 42.75, 268, 42.75, 30));
+            Enemy3[i].EnemySprite.setScale(2.5f, 2.5f);
         }
         //
 
@@ -1081,7 +1059,6 @@ int main()
         // the music of main menu
         Music MainMenuMusic;
         MainMenuMusic.openFromFile("Assets/Sounds/mainmenu.wav");
-      
         //Boss Fight
         Music BossFightMusic;
         BossFightMusic.openFromFile("Assets/Sounds/Sonic-3-Final-Boss-_Big-Arms_-Remix-_Kamex__1.ogg");
@@ -1114,10 +1091,14 @@ int main()
         Sound EnemyDamageSound;
         EnemyDamageSound.setBuffer(EnemyDamageBuffer);
         //Boss damage sound
-        SoundBuffer BossDamageBuffer;
-        BossDamageBuffer.loadFromFile("Assets/Sounds/EggmanHit.ogg");
-        Sound BossDamageSound;
-        BossDamageSound.setBuffer(BossDamageBuffer);
+        SoundBuffer BossDamageBuffer[3];
+        BossDamageBuffer[0].loadFromFile("Assets/Sounds/EggmanHit.ogg");
+        BossDamageBuffer[1].loadFromFile("Assets/Sounds/EggmanHit2.ogg");
+        BossDamageBuffer[2].loadFromFile("Assets/Sounds/EggmanHit3.ogg");
+        Sound BossDamageSound[3];
+        BossDamageSound[0].setBuffer(BossDamageBuffer[0]);
+        BossDamageSound[1].setBuffer(BossDamageBuffer[1]);
+        BossDamageSound[2].setBuffer(BossDamageBuffer[2]);
         //spring sound
         SoundBuffer JumppadBuffer;
         JumppadBuffer.loadFromFile("Assets/Sounds/spring.WAV");
@@ -1138,6 +1119,7 @@ int main()
         RunningBuffer.loadFromFile("Assets/Sounds/speedchute.wav");
         Sound RunningSound;
         RunningSound.setBuffer(RunningBuffer);
+        RunningSound.setVolume(30);
         // sound gameover
         SoundBuffer GameoverBuffer;
         GameoverBuffer.loadFromFile("Assets/Sounds/gameover.wav");
@@ -1152,22 +1134,37 @@ int main()
         coinPos();
         area2();
 
-
         //level 2
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 2; i++) {
             HAnimTiles[i].TileSprite.setTexture(TilesTx);
             HAnimTiles[i].TileSprite.setScale(1.3, 1.3);
             HAnimTiles[i].TileColl.setSize(Vector2f(298.9f, 1.f));
+
+        }
+        for (int i = 0; i < 23; i++)
+        {
             VAnimTiles[i].TileSprite.setTexture(TilesTx);
             VAnimTiles[i].TileSprite.setScale(1.3, 1.3);
             VAnimTiles[i].TileColl.setSize(Vector2f(298.9f, 1.f));
         }
+
+        for (int i = 0; i < 10; i++) {
+            DisappearingTiles[i].TileSprite.setTexture(TilesTx);
+            DisappearingTiles[i].TileSprite.setScale(1.3, 1.3);
+            DisappearingTiles[i].TileColl.setSize(Vector2f(298.9f, 1.f));
+        }
+        DrawDisappearingTiles();
+
+        for (int i = 0; i < 100; i++) {
+            animespikes2[i].SpikeSprite2.setTexture(SpikeTex2);
+            animespikes2[i].SpikeSprite2.setTextureRect(IntRect(0, 0, 142, 163));
+            animespikes2[i].SpikeSprite2.setScale(0.5f, 0.5f);
+        }
         DrawAnimTiles();
-
-
+        area3();
 
         /// ground rectangle shape
-        RectangleShape ground(Vector2f(40000, 70)); ground.setScale(1, 1); ground.setPosition(0, 640);
+        RectangleShape ground(Vector2f(50000, 70)); ground.setScale(1, 1); ground.setPosition(0, 640);
         //
 
         // view camera
@@ -1194,6 +1191,10 @@ int main()
             /// UPDATE
             if (pauseDelay > 0) pauseDelay--;
             if (!paused) pauseMenu.setScale(0, 0);
+
+            if (Keyboard::isKeyPressed(Keyboard::T)) {
+                cout << sonic.PlayerSprite.getPosition().x << ' ' << sonic.PlayerSprite.getPosition().y << '\n';
+            }
 
             //Delays and coins
             if (sonic.lives > 0 && !paused) {
@@ -1231,7 +1232,7 @@ int main()
                 }
 
                 //Spikes System
-                for (int i = 0; i < 200; i++) {
+                for (int i = 0; i < 180; i++) {
                     if (spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
                         sonic.lives--;
                         sonic.Velocity.y = 10;
@@ -1246,16 +1247,35 @@ int main()
                         sonic.PlayerSprite.move(0, -10);
                         SpikeDeathAudio.play();
                     }
-                    if (i < 50) {
-                        if (spikes2[i].SpikeSprite2.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
+                    if (i < 76) {
+                        if (spikes2[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
                             if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
-                            if (sonic.PlayerSprite.getPosition().x > spikes2[i].SpikeSprite2.getPosition().x) sonic.hitRight = true;
+                            if (sonic.PlayerSprite.getPosition().x > spikes2[i].SpikeSprite.getPosition().x) sonic.hitRight = true;
                             else sonic.hitLeft = true;
                             sonic.hitCounter = 50;
                             sonic.Velocity.y = -7;
                             sonic.PlayerSprite.move(0, 10);
                             SpikeDeathAudio.play();
                         }
+                    }
+                }
+
+                for (int i = 0; i < 100; i++) {
+                    if (animespikes2[i].SpikeSprite2.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
+                        if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
+                        if (sonic.PlayerSprite.getPosition().x > animespikes2[i].SpikeSprite2.getPosition().x) sonic.hitRight = true;
+                        else sonic.hitLeft = true;
+                        sonic.hitCounter = 50;
+                        sonic.Velocity.y = -7;
+                        SpikeDeathAudio.play();
+                    }
+                    if (animespikes2[i].Direction) animespikes2[i].SpikeSprite2.move(0, 5);
+                    else animespikes2[i].SpikeSprite2.move(0, -5);
+                    if (animespikes2[i].SpikeSprite2.getPosition().y >= animespikes2[i].yEnd && animespikes2[i].Direction) {
+                        animespikes2[i].Direction = false;
+                    }
+                    else if (animespikes2[i].SpikeSprite2.getPosition().y <= animespikes2[i].yStart && !animespikes2[i].Direction) {
+                        animespikes2[i].Direction = true;
                     }
                 }
 
@@ -1288,7 +1308,7 @@ int main()
                 }
                 //Moving Right
                 if (!Boss.SceneStart) {
-                    if ((Boss.FightStart && sonic.PlayerSprite.getPosition().x < 15900) || (Level == 2) || !Boss.FightStart) {
+                    if ((Boss.FightStartLevel1 && sonic.PlayerSprite.getPosition().x < 15900) || (Boss.FightStartLevel2 && sonic.PlayerSprite.getPosition().x < 35400) || (Level == 2) || Level == 3 || !Boss.FightStartLevel1) {
                         if ((Keyboard::isKeyPressed(Keyboard::D) || Keyboard::isKeyPressed(Keyboard::Right)) && !sonic.hitLeft && !sonic.hitRight) {
                             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
                                 // Running Sonic Right
@@ -1322,7 +1342,7 @@ int main()
                         sonic.Velocity.x = 0;
                     }
                     //Moving Left
-                    if ((Boss.FightStart && sonic.PlayerSprite.getPosition().x >= 14790) || !Boss.FightStart) {
+                    if ((Boss.FightStartLevel1 && sonic.PlayerSprite.getPosition().x >= 14790) || !Boss.FightStartLevel1) {
                         if ((Keyboard::isKeyPressed(Keyboard::Key::A) || Keyboard::isKeyPressed(Keyboard::Left)) && !sonic.hitLeft && !sonic.hitRight && ((sonic.PlayerSprite.getPosition().x > 20 && !Level2Start) || (Level2Start && sonic.PlayerSprite.getPosition().x > 17000))) {
                             if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
                                 // Running Sonic Left
@@ -1339,6 +1359,7 @@ int main()
                                     if (sonic.LeftTexNumber <= 6) sonic.Running = true;
                                     sonic.PlayerSprite.setTextureRect(IntRect(sonic.LeftTexNumber * 48.86, 3 * 60, 48.86, 51));
                                 }
+                                cout << sonic.PlayerSprite.getPosition().x << '\n';
                             }
                             else {
                                 // Moving Sonic Left
@@ -1362,126 +1383,187 @@ int main()
                 }
                 //Hit Right and Left
                 if (sonic.hitRight) {
-                    if ((sonic.PlayerSprite.getPosition().x <= 15900 && Boss.FightStart) || !Boss.FightStart) sonic.Velocity.x = 5;
+                    if ((sonic.PlayerSprite.getPosition().x <= 15900 && Boss.FightStartLevel1) || !Boss.FightStartLevel1) sonic.Velocity.x = 5;
                     if (sonic.on_ground || sonic.onTile) sonic.hitRight = false;
                 }
                 else if (sonic.hitLeft) {
-                    if ((sonic.PlayerSprite.getPosition().x > 14800 && Boss.FightStart) || !Boss.FightStart) sonic.Velocity.x = -5;
+                    if ((sonic.PlayerSprite.getPosition().x > 14800 && Boss.FightStartLevel1) || !Boss.FightStartLevel1) sonic.Velocity.x = -5;
                     if (sonic.on_ground || sonic.onTile) sonic.hitLeft = false;
                 }
 
                 //Enemy System
                 for (int i = 0; i < 20; i++) {
-                    if (enemies[i].TexDelay <= 8) enemies[i].TexDelay++;
-                    if (enemies[i].MovingRight) {
-                        enemies[i].EnemySprite.move(4, 0);
-                        if (enemies[i].TexDelay >= 8) {
-                            enemies[i].TexDelay = 0;
-                            enemies[i].TexNumber++;
-                            enemies[i].TexNumber %= 11;
-                            enemies[i].EnemySprite.setTextureRect(IntRect(enemies[i].TexNumber * 58, 345, 58, 29.2));
+                    if (Worms[i].TexDelay <= 8) Worms[i].TexDelay++;
+                    if (Worms[i].MovingRight) {
+                        Worms[i].EnemySprite.move(4, 0);
+                        if (Worms[i].TexDelay >= 8) {
+                            Worms[i].TexDelay = 0;
+                            Worms[i].TexNumber++;
+                            Worms[i].TexNumber %= 11;
+                            Worms[i].EnemySprite.setTextureRect(IntRect(Worms[i].TexNumber * 58, 345, 58, 29.2));
                         }
-                        if (enemies[i].EnemySprite.getPosition().x >= enemies[i].xEnd) enemies[i].MovingRight = false;
+                        if (Worms[i].EnemySprite.getPosition().x >= Worms[i].xEnd) Worms[i].MovingRight = false;
                     }
                     else {
-                        enemies[i].EnemySprite.move(-4, 0);
-                        if (enemies[i].TexDelay >= 8) {
-                            enemies[i].TexDelay = 0;
-                            enemies[i].TexNumber--;
-                            if (enemies[i].TexNumber <= 0) enemies[i].TexNumber = 10;
-                            enemies[i].EnemySprite.setTextureRect(IntRect(enemies[i].TexNumber * 58, 313, 58, 29.2));
+                        Worms[i].EnemySprite.move(-4, 0);
+                        if (Worms[i].TexDelay >= 8) {
+                            Worms[i].TexDelay = 0;
+                            Worms[i].TexNumber--;
+                            if (Worms[i].TexNumber <= 0) Worms[i].TexNumber = 10;
+                            Worms[i].EnemySprite.setTextureRect(IntRect(Worms[i].TexNumber * 58, 313, 58, 29.2));
                         }
-                        if (enemies[i].EnemySprite.getPosition().x <= enemies[i].xStart) enemies[i].MovingRight = true;
+                        if (Worms[i].EnemySprite.getPosition().x <= Worms[i].xStart) Worms[i].MovingRight = true;
                     }
 
-                    if (enemies[i].EnemyColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
-                        if (!enemies[i].Hit) enemies[i].Hit = true;
+                    if (Worms[i].EnemyColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+                        if (!Worms[i].Hit) Worms[i].Hit = true;
                         else {
-                            enemies[i].EnemySprite.setScale(0, 0);
-                            enemies[i].EnemyColl.setScale(0, 0);
+                            Worms[i].EnemySprite.setScale(0, 0);
+                            Worms[i].EnemyColl.setScale(0, 0);
                             sonic.scoreValue += 100;
                             EnemyScore.setString("+100");
                             EnemyScore.setCharacterSize(50);
-                            EnemyScore.setPosition(enemies[i].EnemyColl.getPosition().x + 60, enemies[i].EnemyColl.getPosition().y + 60);
+                            EnemyScore.setPosition(Worms[i].EnemyColl.getPosition().x + 60, Worms[i].EnemyColl.getPosition().y + 60);
                             EnemyScoreCounter = 100;
                         }
                         sonic.Velocity.y = 10;
                         EnemyDamageSound.play();
                     }
-                    else if (enemies[i].EnemyColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0)) {
+                    else if (Worms[i].EnemyColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0)) {
                         if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
-                        if (sonic.PlayerSprite.getPosition().x > enemies[i].EnemySprite.getPosition().x) sonic.hitRight = true;
+                        if (sonic.PlayerSprite.getPosition().x > Worms[i].EnemySprite.getPosition().x) sonic.hitRight = true;
                         else sonic.hitLeft = true;
                         sonic.hitCounter = 50;
                         sonic.Velocity.y = 8;
                         sonic.PlayerSprite.move(0, -10);
                         SonicHitAudio.play();
                     }
-                    if (enemies[i].Hit && enemies[i].DamageDelay <= 30 && enemies[i].DamageDelay >= 0) {
-                        enemies[i].DamageDelay++;
-                        enemies[i].EnemySprite.setColor(Color(255, 0, 0, 200));
+                    if (Worms[i].Hit && Worms[i].DamageDelay <= 30 && Worms[i].DamageDelay >= 0) {
+                        Worms[i].DamageDelay++;
+                        Worms[i].EnemySprite.setColor(Color(255, 0, 0, 200));
                     }
-                    else if (enemies[i].Hit && enemies[i].DamageDelay >= 30) {
-                        enemies[i].EnemySprite.setColor(Color::White);
-                        enemies[i].DamageDelay = -1;
+                    else if (Worms[i].Hit && Worms[i].DamageDelay >= 30) {
+                        Worms[i].EnemySprite.setColor(Color::White);
+                        Worms[i].DamageDelay = -1;
                     }
-                    enemies[i].EnemyColl.setPosition(enemies[i].EnemySprite.getPosition().x + 15, enemies[i].EnemySprite.getPosition().y + 8);
-                    if (enemies2[i].TexDelay <= 8) enemies2[i].TexDelay++;
-                    if (enemies2[i].MovingRight) {
-                        enemies2[i].EnemySprite.move(4, 0);
-                        if (enemies2[i].TexDelay >= 8) {
-                            enemies2[i].TexDelay = 0;
-                            enemies2[i].TexNumber++;
-                            enemies2[i].TexNumber %= 4;
-                            enemies2[i].EnemySprite.setTextureRect(IntRect(enemies2[i].TexNumber * 47, 411, 48, 30));
+                    Worms[i].EnemyColl.setPosition(Worms[i].EnemySprite.getPosition().x + 15, Worms[i].EnemySprite.getPosition().y + 8);
+
+                    //Crabs
+                    if (Crabs[i].TexDelay <= 8) Crabs[i].TexDelay++;
+                    if (Crabs[i].MovingRight) {
+                        Crabs[i].EnemySprite.move(4, 0);
+                        if (Crabs[i].TexDelay >= 8) {
+                            Crabs[i].TexDelay = 0;
+                            Crabs[i].TexNumber++;
+                            Crabs[i].TexNumber %= 4;
+                            Crabs[i].EnemySprite.setTextureRect(IntRect(Crabs[i].TexNumber * 47, 411, 48, 30));
                         }
-                        if (enemies2[i].EnemySprite.getPosition().x >= enemies2[i].xEnd) {
-                            enemies2[i].MovingRight = false;
+                        if (Crabs[i].EnemySprite.getPosition().x >= Crabs[i].xEnd) {
+                            Crabs[i].MovingRight = false;
                         }
                     }
                     else {
-                        enemies2[i].EnemySprite.move(-4, 0);
-                        if (enemies2[i].TexDelay >= 8) {
-                            enemies2[i].TexDelay = 0;
-                            enemies2[i].TexNumber--;
-                            if (enemies2[i].TexNumber <= 0) enemies2[i].TexNumber = 3;
-                            enemies2[i].EnemySprite.setTextureRect(IntRect(enemies2[i].TexNumber * 47, 411, 48, 30));
+                        Crabs[i].EnemySprite.move(-4, 0);
+                        if (Crabs[i].TexDelay >= 8) {
+                            Crabs[i].TexDelay = 0;
+                            Crabs[i].TexNumber--;
+                            if (Crabs[i].TexNumber <= 0) Crabs[i].TexNumber = 3;
+                            Crabs[i].EnemySprite.setTextureRect(IntRect(Crabs[i].TexNumber * 47, 411, 48, 30));
                         }
-                        if (enemies2[i].EnemySprite.getPosition().x <= enemies2[i].xStart) enemies2[i].MovingRight = true;
+                        if (Crabs[i].EnemySprite.getPosition().x <= Crabs[i].xStart) Crabs[i].MovingRight = true;
                     }
 
-                    if (enemies2[i].EnemyColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
-                        if (!enemies2[i].Hit) enemies2[i].Hit = true;
+                    if (Crabs[i].EnemyColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+                        if (!Crabs[i].Hit) Crabs[i].Hit = true;
                         else {
-                            enemies2[i].EnemySprite.setScale(0, 0);
-                            enemies2[i].EnemyColl.setScale(0, 0);
+                            Crabs[i].EnemySprite.setScale(0, 0);
+                            Crabs[i].EnemyColl.setScale(0, 0);
                             sonic.scoreValue += 100;
                             EnemyScore.setString("+100");
                             EnemyScore.setCharacterSize(50);
-                            EnemyScore.setPosition(enemies2[i].EnemyColl.getPosition().x + 60, enemies2[i].EnemyColl.getPosition().y);
+                            EnemyScore.setPosition(Crabs[i].EnemyColl.getPosition().x + 60, Crabs[i].EnemyColl.getPosition().y);
                             EnemyScoreCounter = 100;
                         }
                         sonic.Velocity.y = 10;
                         EnemyDamageSound.play();
                     }
-                    else if ((enemies2[i].EnemyColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) {
+                    else if ((Crabs[i].EnemyColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) {
                         if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
-                        if (sonic.PlayerSprite.getPosition().x > enemies2[i].EnemySprite.getPosition().x) sonic.hitRight = true;
+                        if (sonic.PlayerSprite.getPosition().x > Crabs[i].EnemySprite.getPosition().x) sonic.hitRight = true;
                         else sonic.hitLeft = true;
                         sonic.hitCounter = 50;
                         sonic.Velocity.y = 8;
                         sonic.PlayerSprite.move(0, -10);
                         SonicHitAudio.play();
                     }
-                    if (enemies2[i].Hit && enemies2[i].DamageDelay <= 30 && enemies2[i].DamageDelay >= 0) {
-                        enemies2[i].DamageDelay++;
-                        enemies2[i].EnemySprite.setColor(Color(255, 0, 0, 200));
+                    if (Crabs[i].Hit && Crabs[i].DamageDelay <= 30 && Crabs[i].DamageDelay >= 0) {
+                        Crabs[i].DamageDelay++;
+                        Crabs[i].EnemySprite.setColor(Color(255, 0, 0, 200));
                     }
-                    else if (enemies2[i].Hit && enemies2[i].DamageDelay >= 30) {
-                        enemies2[i].EnemySprite.setColor(Color::White);
-                        enemies2[i].DamageDelay = -1;
+                    else if (Crabs[i].Hit && Crabs[i].DamageDelay >= 30) {
+                        Crabs[i].EnemySprite.setColor(Color::White);
+                        Crabs[i].DamageDelay = -1;
                     }
-                    enemies2[i].EnemyColl.setPosition(enemies2[i].EnemySprite.getPosition().x + 10, enemies2[i].EnemySprite.getPosition().y + 8);
+                    Crabs[i].EnemyColl.setPosition(Crabs[i].EnemySprite.getPosition().x + 10, Crabs[i].EnemySprite.getPosition().y + 8);
+
+                    //Flying Enemy
+                    if (Enemy3[i].TexDelay <= 8) Enemy3[i].TexDelay++;
+                    if (Enemy3[i].MovingRight) {
+                        Enemy3[i].EnemySprite.move(4, 0);
+                        if (Enemy3[i].TexDelay >= 8) {
+                            Enemy3[i].TexDelay = 0;
+                            Enemy3[i].TexNumber++;
+                            Enemy3[i].TexNumber %= 4;
+                            Enemy3[i].EnemySprite.setTextureRect(IntRect(Enemy3[i].TexNumber * 42.75, 268, 42.75, 30));
+                        }
+                        if (Enemy3[i].EnemySprite.getPosition().x >= Enemy3[i].xEnd) {
+                            Enemy3[i].MovingRight = false;
+                        }
+                    }
+                    else {
+                        Enemy3[i].EnemySprite.move(-4, 0);
+                        if (Enemy3[i].TexDelay >= 8) {
+                            Enemy3[i].TexDelay = 0;
+                            Enemy3[i].TexNumber--;
+                            if (Enemy3[i].TexNumber <= 0) Enemy3[i].TexNumber = 3;
+                            Enemy3[i].EnemySprite.setTextureRect(IntRect(Enemy3[i].TexNumber * 42.75, 232, 42.75, 30));
+                        }
+                        if (Enemy3[i].EnemySprite.getPosition().x <= Enemy3[i].xStart) Enemy3[i].MovingRight = true;
+                    }
+
+                    if (Enemy3[i].EnemyColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && !sonic.on_ground && sonic.Velocity.y <= 0) {
+                        if (!Enemy3[i].Hit) Enemy3[i].Hit = true;
+                        else {
+                            Enemy3[i].EnemySprite.setScale(0, 0);
+                            Enemy3[i].EnemyColl.setScale(0, 0);
+                            sonic.scoreValue += 100;
+                            EnemyScore.setString("+100");
+                            EnemyScore.setCharacterSize(50);
+                            EnemyScore.setPosition(Enemy3[i].EnemyColl.getPosition().x + 60, Enemy3[i].EnemyColl.getPosition().y);
+                            EnemyScoreCounter = 100;
+                        }
+                        sonic.Velocity.y = 10;
+                        EnemyDamageSound.play();
+                    }
+                    else if ((Enemy3[i].EnemyColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds()) && (sonic.on_ground || sonic.Velocity.y > 0))) {
+                        if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
+                        if (sonic.PlayerSprite.getPosition().x > Enemy3[i].EnemySprite.getPosition().x) sonic.hitRight = true;
+                        else sonic.hitLeft = true;
+                        sonic.hitCounter = 50;
+                        sonic.Velocity.y = 8;
+                        sonic.PlayerSprite.move(0, -10);
+                        SonicHitAudio.play();
+                    }
+                    if (Enemy3[i].Hit && Enemy3[i].DamageDelay <= 30 && Enemy3[i].DamageDelay >= 0) {
+                        Enemy3[i].DamageDelay++;
+                        Enemy3[i].EnemySprite.setColor(Color(255, 0, 0, 200));
+                    }
+                    else if (Enemy3[i].Hit && Enemy3[i].DamageDelay >= 30) {
+                        Enemy3[i].EnemySprite.setColor(Color::White);
+                        Enemy3[i].DamageDelay = -1;
+                    }
+                    Enemy3[i].EnemyColl.setPosition(Enemy3[i].EnemySprite.getPosition().x + 7, Enemy3[i].EnemySprite.getPosition().y + 8);
+
                 }
 
                 // Jumppad System
@@ -1526,7 +1608,7 @@ int main()
                 }
                 else {
                     bool found = false;
-                    for (int i = 0; i < 30; i++) {
+                    for (int i = 0; i < 60; i++) {
                         if (sonic.PlayerSprite.getGlobalBounds().intersects(tiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < tiles[i].TileSprite.getPosition().y) {
                             found = true;
                             sonic.onTile = true;
@@ -1547,15 +1629,23 @@ int main()
                             sonic.Velocity.y = 0;
                         }
                     }
-                    for (int i = 0; i < 5; i++) {
-                        if (sonic.PlayerSprite.getGlobalBounds().intersects(HAnimTiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < HAnimTiles[i].TileSprite.getPosition().y) {
+                    for (int i = 0; i < 2; i++) {
+                        if (sonic.PlayerColl.getGlobalBounds().intersects(HAnimTiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < HAnimTiles[i].TileSprite.getPosition().y) {
                             found = true;
                             sonic.onTile = true;
                             sonic.Velocity.y = 0;
                         }
                     }
-                    for (int i = 0; i < 5; i++) {
-                        if (sonic.PlayerSprite.getGlobalBounds().intersects(VAnimTiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < VAnimTiles[i].TileSprite.getPosition().y) {
+
+                    for (int i = 0; i < 23; i++) {
+                        if (sonic.PlayerColl.getGlobalBounds().intersects(VAnimTiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < VAnimTiles[i].TileSprite.getPosition().y) {
+                            found = true;
+                            sonic.onTile = true;
+                            sonic.Velocity.y = 0;
+                        }
+                    }
+                    for (int i = 0; i < 10; i++) {
+                        if (sonic.PlayerColl.getGlobalBounds().intersects(DisappearingTiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < DisappearingTiles[i].TileSprite.getPosition().y) {
                             found = true;
                             sonic.onTile = true;
                             sonic.Velocity.y = 0;
@@ -1598,7 +1688,7 @@ int main()
                     }
                 }
                 sonic.PlayerSprite.move(sonic.Velocity.x, -sonic.Velocity.y);
-                if ((sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStart) || (Level == 2 && sonic.PlayerSprite.getPosition().x >= 17200)) {
+                if ((sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStartLevel1) || (Level == 2 && sonic.PlayerSprite.getPosition().x >= 17200 && !Boss.FightStartLevel2)) {
                     camera.move(sonic.Velocity.x, 0);
                     text.move(sonic.Velocity.x, 0);
                     lives.move(sonic.Velocity.x, 0);
@@ -1655,11 +1745,273 @@ int main()
                 }
 
                 //
-                if (Boss.TexDelay <= 30 && (!Boss.MoveStart || Boss.StartDelay)) Boss.TexDelay++;
-                if (sonic.PlayerSprite.getPosition().x >= 15000 && !Boss.FightStart) {
-                    Boss.SceneStart = true;
+                    if (Boss.TexDelay <= 30 && (!Boss.MoveStart || Boss.StartDelay)) Boss.TexDelay++;
+                    if (sonic.PlayerSprite.getPosition().x >= 15000 && !Boss.FightStartLevel1) {
+                        Boss.SceneStart = true;
+                    }
+                    if (Boss.SceneStart) {
+                        if (!BossMusicStarted) {
+                            BackgroundMusic.stop();
+                            BossFightMusic.play();
+                            BossMusicStarted = true;
+                        }
+                        sonic.Velocity.x = 0;
+                        if (Boss.TexDelay >= 10) {
+                            Boss.TexNumber++;
+                            Boss.TexDelay = 0;
+                            Boss.BossSprite.setTextureRect(IntRect(Boss.TexNumber * 100, 800, 100, 64));
+                        }
+                        if (Boss.TexNumber == 5) {
+                            Boss.FightStartLevel1 = true;
+                            Boss.SceneStart = false;
+                            Boss.TexDelay = 0;
+                            Boss.TexNumber = 0;
+                        }
+                    }
+                    if (Boss.FightStartLevel1 && Level == 1 && Boss.lives > 0) {
+                        Boss.HealthBarRect.setScale(Boss.HealthBar, 1);
+                        Boss.HealthBarBG.setScale(1, 1);
+                        Boss.BossFaceSprite.setScale(0.16, 0.16);
+                        if (!Boss.MoveStart) {
+                            if (Boss.MovingLeft) {
+                                if (Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(707, 800, 100, 64));
+                                if (!Boss.StartDelay) {
+                                    if (Boss.TexDelay >= 10) {
+                                        Boss.MoveStart = true;
+                                        Boss.TexDelay = 0;
+                                        Boss.Velocity.x = -15;
+                                    }
+                                    else Boss.BossSprite.move(-1, 0);
+                                }
+                                else {
+                                    if (Boss.TexDelay >= 30) {
+                                        Boss.StartDelay = false;
+                                        Boss.TexDelay = 0;
+                                    }
+                                }
+                            }
+                            else {
+                                if (Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(700, 725, 100, 64));
+                                if (!Boss.StartDelay) {
+                                    if (Boss.TexDelay >= 10) {
+                                        Boss.MoveStart = true;
+                                        Boss.TexDelay = 0;
+                                        Boss.Velocity.x = 15;
+                                    }
+                                    else Boss.BossSprite.move(1, 0);
+                                }
+                                else {
+                                    if (Boss.TexDelay >= 30) {
+                                        Boss.StartDelay = false;
+                                        Boss.TexDelay = 0;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            if (Boss.MovingLeft) {
+                                if (Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(607, 800, 98, 64));
+                                if (Boss.Velocity.x < 0) {
+                                    Boss.Velocity.x += 0.116;
+                                    Boss.BossSprite.move(Boss.Velocity.x, 0);
+                                }
+
+                            }
+                            else {
+                                if (Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(810, 725, 98, 64));
+                                if (Boss.Velocity.x > 0) {
+                                    Boss.Velocity.x -= 0.116;
+                                    Boss.BossSprite.move(Boss.Velocity.x, 0);
+                                }
+                            }
+                            if (Boss.MovingLeft) {
+                                if (Boss.Velocity.x >= 0) {
+                                    Boss.MovingLeft = false;
+                                    Boss.MoveStart = false;
+                                    Boss.StartDelay = true;
+                                }
+                            }
+                            else {
+                                if (Boss.Velocity.x <= 0) {
+                                    Boss.MovingLeft = true;
+                                    Boss.MoveStart = false;
+                                    Boss.StartDelay = true;
+                                }
+                            }
+                        }
+                        if (BulletsSpawnDelay <= 300 && !SpawnStart) BulletsSpawnDelay++;
+                        if (BulletDelay <= 30 && SpawnStart) BulletDelay++;
+                        if (BulletsSpawnDelay >= 300) {
+                            SpawnStart = true;
+                            if (!BulletsPositioned) {
+                                for (int i = 0; i < 5; i++) {
+                                    skyBullets[i].SkyBulletsSprite.setPosition(rand() % 1109 + 14800, -300);
+                                    skyBullets[i].spawned = false;
+                                    skyBullets[i].SkyBulletsSprite.setScale(0.8, 0.8);
+                                    skyBullets[i].BulletColl.setScale(1, 1);
+                                    skyBullets[i].TexNumber = 0;
+                                }
+                                BulletsPositioned = true;
+                            }
+                            if (BulletDelay >= 30 && BulletsSpawned < 5) {
+                                BulletDelay = 0;
+                                skyBullets[BulletsSpawned].spawned = true;
+                                BulletsSpawned++;
+                            }
+                        }
+                        for (int i = 0; i < 5; i++) {
+                            if (skyBullets[i].spawned) {
+                                if (skyBullets[i].SkyBulletsSprite.getPosition().y <= 485) {
+                                    skyBullets[i].SkyBulletsSprite.move(0, 12);
+                                    skyBullets[i].SkyBulletsSprite.setTextureRect(IntRect(114, 0, 114, 227));
+                                }
+                                else if (skyBullets[i].SkyBulletsSprite.getPosition().y > 485) {
+                                    skyBullets[i].SkyBulletsSprite.setScale(0, 0);
+                                    skyBullets[i].BulletColl.setScale(0, 0);
+                                }
+                            }
+                            skyBullets[i].BulletColl.setPosition(skyBullets[i].SkyBulletsSprite.getPosition().x + 34.4, skyBullets[i].SkyBulletsSprite.getPosition().y + 56.8);
+                            if (skyBullets[i].BulletColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
+                                skyBullets[i].SkyBulletsSprite.setScale(0, 0);
+                                skyBullets[i].BulletColl.setScale(0, 0);
+                                if (sonic.hitCounter == -1) sonic.lives--;
+                                sonic.hitCounter = 50;
+                                SonicHitAudio.play();
+                            }
+                        }
+                        if (SpawnStart && !skyBullets[4].SkyBulletsSprite.getScale().x) {
+                            SpawnStart = false;
+                            BulletsPositioned = false;
+                            BulletsSpawnDelay = 0;
+                            BulletsSpawned = 0;
+                        }
+                    }
+                    else {
+                        for (int i = 0; i < 5; i++) {
+                            if (skyBullets[i].spawned) {
+                                if (skyBullets[i].SkyBulletsSprite.getPosition().y <= 485) {
+                                    skyBullets[i].SkyBulletsSprite.move(0, 12);
+                                    skyBullets[i].SkyBulletsSprite.setTextureRect(IntRect(114, 0, 114, 227));
+                                }
+                                else if (skyBullets[i].SkyBulletsSprite.getPosition().y > 485) {
+                                    skyBullets[i].SkyBulletsSprite.setScale(0, 0);
+                                    skyBullets[i].BulletColl.setScale(0, 0);
+                                }
+                            }
+                        }
+                    }
+                    if (sonic.PlayerColl.getGlobalBounds().intersects(Boss.HitBox.getGlobalBounds()) && Boss.lives > 0) {
+                        if (sonic.Velocity.y >= 0) {
+                            if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
+                            if (sonic.PlayerSprite.getPosition().x > Boss.HitBox.getPosition().x + 49) sonic.hitRight = true;
+                            else sonic.hitLeft = true;
+                            sonic.hitCounter = 50;
+                            sonic.Velocity.y = 8;
+                            sonic.PlayerSprite.move(0, -10);
+                            SonicHitAudio.play();
+                        }
+                        else if (sonic.Velocity.y < 0) {
+                            if (Boss.hitCounter == -1) {
+                                Boss.lives--;
+                                Boss.hitCounter = 50;
+                                Boss.BarCounter += 50;
+                                BossDamageSound[rand() % 3].play();
+                            }
+                            if (Boss.lives == 0) sonic.scoreValue += 1000;
+                            sonic.Velocity.y = 10;
+                            if (!Boss.MovingLeft) Boss.BossSprite.setTextureRect(IntRect(111, 875, 86, 60));
+                            else Boss.BossSprite.setTextureRect(IntRect(107, 952, 86, 60));
+                        }
+                    }
+                    if (Boss.hitCounter != -1) Boss.hitCounter--;
+                    if (Boss.lives <= 0 && Level != 2) {
+                        Boss.HealthBarRect.setScale(0, 0);
+                        Boss.HealthBarBG.setScale(0, 0);
+                        Boss.BossFaceSprite.setScale(0, 0);
+                        if (Boss.BossSprite.getPosition().y >= 150) {
+                            Boss.BossSprite.setTextureRect(IntRect(500, 725, 100, 64));
+                            Boss.BossSprite.move(0, -6);
+                        }
+                        else if (Boss.BossSprite.getPosition().x <= 16100) {
+                            Boss.BossSprite.setTextureRect(IntRect(800, 725, 100, 64));
+                            Boss.BossSprite.move(10, 0);
+                        }
+                        else if (Level != 2) Level = 2;
+                        if (BossMusicStarted) {
+                            BossFightMusic.stop();
+                            BackgroundMusic.play();
+                        }
+                    }
+                
+                if (!Fade1End && sonic.PlayerSprite.getPosition().x >= 16020) {
+                    if (Level == 2 && !Level2AnimStart) {
+                        LevelPassed.setScale(1, 1);
+                        FinalScore.setFillColor(Color::Black);
+                        FinalScore.setPosition(15330, 300);
+                        FinalScore.setCharacterSize(60);
+                        if (Mouse::getPosition(window).x >= 300 && Mouse::getPosition(window).x <= 900 && Mouse::getPosition(window).y >= 632 && Mouse::getPosition(window).y <= 711) {
+                            if (Mouse::isButtonPressed(Mouse::Left)) {
+                                LevelPassed.setScale(0, 0);
+                                Level2AnimStart = true;
+                                FinalScore.setCharacterSize(0);
+                            }
+                        }
+                        if (sonic.FinalScore < sonic.scoreValue) sonic.FinalScore += 7;
+                        if (sonic.FinalScore > sonic.scoreValue) sonic.FinalScore = sonic.scoreValue;
+                    }
+                    else {
+                        if (fadeOp < 255) {
+                            fadeOp += 5;
+                            FadeRect.setColor(Color(0, 0, 0, fadeOp));
+                        }
+                        else Fade1End = true;
+                    }
                 }
-                if (Boss.SceneStart) {
+
+                else if (Fade1End && Level2AnimStart && !Level2Start) {
+                    if (!Fade2Start) {
+                        //sonic.PlayerSprite.setPosition(17200, 400);
+                        sonic.PlayerSprite.setPosition(35000, 400);
+                        camera.move(20000, 0);
+                        //camera.move(2200, 0);
+                        text.move(2200, 0);
+                        lives.move(2200, 0);
+                        SonicFace.move(2200, 0);
+                        pauseMenu.move(2200, 0);
+                        FadeRect.move(2200, 0);
+                        Fade2Start = true;
+                        Level = 2;
+                        //14800 >> 35000
+                        Boss.lives = 10;
+                        Boss.BossSprite.setPosition(35522.5, 50);
+                        Boss.MovingLeft = false;
+                        Boss.Velocity.x = 15;
+                        //15400
+                    }
+                    else {
+                        if (fadeOp > 0) {
+                            fadeOp -= 5;
+                            FadeRect.setColor(Color(0, 0, 0, fadeOp));
+                        }
+                        else Level2Start = true;
+                    }
+                }
+
+                //Boss Level 2
+                if (Level == 2) {
+                    if(Boss.MovingLeft) {
+                        WreckingChainSprite.setPosition(Boss.HitBox.getPosition().x + Boss.HitBox.getSize().x / 2 - 18, 192.2);
+                        WreckingBallSprite.setPosition(Boss.HitBox.getPosition().x + Boss.HitBox.getSize().x / 2 - 18, 192.2);
+                    }
+                    else {
+                        WreckingChainSprite.setPosition(Boss.HitBox.getPosition().x + Boss.HitBox.getSize().x / 2 + 4, 189.2);
+                        WreckingBallSprite.setPosition(Boss.HitBox.getPosition().x + Boss.HitBox.getSize().x / 2 + 4, 189.2);
+                    }
+                }
+                if (Boss.TexDelay <= 30 && (!Boss.MoveStart || Boss.StartDelay)) Boss.TexDelay++;
+                if (sonic.PlayerSprite.getPosition().x >= 35700 && !Boss.FightStartLevel2)
+                    Boss.FightStartLevel2 = true;
+                /*if (Boss.SceneStart) {
                     if (!BossMusicStarted) {
                         BackgroundMusic.stop();
                         BossFightMusic.play();
@@ -1672,17 +2024,13 @@ int main()
                         Boss.BossSprite.setTextureRect(IntRect(Boss.TexNumber * 100, 800, 100, 64));
                     }
                     if (Boss.TexNumber == 5) {
-                        Boss.FightStart = true;
+                        Boss.FightStartLevel1 = true;
                         Boss.SceneStart = false;
                         Boss.TexDelay = 0;
                         Boss.TexNumber = 0;
                     }
-                }
-                if (Boss.BarCounter > 0) {
-                    Boss.BarCounter--;
-                    Boss.HealthBar -= 0.02;
-                }
-                if (Boss.FightStart && Boss.lives > 0) {
+                }*/
+                if (Boss.FightStartLevel2 && Boss.lives > 0) {
                     Boss.HealthBarRect.setScale(Boss.HealthBar, 1);
                     Boss.HealthBarBG.setScale(1, 1);
                     Boss.BossFaceSprite.setScale(0.16, 0.16);
@@ -1705,7 +2053,7 @@ int main()
                             }
                         }
                         else {
-                            if (Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(700, 725, 100, 64));
+                            if (Boss.hitCounter == -1) Boss.BossSprite.setTextureRect(IntRect(707, 725, 100, 64));
                             if (!Boss.StartDelay) {
                                 if (Boss.TexDelay >= 10) {
                                     Boss.MoveStart = true;
@@ -1753,147 +2101,78 @@ int main()
                             }
                         }
                     }
-                    if (BulletsSpawnDelay <= 300 && !SpawnStart) BulletsSpawnDelay++;
-                    if (BulletDelay <= 30 && SpawnStart) BulletDelay++;
-                    if (BulletsSpawnDelay >= 300) {
-                        SpawnStart = true;
-                        if (!BulletsPositioned) {
-                            for (int i = 0; i < 5; i++) {
-                                skyBullets[i].SkyBulletsSprite.setPosition(rand() % 1109 + 14800, -300);
-                                skyBullets[i].spawned = false;
-                                skyBullets[i].SkyBulletsSprite.setScale(0.8, 0.8);
-                                skyBullets[i].BulletColl.setScale(1, 1);
-                                skyBullets[i].TexNumber = 0;
-                            }
-                            BulletsPositioned = true;
-                        }
-                        if (BulletDelay >= 30 && BulletsSpawned < 5) {
-                            BulletDelay = 0;
-                            skyBullets[BulletsSpawned].spawned = true;
-                            BulletsSpawned++;
-                        }
-                    }
-                    for (int i = 0; i < 5; i++) {
-                        if (skyBullets[i].spawned) {
-                            if (skyBullets[i].SkyBulletsSprite.getPosition().y <= 485) {
-                                skyBullets[i].SkyBulletsSprite.move(0, 12);
-                                skyBullets[i].SkyBulletsSprite.setTextureRect(IntRect(114, 0, 114, 227));
-                            }
-                            else if (skyBullets[i].SkyBulletsSprite.getPosition().y > 485) {
-                                skyBullets[i].SkyBulletsSprite.setScale(0, 0);
-                                skyBullets[i].BulletColl.setScale(0, 0);
-                            }
-                        }
-                        skyBullets[i].BulletColl.setPosition(skyBullets[i].SkyBulletsSprite.getPosition().x + 34.4, skyBullets[i].SkyBulletsSprite.getPosition().y + 56.8);
-                        if (skyBullets[i].BulletColl.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
-                            skyBullets[i].SkyBulletsSprite.setScale(0, 0);
-                            skyBullets[i].BulletColl.setScale(0, 0);
-                            if (sonic.hitCounter == -1) sonic.lives--;
-                            sonic.hitCounter = 50;
-                            SonicHitAudio.play();
-                        }
-                    }
-                    if (SpawnStart && !skyBullets[4].SkyBulletsSprite.getScale().x) {
-                        SpawnStart = false;
-                        BulletsPositioned = false;
-                        BulletsSpawnDelay = 0;
-                        BulletsSpawned = 0;
-                    }
                 }
-                if (sonic.PlayerColl.getGlobalBounds().intersects(Boss.HitBox.getGlobalBounds()) && Boss.lives > 0) {
+                if (sonic.PlayerColl.getGlobalBounds().intersects(WreckingBallSprite.getGlobalBounds()) && Boss.lives > 0 && Level == 2) {
                     if (sonic.Velocity.y >= 0) {
                         if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
-                        if (sonic.PlayerSprite.getPosition().x > Boss.HitBox.getPosition().x + 49) sonic.hitRight = true;
+                        if (sonic.PlayerSprite.getPosition().x > WreckingBallSprite.getPosition().x + 49) sonic.hitRight = true;
                         else sonic.hitLeft = true;
                         sonic.hitCounter = 50;
-                        sonic.Velocity.y = 8;
-                        sonic.PlayerSprite.move(0, -10);
                         SonicHitAudio.play();
                     }
-                    else if (sonic.Velocity.y < 0) {
-                        if (Boss.hitCounter == -1) {
-                            Boss.lives--;
-                            Boss.hitCounter = 50;
-                            Boss.BarCounter += 50;
-                            BossDamageSound.play();
-                        }
-                        if (Boss.lives == 0) sonic.scoreValue += 1000;
-                        sonic.Velocity.y = 10;
-                        if (!Boss.MovingLeft) Boss.BossSprite.setTextureRect(IntRect(111, 875, 86, 60));
-                        else Boss.BossSprite.setTextureRect(IntRect(107, 952, 86, 60));
+                }
+                if (sonic.PlayerColl.getGlobalBounds().intersects(Boss.HitBox.getGlobalBounds()) && sonic.Velocity.y < 0) {
+                    if (Boss.hitCounter == -1) {
+                        Boss.lives--;
+                        Boss.hitCounter = 50;
+                        Boss.BarCounter += 50;
+                        BossDamageSound[rand() % 3].play();
                     }
+                    if (Boss.lives == 0) sonic.scoreValue += 1000;
+                    sonic.Velocity.y = 10;
+                    if (!Boss.MovingLeft) Boss.BossSprite.setTextureRect(IntRect(111, 875, 86, 60));
+                    else Boss.BossSprite.setTextureRect(IntRect(107, 952, 86, 60));
                 }
                 if (Boss.hitCounter != -1) Boss.hitCounter--;
-                Boss.HitBox.setPosition(Boss.BossSprite.getPosition().x + 25, Boss.BossSprite.getPosition().y + 38);
-                if (Level == 2 && sonic.PlayerSprite.getPosition().x <= 16020) {
-
-                }
-                if (Boss.lives <= 0 && Level != 2) {
-                    if (Boss.BossSprite.getPosition().y >= 150) Boss.BossSprite.move(0, -6);
-                    else if (Boss.BossSprite.getPosition().x <= 16100) Boss.BossSprite.move(10, 0);
-                    else if (Level != 2) {
-                        Level = 2;
+                if (Boss.lives <= 0 && Level == 2) {
+                    Boss.HealthBarRect.setScale(0, 0);
+                    Boss.HealthBarBG.setScale(0, 0);
+                    Boss.BossFaceSprite.setScale(0, 0);
+                    if (Boss.BossSprite.getPosition().y >= 150) {
+                        Boss.BossSprite.setTextureRect(IntRect(500, 725, 100, 64));
+                        Boss.BossSprite.move(0, -6);
                     }
+                    else if (Boss.BossSprite.getPosition().x <= 16100) {
+                        Boss.BossSprite.setTextureRect(IntRect(800, 725, 100, 64));
+                        Boss.BossSprite.move(10, 0);
+                    }
+                    else if (Level != 3) Level = 3;
                     if (BossMusicStarted) {
-                        BackgroundMusic.play();
                         BossFightMusic.stop();
-                    }
-                }
-                if (!Fade1End && sonic.PlayerSprite.getPosition().x >= 16020) {
-                    if (Level == 2 && !Level2AnimStart) {
-                        Boss.HealthBarRect.setScale(0, 0);
-                        Boss.HealthBarBG.setScale(0, 0);
-                        Boss.BossFaceSprite.setScale(0, 0);
-                        LevelPassed.setScale(1, 1);
-                        FinalScore.setFillColor(Color::Black);
-                        FinalScore.setPosition(15330, 300);
-                        FinalScore.setCharacterSize(60);
-                        if (Mouse::getPosition(window).x >= 300 && Mouse::getPosition(window).x <= 900 && Mouse::getPosition(window).y >= 632 && Mouse::getPosition(window).y <= 711) {
-                            if (Mouse::isButtonPressed(Mouse::Left)) {
-                                LevelPassed.setScale(0, 0);
-                                Level2AnimStart = true;
-                                FinalScore.setCharacterSize(0);
-                            }
-                        }
-                        if (sonic.FinalScore < sonic.scoreValue) sonic.FinalScore += 7;
-                        if (sonic.FinalScore > sonic.scoreValue) sonic.FinalScore = sonic.scoreValue;
-                    }
-                    else {
-                        if (fadeOp < 255) {
-                            fadeOp += 5;
-                            FadeRect.setColor(Color(0, 0, 0, fadeOp));
-                        }
-                        else Fade1End = true;
-                    }
-                }
-                else if (Fade1End && Level2AnimStart && !Level2Start) {
-                    if (!Fade2Start) {
-                        sonic.PlayerSprite.setPosition(17200, 400);
-                        camera.move(2200, 0);
-                        text.move(2200, 0);
-                        lives.move(2200, 0);
-                        SonicFace.move(2200, 0);
-                        pauseMenu.move(2200, 0);
-                        FadeRect.move(2200, 0);
-                        Fade2Start = true;
-                    }
-                    else {
-                        if (fadeOp > 0) {
-                            fadeOp -= 5;
-                            FadeRect.setColor(Color(0, 0, 0, fadeOp));
-                        }
-                        else Level2Start = true;
+                        BackgroundMusic.play();
                     }
                 }
 
+                if (Boss.MovingLeft)
+                    Boss.HitBox.setPosition(Boss.BossSprite.getPosition().x + 10, Boss.BossSprite.getPosition().y + 38);
+                else
+                    Boss.HitBox.setPosition(Boss.BossSprite.getPosition().x + 78, Boss.BossSprite.getPosition().y + 38);
+
+                if(Level == 2) {
+                    if (WreckingBallSprite.getRotation() == 70 && Dir) {
+                        Dir = false;
+                        Velocity = -1;
+                    }
+                    else if (WreckingBallSprite.getRotation() == 290 && !Dir) {
+                        Dir = true;
+                        Velocity = 1;
+                    }
+                    WreckingBallSprite.rotate(Velocity);
+                    WreckingChainSprite.rotate(Velocity);
+                }
+
+                if (Boss.BarCounter > 0) {
+                    Boss.BarCounter--;
+                    Boss.HealthBar -= 0.02;
+                }
                 //level 2
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < 2; i++) {
                     if (HAnimTiles[i].Direction) {
                         HAnimTiles[i].TileSprite.move(5, 0);
                         HAnimTiles[i].TileColl.move(5, 0);
                         if (sonic.PlayerSprite.getGlobalBounds().intersects(HAnimTiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < HAnimTiles[i].TileSprite.getPosition().y) {
                             sonic.PlayerSprite.move(5, 0);
-                            if ((sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStart) || (Level == 2 && sonic.PlayerSprite.getPosition().x >= 17200)) {
+                            if ((sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStartLevel1) || (Level == 2 && sonic.PlayerSprite.getPosition().x >= 17200)) {
                                 camera.move(5, 0);
                                 text.move(5, 0);
                                 lives.move(5, 0);
@@ -1907,7 +2186,7 @@ int main()
                         HAnimTiles[i].TileColl.move(-5, 0);
                         if (sonic.PlayerSprite.getGlobalBounds().intersects(HAnimTiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < HAnimTiles[i].TileSprite.getPosition().y) {
                             sonic.PlayerSprite.move(-5, 0);
-                            if ((sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStart) || (Level == 2 && sonic.PlayerSprite.getPosition().x >= 17200)) {
+                            if ((sonic.PlayerSprite.getPosition().x >= 200 && !Boss.FightStartLevel1) || (Level == 2 && sonic.PlayerSprite.getPosition().x >= 17200)) {
                                 camera.move(-5, 0);
                                 text.move(-5, 0);
                                 lives.move(-5, 0);
@@ -1923,19 +2202,22 @@ int main()
                         HAnimTiles[i].Direction = true;
                     }
                 }
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < 23; i++) {
                     if (VAnimTiles[i].Direction) {
-                        VAnimTiles[i].TileSprite.move(0, 3);
-                        VAnimTiles[i].TileColl.move(0, 3);
+                        VAnimTiles[i].TileSprite.move(0, 5);
+                        VAnimTiles[i].TileColl.move(0, 5);
                         if (sonic.PlayerSprite.getGlobalBounds().intersects(VAnimTiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < VAnimTiles[i].TileSprite.getPosition().y) {
-                            sonic.PlayerSprite.move(0, 3);
+                            sonic.PlayerSprite.move(0, 5);
                         }
+
                     }
+
                     else {
-                        VAnimTiles[i].TileSprite.move(0, -3);
-                        VAnimTiles[i].TileColl.move(0, -3);
+
+                        VAnimTiles[i].TileSprite.move(0, -5);
+                        VAnimTiles[i].TileColl.move(0, -5);
                         if (sonic.PlayerSprite.getGlobalBounds().intersects(VAnimTiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < VAnimTiles[i].TileSprite.getPosition().y) {
-                            sonic.PlayerSprite.move(0, -3);
+                            sonic.PlayerSprite.move(0, -5);
                         }
                     }
                     if (VAnimTiles[i].TileSprite.getPosition().y >= VAnimTiles[i].yEnd && VAnimTiles[i].Direction) {
@@ -1943,6 +2225,42 @@ int main()
                     }
                     else if (VAnimTiles[i].TileColl.getPosition().y <= VAnimTiles[i].yStart && !VAnimTiles[i].Direction) {
                         VAnimTiles[i].Direction = true;
+                    }
+                }
+                for (int i = 0; i < 10; i++) {
+                    if (!DisappearingTiles[i].FullDisappeared) {
+                        if (DisappearingTiles[i].dCounter <= 160) DisappearingTiles[i].dCounter++;
+                        else {
+                            DisappearingTiles[i].TileSprite.setScale(0, 0);
+                            DisappearingTiles[i].TileColl.setScale(0, 0);
+                            DisappearingTiles[i].FullDisappeared = true;
+                            DisappearingTiles[i].dCounter = 0;
+                        }
+                        if (DisappearingTiles[i].dCounter >= 100) {
+                            if (DisappearingTiles[i].AnimCounter <= 5) DisappearingTiles[i].AnimCounter++;
+                            else {
+                                DisappearingTiles[i].AnimCounter = 0;
+                                if (!DisappearingTiles[i].Disappeared) {
+                                    DisappearingTiles[i].TileSprite.setColor(Color(255, 255, 255, 0));
+                                    DisappearingTiles[i].Disappeared = true;
+                                } else {
+                                    DisappearingTiles[i].TileSprite.setColor(Color(255, 255, 255, 255));
+                                    DisappearingTiles[i].Disappeared = false;
+                                }
+                            }
+                        }
+                        else {
+                            DisappearingTiles[i].TileSprite.setColor(Color(255, 255, 255, 255));
+                        }
+                    } else {
+                        DisappearingTiles[i].AnimCounter = 0;
+                        if (DisappearingTiles[i].dCounter <= 80) DisappearingTiles[i].dCounter++;
+                        else {
+                            DisappearingTiles[i].TileSprite.setScale(1.3, 1.3);
+                            DisappearingTiles[i].TileColl.setScale(1.3, 1.3);
+                            DisappearingTiles[i].FullDisappeared = false;
+                            DisappearingTiles[i].dCounter = 0;
+                        }
                     }
                 }
 
@@ -2017,24 +2335,27 @@ int main()
             window.draw(Map);
             window.draw(Map2);
             for (int i = 0; i < 3; i++) window.draw(floatingShips[i].ShipSprite);
-            for (int i = 0; i < 9; i++) window.draw(tiles[i].TileSprite);
-            for (int i = 0; i < 13; i++) window.draw(jumppad[i].JumppadSprite);
+            for (int i = 0; i < 10; i++) window.draw(tiles[i].TileSprite);
+            for (int i = 0; i < 15; i++) window.draw(jumppad[i].JumppadSprite);
             for (int i = 0; i < 2; i++) window.draw(Red_coins[i].CoinSprite);
-            for (int i = 0; i < 64; i++) window.draw(spikes[i].SpikeSprite);
-            for (int i = 0; i < 6; i++) window.draw(tiles2[i].TileSprite2);
-            for (int i = 0; i < 24; i++) window.draw(spikes2[i].SpikeSprite2);
+            for (int i = 0; i < 171; i++) window.draw(spikes[i].SpikeSprite);
+            for (int i = 0; i < 6; i++) window.draw(tiles2[i].TileSprite);
+            for (int i = 0; i < 68; i++) window.draw(spikes2[i].SpikeSprite);
+            for (int i = 0; i < 82; i++) window.draw(animespikes2[i].SpikeSprite2);
             for (int i = 0; i < 320; i++) window.draw(coins[i].CoinSprite);
+            for (int i = 0; i < 6; i++) window.draw(DisappearingTiles[i].TileSprite);
             for (int i = 0; i < 8; i++) {
                 window.draw(Vertical_tiles_right[i].Vertical_Tiles_sprite);
                 window.draw(Vertical_tiles_left[i].Vertical_Tiles_sprite);
             }
-            for (int i = 0; i < 5; i++) {
-                window.draw(HAnimTiles[i].TileSprite);
-                window.draw(VAnimTiles[i].TileSprite);
-            }
-            for (int i = 0; i < 2; i++) window.draw(enemies[i].EnemySprite);
-            for (int i = 0; i < 3; i++) window.draw(enemies2[i].EnemySprite);
+            for (int i = 0; i < 2; i++) window.draw(HAnimTiles[i].TileSprite);
+            for (int i = 0; i < 23; i++)window.draw(VAnimTiles[i].TileSprite);
+            for (int i = 0; i < 2; i++) window.draw(Worms[i].EnemySprite);
+            for (int i = 0; i < 3; i++) window.draw(Crabs[i].EnemySprite);
+            for (int i = 0; i < 2; i++) window.draw(Enemy3[i].EnemySprite);
             window.draw(Boss.BossSprite);
+            window.draw(WreckingBallSprite);
+            window.draw(WreckingChainSprite);
             //window.draw(Boss.HitBox);
             window.draw(sonic.PlayerSprite);
             for (int i = 0; i < 5; i++) window.draw(skyBullets[i].SkyBulletsSprite);
@@ -2057,23 +2378,58 @@ int main()
     return 0;
 }
 
+void DisappearingTilesd(int index, int X_position, int Y_position, int delay) {
+    DisappearingTiles[index].TileSprite.setPosition(X_position, Y_position);
+    DisappearingTiles[index].TileColl.setPosition(X_position, Y_position - 10);
+    DisappearingTiles[index].dCounter = delay;
+}
+
 void HAnimTiles_pos(int index, int X_pos, int Y_pos, int start, int end) {
     HAnimTiles[index].TileSprite.setPosition(X_pos, Y_pos);
-    HAnimTiles[index].TileColl.setPosition(X_pos, Y_pos);
+    HAnimTiles[index].TileColl.setPosition(X_pos, Y_pos - 9);
     HAnimTiles[index].xStart = start;
     HAnimTiles[index].xEnd = end;
 }
 
 void VAnimTiles_pos(int index, int X_pos, int Y_pos, int start, int end) {
     VAnimTiles[index].TileSprite.setPosition(X_pos, Y_pos);
-    VAnimTiles[index].TileColl.setPosition(X_pos, Y_pos);
+    VAnimTiles[index].TileColl.setPosition(X_pos, Y_pos - 9);
     VAnimTiles[index].yStart = start;
     VAnimTiles[index].yEnd = end;
 }
+void animatedspikes_pos(int index, int X_pos, int Y_pos, int start, int end) {
+    animespikes2[index].SpikeSprite2.setPosition(X_pos, Y_pos);
+    animespikes2[index].yStart = start;
+    animespikes2[index].yEnd = end;
+}
 
 void DrawAnimTiles() {
-    HAnimTiles_pos(0, 17500, 500, 17500, 18500);
-    VAnimTiles_pos(0, 18500, 700, 200, 500);
+    HAnimTiles_pos(0, 21720, 240, 21720, 22545);
+    HAnimTiles_pos(1, 23700, 240, 22874, 23700);
+    VAnimTiles_pos(0, 24500, 700, 100, 530);
+    VAnimTiles_pos(1, 25200, 0, 100, 530);
+    VAnimTiles_pos(2, 25900, 700, 100, 530);
+    VAnimTiles_pos(3, 26600, 0, 100, 530);
+    VAnimTiles_pos(4, 28000, 0, 0, 480);
+    VAnimTiles_pos(5, 28300, 0, 0, 480);
+    VAnimTiles_pos(6, 28600, 0, 0, 480);
+    VAnimTiles_pos(7, 28900, 0, 0, 480);
+    VAnimTiles_pos(8, 29200, 0, 0, 480);
+    VAnimTiles_pos(9, 29500, 0, 0, 480);
+    VAnimTiles_pos(10, 29800, 0, 0, 480);
+    VAnimTiles_pos(11, 30100, 0, 0, 480);
+    VAnimTiles_pos(12, 30400, 0, 0, 480);
+    VAnimTiles_pos(13, 30700, 0, 0, 480);
+    VAnimTiles_pos(14, 30900, 0, 0, 480);
+    VAnimTiles_pos(15, 31200, 0, 0, 480);
+    VAnimTiles_pos(16, 31500, 0, 0, 480);
+    VAnimTiles_pos(17, 31800, 0, 0, 480);
+    VAnimTiles_pos(18, 32100, 0, 0, 480);
+    VAnimTiles_pos(19, 32400, 0, 0, 480);
+    VAnimTiles_pos(20, 32700, 0, 0, 480);
+    VAnimTiles_pos(21, 33000, 0, 0, 480);
+    VAnimTiles_pos(22, 33300, 0, 0, 480);
+    //328.9
 }
 
 void setTilePos(FloatingTiles& tile, int x, int y, int x2, int y2) {
@@ -2249,6 +2605,8 @@ void Draw_jumppad() {
     jumppad[10].JumppadSprite.setPosition(10500, 590);
     jumppad[11].JumppadSprite.setPosition(10750, 590);
     jumppad[12].JumppadSprite.setPosition(11000, 590);
+    jumppad[13].JumppadSprite.setPosition(18200, 590);
+    jumppad[14].JumppadSprite.setPosition(21000, 590);
 }
 
 void draw_tiles() {
@@ -2261,7 +2619,7 @@ void draw_tiles() {
     setTilePos(tiles[6], 7025, 240, 7025, 240);
     setTilePos(tiles[7], 7350, 240, 7350, 240);
     setTilePos(tiles[8], 7675, 240, 7675, 240);
-
+    setTilePos(tiles[9], 21400, 240, -46, -46);
 }
 void draw_spikes() {
     PosRowSpikes(0, 28, 3400, 575);
@@ -2272,7 +2630,12 @@ void draw_spikes() {
     PosRowSpikes(55, 58, 12100, 575);
     PosRowSpikes(58, 61, 12400, 575);
     PosRowSpikes(61, 64, 12700, 575);
-    for (int i = 0; i < 30; i++) spikes2[i].SpikeSprite2.setPosition(10000 + (i * 50), 113);
+    PosRowSpikes(64, 94, 18500, 575);
+    PosRowSpikes(94, 100, 21400, 575);
+    PosRowSpikes(100, 131, 21800, 575);
+    PosRowSpikes(131, 171, 24500, 575);
+    for (int i = 0; i < 24; i++) spikes2[i].SpikeSprite.setPosition(10005 + (i * 50), 113);
+    for (int i = 0; i < 44; i++) spikes2[i + 24].SpikeSprite.setPosition(24500 + (i * 65), 0);
 }
 
 void drawVerticalTile(int i, int x, int y) {
@@ -2293,45 +2656,68 @@ void draw_vertical_tiles() {
     drawVerticalTile(7, 12625, 280);
 }
 
-void enemy1_coordinate(int index, int X_pos, int Y_pos, int start, int end) {
-    enemies[index].EnemySprite.setPosition(X_pos, Y_pos);
-    enemies[index].xStart = start;
-    enemies[index].xEnd = end;
-    enemies[index].Hit = false;
-    enemies[index].DamageDelay = 0;
+void WormsPos(int index, int X_pos, int Y_pos, int start, int end) {
+    Worms[index].EnemySprite.setPosition(X_pos, Y_pos);
+    Worms[index].xStart = start;
+    Worms[index].xEnd = end;
+    Worms[index].Hit = false;
+    Worms[index].DamageDelay = 0;
 }
-void enemy2_coordinate(int index, int X_pos, int Y_pos, int start, int end) {
-    enemies2[index].EnemySprite.setPosition(X_pos, Y_pos);
-    enemies2[index].xStart = start;
-    enemies2[index].xEnd = end;
-    enemies2[index].Hit = false;
-    enemies2[index].DamageDelay = 0;
+void CrabsPos(int index, int X_pos, int Y_pos, int start, int end) {
+    Crabs[index].EnemySprite.setPosition(X_pos, Y_pos);
+    Crabs[index].xStart = start;
+    Crabs[index].xEnd = end;
+    Crabs[index].Hit = false;
+    Crabs[index].DamageDelay = 0;
+}
+void Enemy3Pos(int index, int X_pos, int Y_pos, int start, int end) {
+    Enemy3[index].EnemySprite.setPosition(X_pos, Y_pos);
+    Enemy3[index].xStart = start;
+    Enemy3[index].xEnd = end;
+    Enemy3[index].Hit = false;
+    Enemy3[index].DamageDelay = 0;
 }
 void draw_enemies() {
-    enemy1_coordinate(0, 1500, 580, 500, 1100);
-    enemy2_coordinate(0, 1500, 585, 1500, 2500);
-    enemy1_coordinate(1, 8300, 585, 8100, 8500);
-    enemy2_coordinate(1, 10000, 585, 10000, 10500);
-    enemy2_coordinate(2, 10550, 585, 10550, 11000);
+    WormsPos(0, 1500, 580, 500, 1100);
+    WormsPos(1, 8300, 585, 8100, 8500);
+    CrabsPos(0, 1500, 585, 1500, 2500);
+    CrabsPos(1, 10000, 585, 10000, 10500);
+    CrabsPos(2, 10550, 585, 10550, 11000);
+    Enemy3Pos(0, 6020, 166, 6020, 6887.5);
+    Enemy3Pos(1, 7500, 166, 7000, 7967);
+    //867.5
+}
+
+void DrawDisappearingTiles() {
+    DisappearingTilesd(0, 18500, 250, 20);
+    DisappearingTilesd(1, 18828, 250, 80);
+    DisappearingTilesd(2, 19157, 250, 110);
+    DisappearingTilesd(3, 19485, 250, 40);
+    DisappearingTilesd(4, 19814, 250, 160);
+    DisappearingTilesd(5, 20143, 250, 0);   
 }
 
 void area2() {
-    for (int i = 0; i < 30; i++) {
-        tiles2[i].TileSprite2.setTexture(TileTx2);
-        tiles2[i].TileSprite2.setScale(1.3, 1.3);
-        tiles2[i].TileColl2.setSize(Vector2f(298.9f, 1.f));
+    for (int i = 0; i < 6; i++) {
+        tiles2[i].TileSprite.setTexture(TileTx2);
+        tiles2[i].TileSprite.setScale(1.3, 1.3);
+        tiles2[i].TileColl.setSize(Vector2f(298.9f, 1.f));
     }
-    for (int i = 0; i < 30; i++) tiles2[i].TileSprite2.setPosition(10000 + (i * 180), 60);
+    for (int i = 0; i < 6; i++) tiles2[i].TileSprite.setPosition(10000 + (i * 180), 60);
 
-    for (int i = 0; i < 24; i++) {
-        spikes2[i].SpikeSprite2.setTexture(SpikeTex2);
-        spikes2[i].SpikeSprite2.setTextureRect(IntRect(0, 0, 142, 163));
-        spikes2[i].SpikeSprite2.setScale(0.5f, 0.5f);
+    for (int i = 0; i < 76; i++) {
+        spikes2[i].SpikeSprite.setTexture(SpikeTex2);
+        spikes2[i].SpikeSprite.setTextureRect(IntRect(0, 0, 142, 163));
+        spikes2[i].SpikeSprite.setScale(0.5f, 0.5f);
     }
 }
-//leaderboard finctions defenitions
-
-
+void area3() {
+    for (int i = 0; i < 20; i++) animatedspikes_pos(i, 28000 + (i * 65), 50, 50, 521);
+    for (int i = 0; i < 20; i++) animatedspikes_pos(i + 20, 29400 + (i * 65), 50, 50, 521);
+    for (int i = 0; i < 20; i++) animatedspikes_pos(i + 40, 30800 + (i * 65), 50, 50, 521);
+    for (int i = 0; i < 22; i++) animatedspikes_pos(i + 60, 32200 + (i * 65), 50, 50, 521);
+}
+//leaderboard fUnctions defenitions
 
 // push the into the leader board map from the code after the game play
 void pushScore(pair<int, string> score) {
