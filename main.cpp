@@ -19,7 +19,7 @@ struct Player {
     RectangleShape PlayerColl, LeftColl, RightColl;
     Vector2f Velocity;
     int RightTexNumber = 0, IdleTexNumber = 0, TexDelay = 0, IdleDelay = 0, HitTxDelay = 0, LeftTexNumber = 22, HitCounter2 = 5;
-    int scoreValue = 0, lives = 20, hitCounter = -1, deathDealy = 0, FinalScore = 0;
+    int scoreValue = 0, lives = 3, hitCounter = -1, deathDealy = 0, FinalScore = 0;
     bool start = false, Running = false, idle1 = false, txToggle = false, onTile = false;
     bool on_ground = true, hitRight = false, hitLeft = false, RunningSound = false;
 };
