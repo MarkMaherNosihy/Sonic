@@ -8,7 +8,8 @@
 #include<sstream>
 #include<cmath>
 #include<fstream>
-
+#define fa(i, a, n) for(int (i) = (a); (i) < (n); (i)++)
+#define fb(i, n, a) for(int (i) = (n); (i) >= (a); (i)--)
 using namespace sf;
 using namespace std;
 
@@ -20,7 +21,7 @@ struct Player {
     Vector2f Velocity;
     int RightTexNumber = 0, IdleTexNumber = 0, TexDelay = 0, IdleDelay = 0, HitTxDelay = 0, LeftTexNumber = 22, HitCounter2 = 5;
     int scoreValue = 0, lives = 3, hitCounter = -1, deathDealy = 0, FinalScore = 0;
-    bool start = false, Running = false, idle1 = false, txToggle = false, onTile = false;
+    bool start = false, Running = false, IdleDirectionL = false, txToggle = false, onTile = false;
     bool on_ground = true, hitRight = false, hitLeft = false, RunningSound = false;
 };
 //Boss
@@ -32,7 +33,7 @@ struct BossSt {
     Vector2f Velocity;
     Texture BossFaceTx;
     Sprite BossFaceSprite;
-    int hitCounter = 0, TexDelay = 0, TexNumber = 0, lives = 10, BarCounter = 0;
+    int hitCounter = 0, TexDelay = 0, TexNumber = 0, lives = 3, BarCounter = 0;
     double HealthBar = 10;
     bool SceneStart = false, FightStartLevel1 = false, FightStartLevel2 = false, MoveStart = false, MovingLeft = true, StartDelay = false;
     bool Level1FightEnd = false, Level2FightEnd = false;
@@ -83,7 +84,7 @@ struct AnimatedTiles {
 struct Coin {
     Sprite CoinSprite;
     int TexNumber = 0, TexDelay = 0;
-} coins[400];
+} coins[425];
 
 struct Red_Coin {
     Sprite CoinSprite;
@@ -99,13 +100,10 @@ struct Enemies {
 } Worms[20], Crabs[20], Enemy3[20];
 
 struct Spikes {
-    Texture SpikeTex;
     Sprite SpikeSprite;
-    int TexNum = 0, TexDelay = 0;
 }spikes[300];
 
 struct Spikes2 {
-    Texture SpikeTex2;
     Sprite SpikeSprite;
 }spikes2[76];
 
@@ -147,7 +145,7 @@ void loadLDFromFile();
 
 
 // function
-void setTilePos(FloatingTiles& tile, int x, int y, int x1 = 0, int x2 = 0);
+void setTilePos(FloatingTiles& tile, int x, int y);
 void PosRowCoins(int First_index, int Last_index, int X_position, int Y_Position);
 void SingleCoinPos(int, int, int);
 void Moving_in_Y_Axis(int, int, int, int, int);
@@ -194,7 +192,7 @@ int main()
     Text LDNames[10];
     Text scores[10];
 
-    for (int i = 0; i < 10; i++)
+    fa(i, 0, 10)
     {
         LDNames[i].setFont(font);
         scores[i].setFont(font);
@@ -490,7 +488,7 @@ int main()
         }
 
         multimap<int, string>::iterator it;
-        
+
         //Press on leaderboard
         if (Sensor.getGlobalBounds().intersects(leaderBarSprite.getGlobalBounds()) && Mouse::isButtonPressed(Mouse::Left) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite
             || selection == 3 && Keyboard::isKeyPressed(Keyboard::Enter) && SettingsClosed && CreditClosed && LeaderClosed && !canWrite) {
@@ -575,7 +573,10 @@ int main()
         }
 
         //credit animation
-        if (creditSprite.getPosition().x >= -4) CreditStopAnim = true;
+        if (creditSprite.getPosition().x >= -4) {
+            CreditStopAnim = true;
+            if (creditSprite.getPosition().x == -3) creditSprite.move(3, 0);
+        }
         if (!CreditStopAnim && !CreditClosed) creditSprite.move(7, 0);
         if (creditSprite.getPosition().x <= -1200) CBackAnim = false;
 
@@ -583,7 +584,10 @@ int main()
 
 
         // setting animation 
-        if (SettingsBackgroundSprite.getPosition().x >= -4) SettingStopAnim = true;
+        if (SettingsBackgroundSprite.getPosition().x >= -4) {
+            SettingStopAnim = true;
+            if (SettingsBackgroundSprite.getPosition().x == -3) SettingsBackgroundSprite.move(3, 0);
+        }
 
         if (!SettingStopAnim && !SettingsClosed) SettingsBackgroundSprite.move(7, 0);
 
@@ -591,7 +595,10 @@ int main()
 
         if (SBackAnim && SettingsClosed) SettingsBackgroundSprite.move(-7, 0);
         //leaderboard animation
-        if (leaderSprite.getPosition().x >= -4) LeaderStopAnim = true;
+        if (leaderSprite.getPosition().x >= -4) {
+            LeaderStopAnim = true;
+            if (leaderSprite.getPosition().x == -3) leaderSprite.move(3, 0);
+        }
         if (!LeaderStopAnim && !LeaderClosed) leaderSprite.move(7, 0);
         if (leaderSprite.getPosition().x <= -1200) LBackAnim = false;
         if (LBackAnim && LeaderClosed) leaderSprite.move(-7, 0);
@@ -780,7 +787,7 @@ int main()
             Menu.draw(leaderSprite);
             if (LeaderStopAnim)
             {
-                for (i = 0; i < leaderBoard.size(); i++)
+                fa(i, 0, leaderBoard.size())
                 {
                     if (i >= 10)
                         break;
@@ -809,7 +816,7 @@ int main()
         if (!SettingsClosed) {
             Menu.draw(SettingsBackgroundSprite);
             if (backIsVisible) Menu.draw(backSprite);
-            if(SettingStopAnim) Menu.draw(slider);
+            if (SettingStopAnim) Menu.draw(slider);
         }
         Menu.display();
     }
@@ -907,7 +914,7 @@ int main()
         Texture ShipTx;
         ShipTx.loadFromFile("Assets/Textures/Tyara.png");
 
-        for (int i = 0; i < 3; i++) {
+        fa(i, 0, 3) {
             floatingShips[i].ShipSprite.setTexture(ShipTx);
             floatingShips[i].ShipSprite.setPosition(5000 * i, 100 + (i * 50));
             floatingShips[i].ShipSprite.setScale(0.4, 0.4);
@@ -937,7 +944,7 @@ int main()
 
         ExplosionTx.loadFromFile("Assets/Textures/Explosion.png");
         int ExplosionsSpawned = 0, SpawnCounter = 0;
-        for (int i = 0; i < 40; i++) {
+        fa(i, 0, 40) {
             Explosion[i].ExplosionSprite.setTexture(ExplosionTx);
             Explosion[i].ExplosionSprite.setTextureRect(IntRect(Explosion[i].colomnTxNum * 130, Explosion[i].rowTxNum * 114, 130, 114));
             Explosion[i].ExplosionSprite.setScale(0, 0);
@@ -969,7 +976,7 @@ int main()
         SkyBulletTx.loadFromFile("Assets/Textures/SkyBullet.png");
         int BulletsSpawnDelay = 0, BulletDelay = 0, BulletsSpawned = 0;
         bool SpawnStart = false, BulletsPositioned = false;
-        for (int i = 0; i < 5; i++) {
+        fa(i, 0, 5) {
             skyBullets[i].SkyBulletsSprite.setTexture(SkyBulletTx);
             skyBullets[i].SkyBulletsSprite.setTextureRect(IntRect(skyBullets[i].TexNumber * 114, 0, 114, 227));
             skyBullets[i].SkyBulletsSprite.setScale(0.8, 0.8);
@@ -994,25 +1001,25 @@ int main()
         //
 
         ///Jumppad Setting Texture
-        for (int i = 0; i < 30; i++) {
+        fa(i, 0, 30) {
             jumppad[i].JumppadSprite.setTexture(JumppadTx);
             jumppad[i].JumppadSprite.setTextureRect(IntRect(jumppad[i].Texnumber * 80, 543, 80, 66));
         }
 
         ///Floating Tiles Setting Texture
-        for (int i = 0; i < 60; i++) {
+        fa(i, 0, 60) {
             tiles[i].TileSprite.setTexture(TilesTx);
             tiles[i].TileSprite.setScale(1.3, 1.3);
             tiles[i].TileColl.setSize(Vector2f(298.9f, 1.f));
             tiles[i].LowerTileColl.setSize(Vector2f(298.9f, 1.f));
             //329  60
         }
-        
+
         //
         // vertical Walls setting 
 
         // for left;
-        for (int i = 0; i < 10; i++) {
+        fa(i, 0, 10) {
             Vertical_tiles_left[i].Vertical_Tiles_sprite.setTexture(vertical_tile_L);
             Vertical_tiles_left[i].Vertical_Tiles_sprite.setTextureRect(IntRect(0, 0, 46, 253));
             Vertical_tiles_right[i].Vertical_Tiles_sprite.setTexture(vertical_tile_R);
@@ -1024,7 +1031,7 @@ int main()
         }
 
         ///Enemies Setting Texture
-        for (int i = 0; i < 20; i++) {
+        fa(i, 0, 20) {
             Worms[i].EnemySprite.setTexture(Enemies);
             Worms[i].EnemyColl.setSize(Vector2f(110.f, 50.f));
             Worms[i].EnemyColl.setScale(Vector2f(1, 1));
@@ -1046,7 +1053,7 @@ int main()
         //
 
         //Spikes system
-        for (int i = 0; i < 200; i++) {
+        fa(i, 0, 200) {
             spikes[i].SpikeSprite.setTexture(SpikeTex);
             spikes[i].SpikeSprite.setTextureRect(IntRect(0, 0, 142, 163));
             spikes[i].SpikeSprite.setScale(0.5f, 0.5f);
@@ -1178,27 +1185,27 @@ int main()
         tiles[11].TileColl.setPosition(tiles[11].TileSprite.getPosition().x + 25, tiles[11].TileSprite.getPosition().y - 15);
 
         //level 2
-        for (int i = 0; i < 2; i++) {
+        fa(i, 0, 2) {
             HAnimTiles[i].TileSprite.setTexture(TilesTx);
             HAnimTiles[i].TileSprite.setScale(1.3, 1.3);
             HAnimTiles[i].TileColl.setSize(Vector2f(298.9f, 1.f));
 
         }
-        for (int i = 0; i < 23; i++)
+        fa(i, 0, 23)
         {
             VAnimTiles[i].TileSprite.setTexture(TilesTx);
             VAnimTiles[i].TileSprite.setScale(1.3, 1.3);
             VAnimTiles[i].TileColl.setSize(Vector2f(298.9f, 1.f));
         }
 
-        for (int i = 0; i < 10; i++) {
+        fa(i, 0, 10) {
             DisappearingTiles[i].TileSprite.setTexture(TilesTx);
             DisappearingTiles[i].TileSprite.setScale(1.3, 1.3);
             DisappearingTiles[i].TileColl.setSize(Vector2f(298.9f, 1.f));
         }
         DrawDisappearingTiles();
 
-        for (int i = 0; i < 100; i++) {
+        fa(i, 0, 100) {
             animespikes2[i].SpikeSprite2.setTexture(SpikeTex2);
             animespikes2[i].SpikeSprite2.setTextureRect(IntRect(0, 0, 142, 163));
             animespikes2[i].SpikeSprite2.setScale(0.5f, 0.5f);
@@ -1243,7 +1250,7 @@ int main()
             if (sonic.lives > 0 && !paused) {
                 if (sonic.TexDelay <= 3) sonic.TexDelay++;
                 if (sonic.IdleDelay <= 10) sonic.IdleDelay++;
-                for (int i = 0; i < 400; i++) {
+                fa(i, 0, 420) {
                     if (coins[i].TexDelay <= 3) coins[i].TexDelay++;
                     if (coins[i].TexDelay >= 3) {
                         coins[i].TexDelay = 0;
@@ -1258,7 +1265,7 @@ int main()
                     }
                 }
                 //Red Coins
-                for (int i = 0; i < 6; i++) {
+                fa(i, 0, 6) {
                     if (Red_coins[i].TexDelay <= 3)Red_coins[i].TexDelay++;
                     if (Red_coins[i].TexDelay >= 3) {
                         Red_coins[i].TexDelay = 0;
@@ -1276,10 +1283,10 @@ int main()
 
                 //Spikes System
                // cout << sonic.hitCounter << '\n';
-                for (int i = 0; i < 180; i++) {
+                fa(i, 0, 180) {
                     if (sonic.hitCounter == -1) {
                         if (spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
-                            if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
+                            sonic.lives--;
                             if (sonic.PlayerSprite.getPosition().x > spikes[i].SpikeSprite.getPosition().x) {
                                 sonic.hitRight = true;
                                 sonic.RightTexNumber = 4;
@@ -1299,26 +1306,40 @@ int main()
                         }
                     }
                     if (i < 76) {
-                        if (spikes2[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
-                            if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
-                            if (sonic.PlayerSprite.getPosition().x > spikes2[i].SpikeSprite.getPosition().x) sonic.hitRight = true;
-                            else sonic.hitLeft = true;
-                            sonic.hitCounter = 50;
-                            sonic.Velocity.y = -7;
-                            sonic.PlayerSprite.move(0, 10);
-                            SpikeDeathAudio.play();
+                        if (sonic.hitCounter == -1) {
+                            if (spikes2[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
+                                sonic.lives--;
+                                if (sonic.PlayerSprite.getPosition().x > spikes2[i].SpikeSprite.getPosition().x) {
+                                    sonic.hitRight = true;
+                                    sonic.RightTexNumber = 4;
+                                    sonic.PlayerSprite.setTextureRect(IntRect(sonic.RightTexNumber * 48.2, 290, 48.2, 34));
+                                }
+                                else {
+                                    sonic.hitLeft = true;
+                                    sonic.LeftTexNumber = 0;
+                                    sonic.PlayerSprite.setTextureRect(IntRect(sonic.LeftTexNumber * 48.2, 246, 48.2, 34));
+                                }
+                                sonic.hitCounter = 300;
+                                sonic.Velocity.y = -7;
+                                sonic.HitTxDelay = 0;
+                                sonic.HitCounter2 = 0;
+                                sonic.PlayerSprite.move(0, 10);
+                                SpikeDeathAudio.play();
+                            }
                         }
                     }
                 }
 
-                for (int i = 0; i < 100; i++) {
-                    if (animespikes2[i].SpikeSprite2.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
-                        if (!sonic.hitLeft && !sonic.hitRight && sonic.hitCounter == -1) sonic.lives--;
-                        if (sonic.PlayerSprite.getPosition().x > animespikes2[i].SpikeSprite2.getPosition().x) sonic.hitRight = true;
-                        else sonic.hitLeft = true;
-                        sonic.hitCounter = 50;
-                        sonic.Velocity.y = -7;
-                        SpikeDeathAudio.play();
+                fa(i, 0, 100) {
+                    if (sonic.hitCounter == -1) {
+                        if (animespikes2[i].SpikeSprite2.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
+                            sonic.lives--;
+                            if (sonic.PlayerSprite.getPosition().x > animespikes2[i].SpikeSprite2.getPosition().x) sonic.hitRight = true;
+                            else sonic.hitLeft = true;
+                            sonic.hitCounter = 300;
+                            sonic.Velocity.y = -7;
+                            SpikeDeathAudio.play();
+                        }
                     }
                     if (animespikes2[i].Direction) animespikes2[i].SpikeSprite2.move(0, 5);
                     else animespikes2[i].SpikeSprite2.move(0, -5);
@@ -1336,27 +1357,27 @@ int main()
                     sonic.PlayerSprite.setColor(Color(255, 0, 0, 220));
                 }
                 else if (sonic.hitCounter == -1) sonic.PlayerSprite.setColor(Color::White);
-                
+
                 //Idle Animation
                 if (!Keyboard::isKeyPressed(Keyboard::D) && !Keyboard::isKeyPressed(Keyboard::A) && !Keyboard::isKeyPressed(Keyboard::W) && !Keyboard::isKeyPressed(Keyboard::Space)
                     && !Keyboard::isKeyPressed(Keyboard::Right) && !Keyboard::isKeyPressed(Keyboard::Left) && !Keyboard::isKeyPressed(Keyboard::Up) && !sonic.hitLeft && !sonic.hitRight) {
-                    sonic.Running = false;
                     sonic.txToggle = false;
                     sonic.RunningSound = false;
                     sonic.Velocity.x = 0;
                     if (sonic.IdleDelay >= 10) {
                         sonic.IdleDelay = 0;
-                        if (sonic.IdleTexNumber == 7) sonic.idle1 = true;
-                        else if (sonic.IdleTexNumber == 0) sonic.idle1 = false;
-                        if (sonic.idle1) sonic.IdleTexNumber--;
+                        if (sonic.IdleTexNumber == 7) sonic.IdleDirectionL = true;
+                        else if (sonic.IdleTexNumber == 0) sonic.IdleDirectionL = false;
+                        if (sonic.IdleDirectionL) sonic.IdleTexNumber--;
                         else sonic.IdleTexNumber++;
-                        if (!sonic.Running) sonic.PlayerSprite.setTextureRect(IntRect(sonic.IdleTexNumber * 48.75, 0 * 60, 48.75, 51));
+                        sonic.PlayerSprite.setTextureRect(IntRect(sonic.IdleTexNumber * 48.75, 0 * 60, 48.75, 51));
                     }
                 }
 
                 if (Mouse::isButtonPressed(Mouse::Left)) {
                     std::cout << Mouse::getPosition(window).x << ' ' << Mouse::getPosition(window).y << '\n';
                 }
+
                 //Moving Right
                 if (!Boss.SceneStart) {
                     if ((Boss.FightStartLevel1 && sonic.PlayerSprite.getPosition().x < 15900 && !Boss.Level1FightEnd) || (Boss.FightStartLevel2 && sonic.PlayerSprite.getPosition().x < 36600) || (!Boss.FightStartLevel1 && Level == 1) || (Level == 2 && ((!Boss.FightStartLevel2 && Boss.Level1FightEnd) || Boss.Level2FightEnd))) {
@@ -1371,9 +1392,7 @@ int main()
                                 if (sonic.TexDelay >= 3) {
                                     sonic.RightTexNumber++;
                                     sonic.TexDelay = 0;
-                                    if (sonic.Running) if (sonic.RightTexNumber >= 22) sonic.RightTexNumber = 19;
-                                    else sonic.RightTexNumber = (sonic.RightTexNumber % 12) + 12;
-                                    if (sonic.RightTexNumber >= 17) sonic.Running = true;
+                                    if (sonic.RightTexNumber >= 22) sonic.RightTexNumber = 19;
                                     sonic.PlayerSprite.setTextureRect(IntRect(sonic.RightTexNumber * 48.86, 1 * 60, 48.86, 51));
                                 }
                             }
@@ -1389,9 +1408,6 @@ int main()
                             }
                         }
                     }
-                    else {
-                        sonic.Velocity.x = 0;
-                    }
                     //Moving Left
                     if ((Boss.FightStartLevel1 && sonic.PlayerSprite.getPosition().x >= 14790 && !Level2Start) || (Boss.FightStartLevel2 && sonic.PlayerSprite.getPosition().x >= 35500) || (!Boss.FightStartLevel1 && Level == 1) || (Level == 2 && !Boss.FightStartLevel2 && Level2Start)) {
                         if ((Keyboard::isKeyPressed(Keyboard::Key::A) || Keyboard::isKeyPressed(Keyboard::Left)) && !sonic.hitLeft && !sonic.hitRight && ((sonic.PlayerSprite.getPosition().x > 20 && !Level2Start) || (Level2Start && sonic.PlayerSprite.getPosition().x > 17000))) {
@@ -1405,9 +1421,7 @@ int main()
                                 if (sonic.TexDelay >= 3) {
                                     sonic.LeftTexNumber--;
                                     sonic.TexDelay = 0;
-                                    if (sonic.Running) if (sonic.LeftTexNumber <= 0) sonic.LeftTexNumber = 3;
-                                    else if (sonic.LeftTexNumber <= 0) sonic.LeftTexNumber = 12;
-                                    if (sonic.LeftTexNumber <= 6) sonic.Running = true;
+                                    if (sonic.LeftTexNumber <= 0) sonic.LeftTexNumber = 3;
                                     sonic.PlayerSprite.setTextureRect(IntRect(sonic.LeftTexNumber * 48.86, 3 * 60, 48.86, 51));
                                 }
                             }
@@ -1417,9 +1431,7 @@ int main()
                                 if (sonic.TexDelay >= 3) {
                                     sonic.LeftTexNumber--;
                                     sonic.TexDelay = 0;
-                                    if (sonic.txToggle) if (sonic.LeftTexNumber <= 12) sonic.LeftTexNumber = 22;
-                                    else if (sonic.LeftTexNumber <= 12) sonic.LeftTexNumber = 22;
-                                    if (sonic.LeftTexNumber <= 17) sonic.txToggle = true;
+                                    if (sonic.LeftTexNumber <= 12) sonic.LeftTexNumber = 22;
                                     sonic.PlayerSprite.setTextureRect(IntRect(sonic.LeftTexNumber * 48.86, 3 * 60, 48.86, 51));
                                 }
                             }
@@ -1462,7 +1474,7 @@ int main()
                     }
                 }
                 //Enemy System
-                for (int i = 0; i < 20; i++) {
+                fa(i, 0, 20) {
                     if (Worms[i].TexDelay <= 8) Worms[i].TexDelay++;
                     if (Worms[i].MovingRight) {
                         Worms[i].EnemySprite.move(4, 0);
@@ -1671,7 +1683,7 @@ int main()
                 }
 
                 // Jumppad System
-                for (int i = 0; i < 30; i++) {
+                fa(i, 0, 30) {
                     if (jumppad[i].delay <= 2) jumppad[i].delay++;
                     if (sonic.PlayerColl.getGlobalBounds().intersects(jumppad[i].JumppadSprite.getGlobalBounds())) {
                         sonic.Velocity.y = 15;
@@ -1709,9 +1721,9 @@ int main()
                         JumpSound.play();
                     }
                 }
-                else if(sonic.HitCounter2 == 5) {
+                else if (sonic.HitCounter2 == 5) {
                     bool found = false;
-                    for (int i = 0; i < 60; i++) {
+                    fa(i, 0, 60) {
                         if (sonic.PlayerColl.getGlobalBounds().intersects(tiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < tiles[i].TileSprite.getPosition().y) {
                             found = true;
                             sonic.onTile = true;
@@ -1719,7 +1731,7 @@ int main()
                         }
                         if (sonic.PlayerColl.getGlobalBounds().intersects(tiles[i].LowerTileColl.getGlobalBounds()) && !sonic.on_ground) sonic.Velocity.y = -2;
                     }
-                    for (int i = 0; i < 10; i++)
+                    fa(i, 0, 10)
                     {
                         if (sonic.PlayerColl.getGlobalBounds().intersects(Vertical_tiles_left[i].tilecole.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < Vertical_tiles_left[i].tilecole.getPosition().y) {
                             found = true;
@@ -1732,21 +1744,21 @@ int main()
                             sonic.Velocity.y = 0;
                         }
                     }
-                    for (int i = 0; i < 2; i++) {
+                    fa(i, 0, 2) {
                         if (sonic.PlayerColl.getGlobalBounds().intersects(HAnimTiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < HAnimTiles[i].TileSprite.getPosition().y) {
                             found = true;
                             sonic.onTile = true;
                             sonic.Velocity.y = 0;
                         }
                     }
-                    for (int i = 0; i < 23; i++) {
+                    fa(i, 0, 23) {
                         if (sonic.PlayerColl.getGlobalBounds().intersects(VAnimTiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < VAnimTiles[i].TileSprite.getPosition().y) {
                             found = true;
                             sonic.onTile = true;
                             sonic.Velocity.y = 0;
                         }
                     }
-                    for (int i = 0; i < 10; i++) {
+                    fa(i, 0, 10) {
                         if (sonic.PlayerColl.getGlobalBounds().intersects(DisappearingTiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < DisappearingTiles[i].TileSprite.getPosition().y) {
                             found = true;
                             sonic.onTile = true;
@@ -1769,26 +1781,23 @@ int main()
                         sonic.Velocity.y = 0;
                         if (Keyboard::isKeyPressed(Keyboard::Space) || Keyboard::isKeyPressed(Keyboard::W) || Keyboard::isKeyPressed(Keyboard::Up)) {
                             sonic.Velocity.y = 10;
+                            JumpSound.play();
                         }
                     }
                 }
 
-                for (int i = 0; i < 10; i++) {
+                fa(i, 0, 10) {
                     if (Vertical_tiles_left[i].Vertical_Tiles_sprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
-                        if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
+                        if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) 
                             sonic.Velocity.x = -12;
-                        }
-                        else {
+                        else
                             sonic.Velocity.x = -9;
-                        }
                     }
                     if (Vertical_tiles_right[i].Vertical_Tiles_sprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
-                        if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) {
+                        if (Keyboard::isKeyPressed(Keyboard::Key::LShift)) 
                             sonic.Velocity.x = 12;
-                        }
-                        else {
+                        else 
                             sonic.Velocity.x = 9;
-                        }
                     }
                 }
                 sonic.PlayerSprite.move(sonic.Velocity.x, -sonic.Velocity.y);
@@ -1802,11 +1811,11 @@ int main()
                 sonic.PlayerColl.setPosition(sonic.PlayerSprite.getPosition().x + 28, sonic.PlayerSprite.getPosition().y + 30);
                 sonic.RightColl.setPosition(sonic.PlayerSprite.getPosition().x + 55, sonic.PlayerSprite.getPosition().y + 30);
                 sonic.LeftColl.setPosition(sonic.PlayerSprite.getPosition().x + 28, sonic.PlayerSprite.getPosition().y + 30);
-                
+
                 window.setView(camera);
 
                 //Background Ship
-                for (int i = 0; i < 3; i++) {
+                fa(i, 0, 3) {
                     if (floatingShips[i].shipTexDelay <= 10) floatingShips[i].shipTexDelay++;
                     if (floatingShips[i].ShipMovingLeft) {
                         if (floatingShips[i].ShipSprite.getPosition().x < -200) {
@@ -1957,7 +1966,7 @@ int main()
                     if (BulletsSpawnDelay >= 300) {
                         SpawnStart = true;
                         if (!BulletsPositioned) {
-                            for (int i = 0; i < 5; i++) {
+                            fa(i, 0, 5) {
                                 skyBullets[i].SkyBulletsSprite.setPosition(rand() % 1109 + 14800, -300);
                                 skyBullets[i].spawned = false;
                                 skyBullets[i].SkyBulletsSprite.setScale(0.8, 0.8);
@@ -1972,7 +1981,7 @@ int main()
                             BulletsSpawned++;
                         }
                     }
-                    for (int i = 0; i < 5; i++) {
+                    fa(i, 0, 5) {
                         if (skyBullets[i].spawned) {
                             if (skyBullets[i].SkyBulletsSprite.getPosition().y <= 485) {
                                 skyBullets[i].SkyBulletsSprite.move(0, 12);
@@ -2000,7 +2009,7 @@ int main()
                     }
                 }
                 else {
-                    for (int i = 0; i < 5; i++) {
+                    fa(i, 0, 5) {
                         if (skyBullets[i].spawned) {
                             if (skyBullets[i].SkyBulletsSprite.getPosition().y <= 485) {
                                 skyBullets[i].SkyBulletsSprite.move(0, 12);
@@ -2126,11 +2135,12 @@ int main()
                 }
                 //Boss Level 2
                 if (Level == 2 && Level2Start) {
-                    if(Boss.MovingLeft) {
+                    if (Boss.MovingLeft) {
                         wreckingBall.WreckingChainSprite.setPosition(Boss.HitBox.getPosition().x + Boss.HitBox.getSize().x / 2 - 18, Boss.HitBox.getPosition().y + 95);
                         wreckingBall.WreckingBallSprite.setPosition(Boss.HitBox.getPosition().x + Boss.HitBox.getSize().x / 2 - 18, Boss.HitBox.getPosition().y + 95);
                         wreckingBall.HitBox.setPosition(Boss.HitBox.getPosition().x + Boss.HitBox.getSize().x / 2 - 18, Boss.HitBox.getPosition().y + 95);
-                    } else {
+                    }
+                    else {
                         wreckingBall.WreckingChainSprite.setPosition(Boss.HitBox.getPosition().x + Boss.HitBox.getSize().x / 2 + 4, Boss.HitBox.getPosition().y + 95);
                         wreckingBall.WreckingBallSprite.setPosition(Boss.HitBox.getPosition().x + Boss.HitBox.getSize().x / 2 + 4, Boss.HitBox.getPosition().y + 95);
                         wreckingBall.HitBox.setPosition(Boss.HitBox.getPosition().x + Boss.HitBox.getSize().x / 2 + 4, Boss.HitBox.getPosition().y + 95);
@@ -2236,7 +2246,7 @@ int main()
                         sonic.LeftTexNumber = 0;
                         sonic.PlayerSprite.setTextureRect(IntRect(sonic.LeftTexNumber * 48.2, 246, 48.2, 34));
                     }
-                    sonic.hitCounter = 160;
+                    sonic.hitCounter = 300;
                     SonicHitAudio.play();
                     sonic.Velocity.y = 2;
                     sonic.PlayerSprite.move(0, -20);
@@ -2262,7 +2272,7 @@ int main()
                     Boss.BossFaceSprite.setScale(0, 0);
                     if (SpawnCounter <= 6) SpawnCounter++;
                     if (Explosion[19].rowTxNum != 6 && Explosion[19].colomnTxNum <= 6) {
-                        for (int i = 0; i < 20; i++) {
+                        fa(i, 0, 20) {
                             if (!Explosion[i].Spawned) {
                                 if (SpawnCounter > 6) {
                                     ExplosionsSpawned++;
@@ -2295,9 +2305,9 @@ int main()
                     }
                 }
                 if (Boss.MovingLeft)
-                    Boss.HitBox.setPosition(Boss.BossSprite.getPosition().x + 10, Boss.BossSprite.getPosition().y + 38);
+                    Boss.HitBox.setPosition(Boss.BossSprite.getPosition().x + 10, Boss.BossSprite.getPosition().y + 48);
                 else
-                    Boss.HitBox.setPosition(Boss.BossSprite.getPosition().x + 78, Boss.BossSprite.getPosition().y + 38);
+                    Boss.HitBox.setPosition(Boss.BossSprite.getPosition().x + 78, Boss.BossSprite.getPosition().y + 48);
 
                 if (Level == 2 && Level2Start && Boss.lives > 0) {
                     if (wreckingBall.WreckingBallSprite.getRotation() == 70 && wreckingBall.MovingLeft) {
@@ -2336,7 +2346,7 @@ int main()
                     if (sonic.FinalScore > sonic.scoreValue) sonic.FinalScore = sonic.scoreValue;
                 }
                 //level 2
-                for (int i = 0; i < 2; i++) {
+                fa(i, 0, 2) {
                     if (HAnimTiles[i].Direction) {
                         HAnimTiles[i].TileSprite.move(5, 0);
                         HAnimTiles[i].TileColl.move(5, 0);
@@ -2372,18 +2382,15 @@ int main()
                         HAnimTiles[i].Direction = true;
                     }
                 }
-                for (int i = 0; i < 23; i++) {
+                fa(i, 0, 23) {
                     if (VAnimTiles[i].Direction) {
                         VAnimTiles[i].TileSprite.move(0, 5);
                         VAnimTiles[i].TileColl.move(0, 5);
                         if (sonic.PlayerSprite.getGlobalBounds().intersects(VAnimTiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < VAnimTiles[i].TileSprite.getPosition().y) {
                             sonic.PlayerSprite.move(0, 5);
                         }
-
                     }
-
                     else {
-
                         VAnimTiles[i].TileSprite.move(0, -5);
                         VAnimTiles[i].TileColl.move(0, -5);
                         if (sonic.PlayerSprite.getGlobalBounds().intersects(VAnimTiles[i].TileColl.getGlobalBounds()) && sonic.Velocity.y <= 0 && sonic.PlayerSprite.getPosition().y + 100 < VAnimTiles[i].TileSprite.getPosition().y) {
@@ -2397,7 +2404,7 @@ int main()
                         VAnimTiles[i].Direction = true;
                     }
                 }
-                for (int i = 0; i < 10; i++) {
+                fa(i, 0, 10) {
                     if (!DisappearingTiles[i].FullDisappeared) {
                         if (DisappearingTiles[i].dCounter <= 160) DisappearingTiles[i].dCounter++;
                         else {
@@ -2413,7 +2420,8 @@ int main()
                                 if (!DisappearingTiles[i].Disappeared) {
                                     DisappearingTiles[i].TileSprite.setColor(Color(255, 255, 255, 0));
                                     DisappearingTiles[i].Disappeared = true;
-                                } else {
+                                }
+                                else {
                                     DisappearingTiles[i].TileSprite.setColor(Color(255, 255, 255, 255));
                                     DisappearingTiles[i].Disappeared = false;
                                 }
@@ -2422,7 +2430,8 @@ int main()
                         else {
                             DisappearingTiles[i].TileSprite.setColor(Color(255, 255, 255, 255));
                         }
-                    } else {
+                    }
+                    else {
                         DisappearingTiles[i].AnimCounter = 0;
                         if (DisappearingTiles[i].dCounter <= 80) DisappearingTiles[i].dCounter++;
                         else {
@@ -2504,31 +2513,29 @@ int main()
             //draw
             window.draw(Map);
             window.draw(Map2);
-            for (int i = 0; i < 3; i++) window.draw(floatingShips[i].ShipSprite);
-            for (int i = 0; i < 12; i++) window.draw(tiles[i].TileSprite);
-            for (int i = 0; i < 15; i++) window.draw(jumppad[i].JumppadSprite);
-            for (int i = 0; i < 2; i++) window.draw(Red_coins[i].CoinSprite);
-            for (int i = 0; i < 171; i++) window.draw(spikes[i].SpikeSprite);
-            for (int i = 0; i < 6; i++) window.draw(tiles2[i].TileSprite);
-            for (int i = 0; i < 68; i++) window.draw(spikes2[i].SpikeSprite);
-            for (int i = 0; i < 82; i++) window.draw(animespikes2[i].SpikeSprite2);
-            for (int i = 0; i < 320; i++) window.draw(coins[i].CoinSprite);
-            for (int i = 0; i < 6; i++) window.draw(DisappearingTiles[i].TileSprite);
-            for (int i = 0; i < 8; i++) {
-                window.draw(Vertical_tiles_right[i].Vertical_Tiles_sprite);
-                window.draw(Vertical_tiles_left[i].Vertical_Tiles_sprite);
-            }
-            for (int i = 0; i < 2; i++) window.draw(HAnimTiles[i].TileSprite);
-            for (int i = 0; i < 23; i++) window.draw(VAnimTiles[i].TileSprite);
-            for (int i = 0; i < 2; i++) window.draw(Worms[i].EnemySprite);
-            for (int i = 0; i < 3; i++) window.draw(Crabs[i].EnemySprite);
-            for (int i = 0; i < 2; i++) window.draw(Enemy3[i].EnemySprite);
+            fa(i, 0, 3)window.draw(floatingShips[i].ShipSprite);
+            fa(i, 0, 12)window.draw(tiles[i].TileSprite);
+            fa(i, 0, 15) window.draw(jumppad[i].JumppadSprite);
+            fa(i, 0, 5) window.draw(Red_coins[i].CoinSprite);
+            fa(i, 0, 171) window.draw(spikes[i].SpikeSprite);
+            fa(i, 0, 6) window.draw(tiles2[i].TileSprite);
+            fa(i, 0, 68) window.draw(spikes2[i].SpikeSprite);
+            fa(i, 0, 82) window.draw(animespikes2[i].SpikeSprite2);
+            fa(i, 0, 420) window.draw(coins[i].CoinSprite);
+            fa(i, 0, 6) window.draw(DisappearingTiles[i].TileSprite);
+            fa(i, 0, 8) window.draw(Vertical_tiles_right[i].Vertical_Tiles_sprite);
+            fa(i, 0, 8) window.draw(Vertical_tiles_left[i].Vertical_Tiles_sprite);
+            fa(i, 0, 2) window.draw(HAnimTiles[i].TileSprite);
+            fa(i, 0, 23) window.draw(VAnimTiles[i].TileSprite);
+            fa(i, 0, 2) window.draw(Worms[i].EnemySprite);
+            fa(i, 0, 3) window.draw(Crabs[i].EnemySprite);
+            fa(i, 0, 2) window.draw(Enemy3[i].EnemySprite);
             window.draw(Boss.BossSprite);
             window.draw(wreckingBall.WreckingBallSprite);
             window.draw(wreckingBall.WreckingChainSprite);
-            for (int i = 0; i < 40; i++) window.draw(Explosion[i].ExplosionSprite); 
+            fa(i, 0, 40) window.draw(Explosion[i].ExplosionSprite);
             window.draw(sonic.PlayerSprite);
-            for (int i = 0; i < 5; i++) window.draw(skyBullets[i].SkyBulletsSprite);
+            fa(i, 0, 5) window.draw(skyBullets[i].SkyBulletsSprite);
             window.draw(SonicFace);
             window.draw(text);
             window.draw(lives);
@@ -2600,22 +2607,21 @@ void DrawAnimTiles() {
     VAnimTiles_pos(20, 32700, 0, 0, 480);
     VAnimTiles_pos(21, 33000, 0, 0, 480);
     VAnimTiles_pos(22, 33300, 0, 0, 480);
-    //328.9
 }
 
-void setTilePos(FloatingTiles& tile, int x, int y, int x2, int y2) {
+void setTilePos(FloatingTiles& tile, int x, int y) {
     tile.TileSprite.setPosition(x, y);
     tile.TileColl.setPosition(x + 15, y - 15);
     tile.LowerTileColl.setPosition(x + 15, y + 48);
 }
-void singleRedCoinPs(int index, int X_position, int Y_Position) {
+void singleRedCoinPs(int index, int X_position, int Y_Position, int scale = 0.7) {
     Red_coins[index].CoinSprite.setTexture(RedCoinTx);
     Red_coins[index].CoinSprite.setTextureRect(IntRect(0, 0, 1588, 112));
-    Red_coins[index].CoinSprite.setScale(0.7, 0.7);
+    Red_coins[index].CoinSprite.setScale(scale, scale);
     Red_coins[index].CoinSprite.setPosition(X_position, Y_Position);
 }
 void Moving_in_X_Axis(int First_index, int Last_index, int X_position, int Y_Position) {
-    for (int i = First_index; i < Last_index; i++) {
+    fa(i, First_index, Last_index) {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(X_position + ((i - First_index) * 45), Y_Position);
@@ -2623,7 +2629,7 @@ void Moving_in_X_Axis(int First_index, int Last_index, int X_position, int Y_Pos
     }
 }
 void Moving_in_X_Y(int First_index, int Last_index, int X_position, int Y_Position, int X_increament, int Y_increament) {
-    for (int i = First_index; i < Last_index; i++) {
+    fa(i, First_index, Last_index) {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition((X_position + ((i - First_index) * X_increament)), (Y_Position - ((i - First_index) * Y_increament)));
@@ -2631,7 +2637,7 @@ void Moving_in_X_Y(int First_index, int Last_index, int X_position, int Y_Positi
     }
 }
 void Moving_in_Y_Axis(int First_index, int Last_index, int X_position, int Y_Position, int increase = 45) {
-    for (int i = First_index; i < Last_index; i++) {
+    fa(i, First_index, Last_index) {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(X_position, Y_Position - ((i - First_index) * increase));
@@ -2645,7 +2651,7 @@ void SingleCoinPos(int num, int X_Position, int Y_position) {
     coins[num].CoinSprite.setScale(1, 1);
 }
 void PosRowCoins(int First_index, int Last_index, int X_position, int Y_Position) {
-    for (int i = First_index; i < Last_index; i++) {
+    fa(i, First_index, Last_index) {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(X_position + (i * 40), Y_Position);
@@ -2670,31 +2676,27 @@ void coinPos() {
     SingleCoinPos(46, 1630, 490);
     SingleCoinPos(41, 1510, 360);
     SingleCoinPos(50, 1505, 600);
-    for (int i = 38; i < 39; i++) {
-        coins[i].CoinSprite.setTexture(CoinTex);
-        coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
-        coins[i].CoinSprite.setPosition(1465, 375);
-        coins[i].CoinSprite.setScale(1, 1);
-    }
-    for (int i = 39; i < 41; i++) {
+    SingleCoinPos(38, 1465, 375);
+
+    fa(i, 39, 41) {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(1370 + ((i - 38) * 35), 510 - ((i - 37) * 35));
         coins[i].CoinSprite.setScale(1, 1);
     }
-    for (int i = 42; i < 45; i++) {
+    fa(i, 42, 45) {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(1520 + ((i - 41) * 35), 335 + ((i - 41) * 35));
         coins[i].CoinSprite.setScale(1, 1);
     }
-    for (int i = 47; i < 50; i++) {
+    fa(i, 47, 50) {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(1400 + ((i - 47) * 35), 540 + ((i - 47) * 25));
         coins[i].CoinSprite.setScale(1, 1);
     }
-    for (int i = 51; i < 54; i++) {
+    fa(i, 51, 54) {
         coins[i].CoinSprite.setTexture(CoinTex);
         coins[i].CoinSprite.setTextureRect(IntRect(0, 460, 40, 39));
         coins[i].CoinSprite.setPosition(1410 + ((i - 47) * 35), 680 - ((i - 47) * 25));
@@ -2716,7 +2718,7 @@ void coinPos() {
     Moving_in_X_Axis(82, 84, 2190, 600);
     Moving_in_X_Axis(84, 86, 2190, 420);
     //Red coins................................
-    singleRedCoinPs(0, 1980, 350);
+    singleRedCoinPs(0, 1980, 350, 0.7);
     Red_coins[1].CoinSprite.setTexture(RedCoinTx);
     Red_coins[1].CoinSprite.setTextureRect(IntRect(0, 0, 1588, 112));
     Red_coins[1].CoinSprite.setScale(1.5, 1.5);
@@ -2751,10 +2753,19 @@ void coinPos() {
     Moving_in_X_Y(301, 306, 12505, 40, 30, -45);
     Moving_in_X_Y(306, 311, 12355, 220, 30, 45);
     //
+
+    Moving_in_X_Axis(312, 329, 17350, 585);
+    Moving_in_X_Axis(329, 372, 18550, 200);
+    Moving_in_X_Axis(372, 379, 21410, 200);
+    Moving_in_X_Axis(379, 391, 23450, 200);
+    singleRedCoinPs(2, 29290, 570, 1);
+    singleRedCoinPs(3, 30690, 570, 1);
+    singleRedCoinPs(4, 32090, 570, 1);
+    Moving_in_X_Axis(391, 420, 34000, 580);
 }
 
 void PosRowSpikes(int First_index, int Last_index, int X_position, int Y_Position) {
-    for (int i = First_index; i < Last_index; i++) {
+    fa(i, First_index, Last_index) {
         spikes[i].SpikeSprite.setTexture(SpikeTex);
         spikes[i].SpikeSprite.setTextureRect(IntRect(0, 0, 142, 163));
         spikes[i].SpikeSprite.setScale(0.5f, 0.5f);
@@ -2781,18 +2792,18 @@ void Draw_jumppad() {
 }
 
 void draw_tiles() {
-    setTilePos(tiles[0], 3400, 300, -46, -46);
-    setTilePos(tiles[1], 4200, 200, -46, -46);
-    setTilePos(tiles[2], 5000, 250, -46, -46);
-    setTilePos(tiles[3], 6050, 240, 6050, 240);
-    setTilePos(tiles[4], 6375, 240, 6375, 240);
-    setTilePos(tiles[5], 6700, 240, 6700, 240);
-    setTilePos(tiles[6], 7025, 240, 7025, 240);
-    setTilePos(tiles[7], 7350, 240, 7350, 240);
-    setTilePos(tiles[8], 7675, 240, 7675, 240);
-    setTilePos(tiles[9], 21400, 240, -46, -46);
-    setTilePos(tiles[10], 35700, 480, -46, -46);
-    setTilePos(tiles[11], 36323, 480, -46, -46);
+    setTilePos(tiles[0], 3400, 300);
+    setTilePos(tiles[1], 4200, 200);
+    setTilePos(tiles[2], 5000, 250);
+    setTilePos(tiles[3], 6050, 240);
+    setTilePos(tiles[4], 6375, 240);
+    setTilePos(tiles[5], 6700, 240);
+    setTilePos(tiles[6], 7025, 240);
+    setTilePos(tiles[7], 7350, 240);
+    setTilePos(tiles[8], 7675, 240);
+    setTilePos(tiles[9], 21400, 240);
+    setTilePos(tiles[10], 35700, 480);
+    setTilePos(tiles[11], 36323, 480);
 }
 void draw_spikes() {
     PosRowSpikes(0, 28, 3400, 575);
@@ -2807,8 +2818,8 @@ void draw_spikes() {
     PosRowSpikes(94, 100, 21400, 575);
     PosRowSpikes(100, 131, 21800, 575);
     PosRowSpikes(131, 171, 24500, 575);
-    for (int i = 0; i < 24; i++) spikes2[i].SpikeSprite.setPosition(10005 + (i * 50), 113);
-    for (int i = 0; i < 44; i++) spikes2[i + 24].SpikeSprite.setPosition(24500 + (i * 65), 0);
+    fa(i, 0, 24) spikes2[i].SpikeSprite.setPosition(10005 + (i * 50), 113);
+    fa(i, 0, 44) spikes2[i + 24].SpikeSprite.setPosition(24500 + (i * 65), 0);
 }
 
 void drawVerticalTile(int i, int x, int y) {
@@ -2858,7 +2869,7 @@ void draw_enemies() {
     CrabsPos(2, 10550, 585, 10550, 11000);
     Enemy3Pos(0, 6020, 166, 6020, 6887.5);
     Enemy3Pos(1, 7500, 166, 7000, 7967);
-    //867.5
+    Enemy3Pos(2, 21500, 166, 21410, 21580);
 }
 
 void DrawDisappearingTiles() {
@@ -2867,28 +2878,28 @@ void DrawDisappearingTiles() {
     DisappearingTilesd(2, 19157, 250, 110);
     DisappearingTilesd(3, 19485, 250, 40);
     DisappearingTilesd(4, 19814, 250, 160);
-    DisappearingTilesd(5, 20143, 250, 0);   
+    DisappearingTilesd(5, 20143, 250, 0);
 }
 
 void area2() {
-    for (int i = 0; i < 6; i++) {
+    fa(i, 0, 6) {
         tiles2[i].TileSprite.setTexture(TileTx2);
         tiles2[i].TileSprite.setScale(1.3, 1.3);
         tiles2[i].TileColl.setSize(Vector2f(298.9f, 1.f));
     }
-    for (int i = 0; i < 6; i++) tiles2[i].TileSprite.setPosition(10000 + (i * 180), 60);
+    fa(i, 0, 6) tiles2[i].TileSprite.setPosition(10000 + (i * 180), 60);
 
-    for (int i = 0; i < 76; i++) {
+    fa(i, 0, 76) {
         spikes2[i].SpikeSprite.setTexture(SpikeTex2);
         spikes2[i].SpikeSprite.setTextureRect(IntRect(0, 0, 142, 163));
         spikes2[i].SpikeSprite.setScale(0.5f, 0.5f);
     }
 }
 void area3() {
-    for (int i = 0; i < 20; i++) animatedspikes_pos(i, 28000 + (i * 65), 50, 50, 521);
-    for (int i = 0; i < 20; i++) animatedspikes_pos(i + 20, 29400 + (i * 65), 50, 50, 521);
-    for (int i = 0; i < 20; i++) animatedspikes_pos(i + 40, 30800 + (i * 65), 50, 50, 521);
-    for (int i = 0; i < 22; i++) animatedspikes_pos(i + 60, 32200 + (i * 65), 50, 50, 521);
+    fa(i, 0, 20) animatedspikes_pos(i, 28000 + (i * 65), 50, 50, 521);
+    fa(i, 0, 20) animatedspikes_pos(i + 20, 29400 + (i * 65), 50, 50, 521);
+    fa(i, 0, 20) animatedspikes_pos(i + 40, 30800 + (i * 65), 50, 50, 521);
+    fa(i, 0, 22) animatedspikes_pos(i + 60, 32200 + (i * 65), 50, 50, 521);
 }
 //leaderboard fUnctions defenitions
 
