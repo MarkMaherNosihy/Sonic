@@ -1097,7 +1097,7 @@ int main()
         //Boss Fight
         Music BossFightMusic;
         BossFightMusic.openFromFile("Assets/Sounds/Sonic-3-Final-Boss-_Big-Arms_-Remix-_Kamex__1.ogg");
-        BossFightMusic.setVolume(1);
+        BossFightMusic.setVolume(50);
         BossFightMusic.setLoop(true);
         bool BossMusicStarted = false;
         //coin sound
