@@ -20,7 +20,7 @@ struct Player {
     RectangleShape PlayerColl, LeftColl, RightColl;
     Vector2f Velocity;
     int RightTexNumber = 0, IdleTexNumber = 0, TexDelay = 0, IdleDelay = 0, HitTxDelay = 0, LeftTexNumber = 22, HitCounter2 = 5;
-    int scoreValue = 0, lives = 100, hitCounter = -1, deathDealy = 0, FinalScore = 0;
+    int scoreValue = 0, lives = 5, hitCounter = -1, deathDealy = 0, FinalScore = 0;
     bool start = false, Running = false, IdleDirectionL = false, txToggle = false, onTile = false, OnVTile = false;
     bool on_ground = true, hitRight = false, hitLeft = false, RunningSound = false, HitAbove = false;
 };
@@ -502,8 +502,6 @@ int main()
                 {
                     if (i >= 10)
                         break;
-                    // cout << leaderBoard.size()<<endl;
-                     //cout << endl <<it->second << "\t" << it->first << endl;
                     LDNames[i].setString(it->second);
                     Iscore = (it->first);
                     Sscore = to_string(Iscore);
@@ -541,13 +539,10 @@ int main()
                 if (!(Sensor.getPosition().x <= 563 || Sensor.getPosition().x >= 863))
                 {
                     slider.setPosition(Sensor.getPosition().x, slider.getPosition().y);
-                    // dellay = 0;
-                    //cout << "slider" << slider.getPosition().x << endl;
                     vloumePercentage = (slider.getPosition().x - 563) / (863 - 563) * 100;
                     if (vloumePercentage <= 5)
                         vloumePercentage = 0;
                     BackgroundMusic.setVolume(vloumePercentage);
-                    //cout << "Volume" << vloumePercentage << endl;
                 }
             }
         }
@@ -1242,9 +1237,6 @@ int main()
             if (pauseDelay > 0) pauseDelay--;
             if (!paused) pauseMenu.setScale(0, 0);
 
-            if (Keyboard::isKeyPressed(Keyboard::T)) {
-                cout << sonic.PlayerSprite.getPosition().x << ' ' << sonic.PlayerSprite.getPosition().y << '\n';
-            }
 
             //Delays and coins
             if (sonic.lives > 0 && !paused) {
@@ -1282,7 +1274,6 @@ int main()
                 }
 
                 //Spikes System
-               // cout << sonic.hitCounter << '\n';
                 fa(i, 0, 180) {
                     if (sonic.hitCounter == -1) {
                         if (spikes[i].SpikeSprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
@@ -1380,9 +1371,6 @@ int main()
                     }
                 }
 
-                if (Mouse::isButtonPressed(Mouse::Left)) {
-                    std::cout << Mouse::getPosition(window).x << ' ' << Mouse::getPosition(window).y << '\n';
-                }
 
                 //Moving Right
                 if (!Boss.SceneStart) {
@@ -1768,7 +1756,6 @@ int main()
                             sonic.onTile = true;
                             sonic.OnVTile = true;
                             sonic.Velocity.y = 0;
-                            cout << "YES\n";
                         }
                     }
                     fa(i, 0, 10) {
@@ -1799,7 +1786,6 @@ int main()
                         }
                     }
                 }
-                cout << sonic.on_ground << sonic.onTile << sonic.OnVTile << '\n';
                 fa(i, 0, 10) {
                     if (Vertical_tiles_left[i].Vertical_Tiles_sprite.getGlobalBounds().intersects(sonic.PlayerColl.getGlobalBounds())) {
                         if (Keyboard::isKeyPressed(Keyboard::Key::LShift))
@@ -2312,6 +2298,7 @@ int main()
                     }
                     else if (Level != 3) {
                         Level = 3;
+                        sonic.scoreValue += (sonic.lives * 100);
                         sonic.FinalScore = 0;
                     }
                     if (BossMusicStarted) {
@@ -2357,7 +2344,8 @@ int main()
                             main();
                         }
                     }
-                    if (sonic.FinalScore < sonic.scoreValue) sonic.FinalScore += 7;
+                    //Test
+                    if (sonic.FinalScore < sonic.scoreValue) sonic.FinalScore += 100;
                     if (sonic.FinalScore > sonic.scoreValue) sonic.FinalScore = sonic.scoreValue;
                 }
                 //level 2
@@ -2468,9 +2456,6 @@ int main()
             }
             else if (paused) {
                 pauseMenu.setScale(1.05, 1);
-                if (Mouse::isButtonPressed(Mouse::Left)) {
-                    std::cout << Mouse::getPosition(window).x << ' ' << Mouse::getPosition(window).y << '\n';
-                }
                 if (Mouse::getPosition(window).x >= 440 && Mouse::getPosition(window).x <= 778 && Mouse::getPosition(window).y >= 344 && Mouse::getPosition(window).y <= 409) {
                     if (Mouse::isButtonPressed(Mouse::Left)) {
                         paused = false;
@@ -2486,9 +2471,6 @@ int main()
                 }
             }
             else {
-                if (Mouse::isButtonPressed(Mouse::Left)) {
-                    std::cout << Mouse::getPosition(window).x << ' ' << Mouse::getPosition(window).y << '\n';
-                }
                 sonic.deathDealy--;
                 if (sonic.deathDealy >= 0) {
                     sonic.PlayerSprite.move(0, -1);
@@ -2509,7 +2491,7 @@ int main()
                                 main();
                             }
                         }
-                        if (sonic.FinalScore < sonic.scoreValue) sonic.FinalScore += 7;
+                        if (sonic.FinalScore < sonic.scoreValue) sonic.FinalScore += 100;
                         else if (sonic.FinalScore > sonic.scoreValue) sonic.FinalScore = sonic.scoreValue;
                     }
                 }
