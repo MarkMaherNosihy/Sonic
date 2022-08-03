@@ -24,7 +24,7 @@ struct Player {
     bool start = false, Running = false, IdleDirectionL = false, txToggle = false, onTile = false, OnVTile = false;
     bool on_ground = true, hitRight = false, hitLeft = false, RunningSound = false, HitAbove = false;
 };
-//Boss
+///Boss
 struct BossSt {
     Texture BossTx;
     Sprite BossSprite;
